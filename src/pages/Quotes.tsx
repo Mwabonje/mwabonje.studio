@@ -1,0 +1,595 @@
+import React, { useState } from 'react';
+import { useStore, Quote, QuotePackage } from '@/store';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, Package, StickyNote, ShieldCheck, FileCheck2, ExternalLink, Link as LinkIcon } from 'lucide-react';
+import { format } from 'date-fns';
+
+export function Quotes() {
+  const { quotes, addQuote, updateQuote, deleteQuote } = useStore();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
+  
+  const defaultFormData = {
+    projectId: '',
+    clientName: '',
+    clientEmail: '',
+    clientPhone: '',
+    projectTitle: '',
+    issueDate: format(new Date(), 'yyyy-MM-dd'),
+    eventDate: '',
+    moodboardLink: '',
+    note: '',
+    retainerClause: 'A 50% retainer fee is required to secure your date. Dates are not held without a deposit.',
+    fulfillmentSchedule: 'High-resolution digital files will be delivered via online gallery within 14 business days.',
+    usageLicense: 'Social Media & Web Use only.',
+    usageRights: 'Client receives specific usage rights as detailed. Copyright remains with the photographer.',
+    transportLogistics: 'Transport within Nairobi is included. Transport outside Nairobi will be billed at cost.',
+    cancellationRescheduling: 'Cancellations made less than 7 days before the shoot forfeit the retainer.',
+    paymentDetails: 'Bank: Standard Chartered\nAcc Name: Mwabonje Photography\nAcc No: 0100000000000',
+    status: 'draft' as Quote['status'],
+    date: format(new Date(), 'yyyy-MM-dd'),
+  };
+
+  const [formData, setFormData] = useState(defaultFormData);
+  const [packages, setPackages] = useState<QuotePackage[]>([]);
+
+  const handleOpenDialog = (quote?: Quote) => {
+    if (quote) {
+      setEditingQuote(quote);
+      setFormData({
+        projectId: quote.projectId || '',
+        clientName: quote.clientName || '',
+        clientEmail: quote.clientEmail || '',
+        clientPhone: quote.clientPhone || '',
+        projectTitle: quote.projectTitle || '',
+        issueDate: quote.issueDate || quote.date || format(new Date(), 'yyyy-MM-dd'),
+        eventDate: quote.eventDate || '',
+        moodboardLink: quote.moodboardLink || '',
+        note: quote.note || '',
+        retainerClause: quote.retainerClause || defaultFormData.retainerClause,
+        fulfillmentSchedule: quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
+        usageLicense: quote.usageLicense || defaultFormData.usageLicense,
+        usageRights: quote.usageRights || defaultFormData.usageRights,
+        transportLogistics: quote.transportLogistics || defaultFormData.transportLogistics,
+        cancellationRescheduling: quote.cancellationRescheduling || defaultFormData.cancellationRescheduling,
+        paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
+        status: quote.status,
+        date: quote.date,
+      });
+      setPackages(quote.packages || []);
+    } else {
+      setEditingQuote(null);
+      setFormData(defaultFormData);
+      setPackages([]);
+    }
+    setIsDialogOpen(true);
+  };
+
+  const calculateTotal = () => packages.reduce((sum, pkg) => sum + (Number(pkg.settlement) || 0), 0);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const totalAmount = calculateTotal();
+    
+    if (editingQuote) {
+      updateQuote(editingQuote.id, { ...formData, packages, totalAmount });
+    } else {
+      addQuote({
+        id: crypto.randomUUID(),
+        ...formData,
+        packages,
+        totalAmount,
+      });
+    }
+    setIsDialogOpen(false);
+  };
+
+  const addPackage = () => {
+    setPackages([...packages, { id: crypto.randomUUID(), name: `Package ${packages.length + 1}`, inclusions: [''], settlement: 0 }]);
+  };
+
+  const updatePackage = (id: string, field: keyof QuotePackage, value: any) => {
+    setPackages(packages.map(pkg => pkg.id === id ? { ...pkg, [field]: value } : pkg));
+  };
+
+  const removePackage = (id: string) => {
+    setPackages(packages.filter(pkg => pkg.id !== id));
+  };
+
+  const addInclusion = (packageId: string) => {
+    setPackages(packages.map(pkg => {
+      if (pkg.id === packageId) {
+        return { ...pkg, inclusions: [...pkg.inclusions, ''] };
+      }
+      return pkg;
+    }));
+  };
+
+  const updateInclusion = (packageId: string, index: number, value: string) => {
+    setPackages(packages.map(pkg => {
+      if (pkg.id === packageId) {
+        const newInclusions = [...pkg.inclusions];
+        newInclusions[index] = value;
+        return { ...pkg, inclusions: newInclusions };
+      }
+      return pkg;
+    }));
+  };
+
+  const removeInclusion = (packageId: string, index: number) => {
+    setPackages(packages.map(pkg => {
+      if (pkg.id === packageId) {
+        const newInclusions = [...pkg.inclusions];
+        newInclusions.splice(index, 1);
+        return { ...pkg, inclusions: newInclusions };
+      }
+      return pkg;
+    }));
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved': return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200"><CheckCircle2 className="w-3 h-3 mr-1" /> Approved</Badge>;
+      case 'sent': return <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20"><Send className="w-3 h-3 mr-1" /> Sent</Badge>;
+      default: return <Badge variant="outline" className="text-slate-500"><FileText className="w-3 h-3 mr-1" /> Draft</Badge>;
+    }
+  };
+
+  const handleCopyLink = (quoteId: string) => {
+    const quote = quotes.find(q => q.id === quoteId);
+    if (!quote) return;
+    
+    try {
+      // Encode the quote data so it can be shared without a backend
+      const encodedQuote = btoa(encodeURIComponent(JSON.stringify(quote)));
+      const url = `${window.location.origin}/quote/shared?data=${encodedQuote}`;
+      
+      navigator.clipboard.writeText(url);
+      alert('Shareable link copied to clipboard! You can now send this to your client.');
+    } catch (err) {
+      console.error("Failed to generate link:", err);
+      alert('Failed to generate shareable link.');
+    }
+  };
+
+  return (
+    <div className="space-y-6 pb-20">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold tracking-tight">Quotes</h2>
+        <Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90">
+          <Plus className="w-4 h-4 mr-2" />
+          Create Quote
+        </Button>
+        
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-4xl sm:max-w-4xl md:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
+            <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
+              <DialogTitle className="text-xl font-bold">{editingQuote ? 'Edit Quote' : 'Create New Quote'}</DialogTitle>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="p-6 space-y-8">
+              
+              {/* Client Information & Quote Details Card */}
+              <div className="bg-white p-6 rounded-xl border shadow-sm space-y-8">
+                
+                {/* Client Information */}
+                <div className="space-y-4">
+                  <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                    <User className="w-4 h-4 mr-2 text-primary" />
+                    Client Information
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="clientName" className="text-xs font-bold text-slate-500 uppercase">Full Name</Label>
+                      <Input id="clientName" placeholder="e.g. John Doe" value={formData.clientName} onChange={(e) => setFormData({...formData, clientName: e.target.value})} required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="clientEmail" className="text-xs font-bold text-slate-500 uppercase">Email Address</Label>
+                      <Input id="clientEmail" type="email" placeholder="john@example.com" value={formData.clientEmail} onChange={(e) => setFormData({...formData, clientEmail: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="clientPhone" className="text-xs font-bold text-slate-500 uppercase">Phone Number</Label>
+                      <Input id="clientPhone" placeholder="e.g. 0712..." value={formData.clientPhone} onChange={(e) => setFormData({...formData, clientPhone: e.target.value})} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quote Details */}
+                <div className="space-y-4">
+                  <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                    <FileSignature className="w-4 h-4 mr-2 text-primary" />
+                    Quote Details
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="projectTitle" className="text-xs font-bold text-slate-500 uppercase">Project/Service Title</Label>
+                      <Input id="projectTitle" placeholder="e.g. Wedding Photography / Portrait Session" value={formData.projectTitle} onChange={(e) => setFormData({...formData, projectTitle: e.target.value})} required className="font-semibold" />
+                      <p className="text-xs text-slate-400">This appears as the main heading of the quote.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="issueDate" className="text-xs font-bold text-slate-500 uppercase">Issue Date</Label>
+                      <Input id="issueDate" type="date" value={formData.issueDate} onChange={(e) => setFormData({...formData, issueDate: e.target.value})} required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="eventDate" className="text-xs font-bold text-slate-500 uppercase">Proposed Event Date</Label>
+                      <Input id="eventDate" type="date" value={formData.eventDate} onChange={(e) => setFormData({...formData, eventDate: e.target.value})} />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="moodboardLink" className="text-xs font-bold text-slate-500 uppercase">Moodboard Link (Optional)</Label>
+                      <div className="relative">
+                        <ExternalLink className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                        <Input id="moodboardLink" placeholder="https://pinterest.com/..." className="pl-9" value={formData.moodboardLink} onChange={(e) => setFormData({...formData, moodboardLink: e.target.value})} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Investment Packages */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                    <Package className="w-4 h-4 mr-2" />
+                    Investment Packages
+                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={addPackage} className="text-primary border-primary/20 hover:bg-primary/5 rounded-full">
+                    <Plus className="w-4 h-4 mr-1" /> Add New Package
+                  </Button>
+                </div>
+
+                {packages.map((pkg, pIndex) => (
+                  <div key={pkg.id} className="bg-white rounded-xl border shadow-sm overflow-hidden">
+                    <div className="bg-slate-50 px-6 py-4 flex items-center justify-between border-b">
+                      <div className="flex items-center space-x-3 flex-1">
+                        <span className="text-primary font-bold">#{pIndex + 1}</span>
+                        <Input 
+                          value={pkg.name} 
+                          onChange={(e) => updatePackage(pkg.id, 'name', e.target.value)} 
+                          className="font-bold text-lg border-transparent bg-transparent hover:border-slate-200 focus:bg-white h-8 px-2 w-1/2"
+                        />
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removePackage(pkg.id)} className="text-slate-400 hover:text-destructive">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="p-6 space-y-6">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-xs font-bold text-slate-500 uppercase">Inclusions & Scope</Label>
+                          <Button type="button" variant="outline" size="sm" onClick={() => addInclusion(pkg.id)} className="h-7 text-xs rounded-full">
+                            <Plus className="w-3 h-3 mr-1" /> Add Inclusion
+                          </Button>
+                        </div>
+                        {pkg.inclusions.map((inc, iIndex) => (
+                          <div key={iIndex} className="flex items-center gap-2">
+                            <Input 
+                              placeholder="Description of service inclusion..." 
+                              value={inc} 
+                              onChange={(e) => updateInclusion(pkg.id, iIndex, e.target.value)} 
+                            />
+                            <Button type="button" variant="ghost" size="icon" onClick={() => removeInclusion(pkg.id, iIndex)} className="text-slate-400 hover:text-destructive shrink-0">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex justify-between items-end pt-4 border-t">
+                        <div className="flex items-center space-x-3">
+                          <Label className="text-xs font-bold text-slate-500 uppercase">Settlement:</Label>
+                          <div className="relative w-32">
+                            <span className="absolute left-3 top-2.5 text-slate-500 text-sm">Ksh</span>
+                            <Input 
+                              type="number" 
+                              className="pl-10 bg-slate-50" 
+                              value={pkg.settlement || ''} 
+                              onChange={(e) => updatePackage(pkg.id, 'settlement', Number(e.target.value))} 
+                            />
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-bold text-slate-500 uppercase mb-1">Total Valuation</p>
+                          <p className="text-2xl font-bold">Ksh {pkg.settlement.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {packages.length === 0 && (
+                  <div className="bg-white p-8 rounded-xl border shadow-sm text-center border-dashed">
+                    <p className="text-slate-500 mb-4">No packages added yet.</p>
+                    <Button type="button" variant="outline" onClick={addPackage}>Add First Package</Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Note */}
+              <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
+                <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                  <StickyNote className="w-4 h-4 mr-2 text-primary" />
+                  Note
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="note" className="text-xs font-bold text-slate-500 uppercase">Note (Optional)</Label>
+                  <Textarea id="note" placeholder="Add a note to the client..." value={formData.note} onChange={(e) => setFormData({...formData, note: e.target.value})} className="min-h-[100px]" />
+                </div>
+              </div>
+
+              {/* Legal & Delivery Terms */}
+              <div className="bg-white p-6 rounded-xl border shadow-sm space-y-6">
+                <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                  <ShieldCheck className="w-4 h-4 mr-2 text-primary" />
+                  Legal & Delivery Terms
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="retainerClause" className="text-xs font-bold text-slate-500 uppercase">Retainer & Booking Clause</Label>
+                    <Textarea id="retainerClause" value={formData.retainerClause} onChange={(e) => setFormData({...formData, retainerClause: e.target.value})} />
+                    <p className="text-xs text-slate-400">Appears in the "Financial Terms" section of the document.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fulfillmentSchedule" className="text-xs font-bold text-slate-500 uppercase">Fulfillment Schedule</Label>
+                    <Textarea id="fulfillmentSchedule" value={formData.fulfillmentSchedule} onChange={(e) => setFormData({...formData, fulfillmentSchedule: e.target.value})} />
+                    <p className="text-xs text-slate-400">Appears in the "Deliverables" section of the document.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detailed Terms & Logistics */}
+              <div className="bg-white p-6 rounded-xl border shadow-sm space-y-6">
+                <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                  <FileCheck2 className="w-4 h-4 mr-2 text-primary" />
+                  Detailed Terms & Logistics
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="usageLicense" className="text-xs font-bold text-slate-500 uppercase">Usage License</Label>
+                    <Textarea id="usageLicense" placeholder="e.g. Social Media & Web Use only..." value={formData.usageLicense} onChange={(e) => setFormData({...formData, usageLicense: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="usageRights" className="text-xs font-bold text-slate-500 uppercase">Usage Rights (Copyright)</Label>
+                    <Textarea id="usageRights" value={formData.usageRights} onChange={(e) => setFormData({...formData, usageRights: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="transportLogistics" className="text-xs font-bold text-slate-500 uppercase">Transport & Logistics</Label>
+                    <Textarea id="transportLogistics" value={formData.transportLogistics} onChange={(e) => setFormData({...formData, transportLogistics: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cancellationRescheduling" className="text-xs font-bold text-slate-500 uppercase">Cancellation & Rescheduling</Label>
+                    <Textarea id="cancellationRescheduling" value={formData.cancellationRescheduling} onChange={(e) => setFormData({...formData, cancellationRescheduling: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="paymentDetails" className="text-xs font-bold text-slate-500 uppercase">Payment Details</Label>
+                    <Textarea id="paymentDetails" value={formData.paymentDetails} onChange={(e) => setFormData({...formData, paymentDetails: e.target.value})} className="min-h-[100px]" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="sticky bottom-0 bg-white border-t p-4 flex justify-between items-center -mx-6 -mb-6 mt-8 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-full px-6">
+                  Discard Quote
+                </Button>
+                <div className="flex space-x-3">
+                  <Button type="button" variant="outline" onClick={() => setIsPreviewOpen(true)} className="text-primary border-primary/20 hover:bg-primary/5 rounded-full px-6">
+                    <ExternalLink className="w-4 h-4 mr-2" /> Review Document
+                  </Button>
+                  <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6">
+                    Generate & Save Quote
+                  </Button>
+                </div>
+              </div>
+
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+          <DialogContent className="max-w-4xl sm:max-w-4xl md:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
+            <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
+              <DialogTitle className="text-xl font-bold">Quote Preview</DialogTitle>
+            </div>
+            
+            <div className="p-8 sm:p-12 m-6 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
+              {/* Decorative Top Line */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-slate-900"></div>
+
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row justify-between items-start mb-12">
+                <div className="mb-6 sm:mb-0">
+                  <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Proposal For</h2>
+                  <h1 className="text-3xl sm:text-4xl font-serif text-slate-900 leading-tight">{formData.clientName || 'Client Name'}</h1>
+                  <p className="text-base text-slate-500 mt-2 font-serif italic">{formData.projectTitle || 'Project Title'}</p>
+                </div>
+                <div className="text-left sm:text-right">
+                  <h2 className="text-2xl sm:text-3xl font-serif text-slate-200 tracking-widest uppercase mb-4">Quote</h2>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Issue Date</p>
+                    <p className="text-xs text-slate-800 mb-3">{formData.issueDate ? format(new Date(formData.issueDate), 'MMMM d, yyyy') : 'N/A'}</p>
+                    
+                    {formData.eventDate && (
+                      <>
+                        <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Event Date</p>
+                        <p className="text-xs text-slate-800">{format(new Date(formData.eventDate), 'MMMM d, yyyy')}</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-full h-px bg-slate-200 mb-12"></div>
+
+              {/* Packages */}
+              <div className="mb-12">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] mb-6">Investment Options</h3>
+                
+                {packages.length === 0 ? (
+                  <p className="text-slate-400 italic font-serif text-sm">No packages detailed.</p>
+                ) : (
+                  <div className="space-y-6">
+                    {packages.map((pkg, index) => (
+                      <div key={pkg.id} className="border border-slate-200 p-6 relative group">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-slate-400 transition-colors"></div>
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                          <h4 className="text-xl font-serif text-slate-900">{pkg.name || `Package ${index + 1}`}</h4>
+                          <span className="text-lg font-serif text-slate-900 tracking-wide">
+                            Ksh {pkg.settlement.toLocaleString()}
+                          </span>
+                        </div>
+                        {pkg.inclusions.length > 0 && (
+                          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6">
+                            {pkg.inclusions.map((inc, i) => (
+                              <li key={i} className="flex items-start text-xs text-slate-600">
+                                <span className="w-1 h-1 rounded-full bg-slate-300 mr-2 mt-1.5 shrink-0"></span>
+                                <span className="leading-relaxed">{inc || 'Empty inclusion'}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {packages.length > 0 && (
+                  <div className="flex justify-end pt-8">
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1">Total Estimated Value</p>
+                      <p className="text-3xl font-serif text-slate-900">
+                        Ksh {packages.reduce((sum, pkg) => sum + pkg.settlement, 0).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Note */}
+              {formData.note && (
+                <div className="mb-12">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] mb-4">Project Notes</h3>
+                  <div className="pl-4 border-l-2 border-slate-200">
+                    <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed font-serif italic">{formData.note}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="w-full h-px bg-slate-200 mb-8"></div>
+
+              {/* Terms */}
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] mb-6">Terms & Conditions</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                  {formData.retainerClause && (
+                    <div>
+                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Retainer & Booking</h5>
+                      <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.retainerClause}</p>
+                    </div>
+                  )}
+                  {formData.fulfillmentSchedule && (
+                    <div>
+                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Fulfillment Schedule</h5>
+                      <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.fulfillmentSchedule}</p>
+                    </div>
+                  )}
+                  {formData.usageLicense && (
+                    <div>
+                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Usage License</h5>
+                      <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.usageLicense}</p>
+                    </div>
+                  )}
+                  {formData.cancellationRescheduling && (
+                    <div>
+                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Cancellation</h5>
+                      <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.cancellationRescheduling}</p>
+                    </div>
+                  )}
+                  {formData.paymentDetails && (
+                    <div className="md:col-span-2 bg-slate-50 p-6 border border-slate-100">
+                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Payment Details</h5>
+                      <p className="text-slate-600 text-xs whitespace-pre-wrap leading-relaxed">{formData.paymentDetails}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Footer Signature Area */}
+              <div className="mt-16 pt-8 border-t border-slate-200 flex justify-between items-end">
+                <div>
+                  <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase mb-6">Accepted By</p>
+                  <div className="w-32 h-px bg-slate-300 mb-2"></div>
+                  <p className="text-[10px] text-slate-500">Signature / Date</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-serif text-slate-900 font-bold">Thank you for your business.</p>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Quote ID</TableHead>
+                <TableHead>Project</TableHead>
+                <TableHead>Client</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Total Amount</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {quotes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    No quotes found. Create one to get started.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                quotes.map((quote) => {
+                  return (
+                    <TableRow key={quote.id}>
+                      <TableCell className="font-mono text-xs text-muted-foreground">
+                        {quote.id.substring(0, 8).toUpperCase()}
+                      </TableCell>
+                      <TableCell className="font-medium">{quote.projectTitle || 'Unknown Project'}</TableCell>
+                      <TableCell>{quote.clientName || 'Unknown Client'}</TableCell>
+                      <TableCell>{format(new Date(quote.issueDate || quote.date), 'MMM d, yyyy')}</TableCell>
+                      <TableCell className="font-semibold">KES {quote.totalAmount.toLocaleString()}</TableCell>
+                      <TableCell>{getStatusBadge(quote.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleCopyLink(quote.id)} title="Copy Shareable Link">
+                          <LinkIcon className="w-4 h-4 text-slate-500 hover:text-primary" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteQuote(quote.id)}>
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
