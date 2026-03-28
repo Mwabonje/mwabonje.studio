@@ -61,6 +61,7 @@ export type Quote = {
   totalAmount: number; // Sum of packages
   status: 'draft' | 'sent' | 'approved';
   date: string; // Keep for backward compatibility or use issueDate
+  selectedPackages?: string[]; // IDs of selected packages
 };
 
 export type Invoice = {

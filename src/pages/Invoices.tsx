@@ -8,13 +8,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 
 export function Invoices() {
   const { invoices, quotes, projects, clients, addInvoice, updateInvoice, deleteInvoice } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewInvoice, setPreviewInvoice] = useState<Invoice | null>(null);
   
   const [formData, setFormData] = useState({
     quoteId: 'none',
@@ -24,6 +26,11 @@ export function Invoices() {
     dueDate: format(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
   });
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
+
+  const handleOpenPreview = (invoice: Invoice) => {
+    setPreviewInvoice(invoice);
+    setIsPreviewOpen(true);
+  };
 
   const handleOpenDialog = (invoice?: Invoice) => {
     if (invoice) {
@@ -265,6 +272,111 @@ export function Invoices() {
             </form>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+          <DialogContent className="max-w-4xl sm:max-w-4xl md:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
+            <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
+              <DialogTitle className="text-xl font-bold">Invoice Preview</DialogTitle>
+            </div>
+            
+            {previewInvoice && (() => {
+              const client = clients.find(c => c.id === previewInvoice.clientId);
+              const project = projects.find(p => p.id === previewInvoice.projectId);
+              const balance = previewInvoice.totalAmount - previewInvoice.amountPaid;
+
+              return (
+                <div className="p-6 sm:p-12 m-4 sm:m-6 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
+                  {/* Decorative Top Line */}
+                  <div className="absolute top-0 left-0 w-full h-1 bg-slate-900"></div>
+
+                  {/* Header */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start mb-12">
+                    <div className="mb-6 sm:mb-0">
+                      <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Billed To</h2>
+                      <h1 className="text-3xl sm:text-4xl font-serif text-slate-900 leading-tight">{client?.name || 'Client Name'}</h1>
+                      <p className="text-sm text-slate-500 mt-1">{client?.email}</p>
+                      <p className="text-sm text-slate-500">{client?.phone}</p>
+                      <p className="text-base text-slate-500 mt-4 font-serif italic">{project?.title || 'Project Title'}</p>
+                    </div>
+                    <div className="text-left sm:text-right">
+                      <h2 className="text-2xl sm:text-3xl font-serif text-slate-200 tracking-widest uppercase mb-4">Invoice</h2>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Invoice No.</p>
+                        <p className="text-xs text-slate-800 mb-3 font-mono">{previewInvoice.id.substring(0, 8).toUpperCase()}</p>
+                        
+                        <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Issue Date</p>
+                        <p className="text-xs text-slate-800 mb-3">{format(new Date(previewInvoice.date), 'MMMM d, yyyy')}</p>
+                        
+                        <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Due Date</p>
+                        <p className="text-xs text-slate-800">{format(new Date(previewInvoice.dueDate), 'MMMM d, yyyy')}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="w-full h-px bg-slate-200 mb-8"></div>
+
+                  {/* Line Items */}
+                  <div className="mb-12">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200">
+                          <th className="py-3 text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Description</th>
+                          <th className="py-3 text-xs font-bold text-slate-900 uppercase tracking-[0.15em] text-right">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {previewInvoice.lineItems.map((item, index) => (
+                          <tr key={item.id || index} className="border-b border-slate-100">
+                            <td className="py-4 text-sm text-slate-700">{item.description || 'Item description'}</td>
+                            <td className="py-4 text-sm text-slate-900 font-medium text-right">KES {item.price.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Totals */}
+                  <div className="flex justify-end mb-12">
+                    <div className="w-full sm:w-1/2 md:w-1/3 space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">Subtotal</span>
+                        <span className="text-slate-900 font-medium">KES {previewInvoice.totalAmount.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">Amount Paid</span>
+                        <span className="text-slate-900 font-medium">KES {previewInvoice.amountPaid.toLocaleString()}</span>
+                      </div>
+                      <div className="w-full h-px bg-slate-200 my-2"></div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Balance Due</span>
+                        <span className="text-2xl font-serif text-slate-900 font-bold">KES {balance.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="w-full h-px bg-slate-200 mb-8"></div>
+
+                  {/* Payment Details & Footer */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-8">
+                    <div className="flex-1">
+                      <h3 className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] mb-4">Payment Details</h3>
+                      <div className="bg-slate-50 p-4 border border-slate-100 rounded text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">
+                        Bank: Standard Chartered{'\n'}
+                        Acc Name: Mwabonje Photography{'\n'}
+                        Acc No: 0100000000000{'\n'}
+                        M-Pesa Till: 123456
+                      </div>
+                    </div>
+                    <div className="text-left sm:text-right mt-auto">
+                      <p className="font-bold text-slate-900 text-sm">Mwabonje Studio</p>
+                      <p className="text-xs text-slate-500">Thank you for your business.</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>
@@ -309,6 +421,9 @@ export function Invoices() {
                       </TableCell>
                       <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                       <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenPreview(invoice)} title="Preview Invoice">
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(invoice)}>
                           <Edit className="w-4 h-4" />
                         </Button>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, FolderKanban, FileText, Receipt, CreditCard, PieChart, Menu, X } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 
@@ -11,8 +11,6 @@ export function Layout() {
 
   const navItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Clients', href: '/clients', icon: Users },
-    { name: 'Projects', href: '/projects', icon: FolderKanban },
     { name: 'Quotes', href: '/quotes', icon: FileText },
     { name: 'Invoices', href: '/invoices', icon: Receipt, badge: invoices.filter(i => i.status !== 'paid').length > 0 ? invoices.filter(i => i.status !== 'paid').length : undefined },
     { name: 'Payments', href: '/payments', icon: CreditCard },

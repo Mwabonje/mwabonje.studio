@@ -8,13 +8,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, Package, StickyNote, ShieldCheck, FileCheck2, ExternalLink, Link as LinkIcon } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, Package, StickyNote, ShieldCheck, FileCheck2, ExternalLink, Link as LinkIcon, CheckSquare } from 'lucide-react';
 import { format } from 'date-fns';
 
 export function Quotes() {
-  const { quotes, addQuote, updateQuote, deleteQuote } = useStore();
+  const { quotes, clients, projects, addQuote, updateQuote, deleteQuote, addClient, addProject, addInvoice } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
+  const [quoteToApprove, setQuoteToApprove] = useState<Quote | null>(null);
+  const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
+  const [depositPercentage, setDepositPercentage] = useState<number>(50);
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   
   const defaultFormData = {
@@ -143,6 +149,96 @@ export function Quotes() {
     }
   };
 
+  const handleOpenApproveDialog = (quote: Quote) => {
+    setQuoteToApprove(quote);
+    setSelectedPackageIds(quote.selectedPackages || []);
+    setDepositPercentage(50);
+    setIsApproveDialogOpen(true);
+  };
+
+  const handleApproveAndInvoice = () => {
+    if (!quoteToApprove) return;
+    
+    // 1. Update quote status and selected packages
+    updateQuote(quoteToApprove.id, {
+      status: 'approved',
+      selectedPackages: selectedPackageIds
+    });
+
+    // 2. Create invoice
+    const selectedPkgs = quoteToApprove.packages.filter(p => selectedPackageIds.includes(p.id));
+    const totalSelectedAmount = selectedPkgs.reduce((sum, p) => sum + p.settlement, 0);
+    
+    if (totalSelectedAmount > 0) {
+      const lineItems = selectedPkgs.map(p => ({
+        id: crypto.randomUUID(),
+        description: p.name + (p.inclusions.length > 0 ? ` (${p.inclusions.join(', ')})` : ''),
+        price: p.settlement
+      }));
+
+      // Add deposit note if applicable
+      if (depositPercentage > 0 && depositPercentage < 100) {
+        lineItems.push({
+          id: crypto.randomUUID(),
+          description: `Note: A ${depositPercentage}% deposit (KES ${(totalSelectedAmount * depositPercentage / 100).toLocaleString()}) is required to secure the booking.`,
+          price: 0
+        });
+      }
+
+      let clientId = '';
+      let projectId = quoteToApprove.projectId;
+
+      // Find or create client
+      const existingClient = clients.find(c => c.name.toLowerCase() === quoteToApprove.clientName.toLowerCase());
+      if (existingClient) {
+        clientId = existingClient.id;
+      } else {
+        clientId = crypto.randomUUID();
+        addClient({
+          id: clientId,
+          name: quoteToApprove.clientName,
+          email: quoteToApprove.clientEmail,
+          phone: quoteToApprove.clientPhone,
+          notes: 'Auto-created from quote'
+        });
+      }
+
+      // Find or create project
+      if (!projectId || !projects.find(p => p.id === projectId)) {
+        projectId = crypto.randomUUID();
+        addProject({
+          id: projectId,
+          clientId,
+          title: quoteToApprove.projectTitle,
+          location: '',
+          date: quoteToApprove.eventDate || quoteToApprove.issueDate || format(new Date(), 'yyyy-MM-dd'),
+          description: quoteToApprove.note || 'Auto-created from quote',
+          collaborators: []
+        });
+        updateQuote(quoteToApprove.id, { projectId });
+      }
+
+      addInvoice({
+        id: crypto.randomUUID(),
+        quoteId: quoteToApprove.id,
+        projectId,
+        clientId,
+        lineItems,
+        totalAmount: totalSelectedAmount,
+        amountPaid: 0,
+        status: 'unpaid',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        dueDate: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+      });
+    }
+
+    setIsApproveDialogOpen(false);
+    setQuoteToApprove(null);
+    setSelectedPackageIds([]);
+  };
+
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   const handleCopyLink = (quoteId: string) => {
     const quote = quotes.find(q => q.id === quoteId);
     if (!quote) return;
@@ -153,7 +249,8 @@ export function Quotes() {
       const url = `${window.location.origin}/quote/shared?data=${encodedQuote}`;
       
       navigator.clipboard.writeText(url);
-      alert('Shareable link copied to clipboard! You can now send this to your client.');
+      setCopiedId(quoteId);
+      setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
       console.error("Failed to generate link:", err);
       alert('Failed to generate shareable link.');
@@ -182,9 +279,23 @@ export function Quotes() {
                 
                 {/* Client Information */}
                 <div className="space-y-4">
-                  <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
-                    <User className="w-4 h-4 mr-2 text-primary" />
-                    Client Information
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                      <User className="w-4 h-4 mr-2 text-primary" />
+                      Client Information
+                    </div>
+                    <div className="w-48">
+                      <Select value={formData.status} onValueChange={(value: any) => setFormData({...formData, status: value})}>
+                        <SelectTrigger className="h-8 text-xs font-bold uppercase tracking-wider">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="draft">Draft</SelectItem>
+                          <SelectItem value="sent">Sent</SelectItem>
+                          <SelectItem value="approved">Approved</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
@@ -536,6 +647,61 @@ export function Quotes() {
             </div>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Approve Quote & Create Invoice</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+              <div className="space-y-3">
+                <Label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Selected Packages</Label>
+                <p className="text-xs text-slate-500 mb-2">Select the packages the client has chosen to proceed with.</p>
+                {quoteToApprove?.packages.map((pkg) => (
+                  <div key={pkg.id} className="flex items-center space-x-3 p-3 border rounded-lg bg-slate-50">
+                    <Checkbox 
+                      id={`pkg-${pkg.id}`} 
+                      checked={selectedPackageIds.includes(pkg.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedPackageIds([...selectedPackageIds, pkg.id]);
+                        } else {
+                          setSelectedPackageIds(selectedPackageIds.filter(id => id !== pkg.id));
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`pkg-${pkg.id}`} className="flex-1 cursor-pointer font-medium">
+                      {pkg.name}
+                    </Label>
+                    <span className="font-bold text-sm">KES {pkg.settlement.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                <Label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Deposit Required (%)</Label>
+                <p className="text-xs text-slate-500 mb-2">This will add a note to the invoice about the required deposit.</p>
+                <Input 
+                  type="number" 
+                  min="0" 
+                  max="100" 
+                  value={depositPercentage} 
+                  onChange={(e) => setDepositPercentage(Number(e.target.value))}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button variant="outline" onClick={() => setIsApproveDialogOpen(false)}>Cancel</Button>
+              <Button 
+                onClick={handleApproveAndInvoice} 
+                disabled={selectedPackageIds.length === 0}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Approve & Generate Invoice
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>
@@ -572,8 +738,22 @@ export function Quotes() {
                       <TableCell className="font-semibold">KES {quote.totalAmount.toLocaleString()}</TableCell>
                       <TableCell>{getStatusBadge(quote.status)}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleCopyLink(quote.id)} title="Copy Shareable Link">
-                          <LinkIcon className="w-4 h-4 text-slate-500 hover:text-primary" />
+                        {quote.status !== 'approved' && (
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenApproveDialog(quote)} title="Approve & Create Invoice">
+                            <CheckSquare className="w-4 h-4 text-green-600 hover:text-green-700" />
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="icon" onClick={() => handleCopyLink(quote.id)} title="Copy Shareable Link" className="relative">
+                          {copiedId === quote.id ? (
+                            <span className="absolute -top-8 bg-slate-800 text-white text-[10px] px-2 py-1 rounded shadow-sm whitespace-nowrap animate-in fade-in slide-in-from-bottom-2">
+                              Copied!
+                            </span>
+                          ) : null}
+                          {copiedId === quote.id ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <LinkIcon className="w-4 h-4 text-slate-500 hover:text-primary" />
+                          )}
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)}>
                           <Edit className="w-4 h-4" />
