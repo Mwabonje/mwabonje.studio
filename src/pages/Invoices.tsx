@@ -65,8 +65,14 @@ export function Invoices() {
         projectId: quote.projectId,
         clientId: project?.clientId || '',
       });
-      // Deep copy line items to avoid reference issues
-      setLineItems(quote.lineItems.map(item => ({ ...item, id: crypto.randomUUID() })));
+      // Convert quote packages to line items
+      setLineItems(
+        quote.packages.map(pkg => ({
+          id: crypto.randomUUID(),
+          description: pkg.name,
+          price: pkg.settlement,
+        }))
+      );
     }
   };
 
@@ -114,10 +120,10 @@ export function Invoices() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Invoices</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger render={<Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90" />}>
+          <DialogTrigger render={<Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto" />}>
             <Plus className="w-4 h-4 mr-2" />
             Create Invoice
           </DialogTrigger>
@@ -262,8 +268,8 @@ export function Invoices() {
       </div>
 
       <Card>
-        <CardContent className="p-0">
-          <Table>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table className="min-w-[800px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Invoice ID</TableHead>

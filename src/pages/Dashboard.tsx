@@ -86,12 +86,12 @@ export function Dashboard() {
       {/* Calendar Section */}
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm flex flex-col md:flex-row overflow-hidden border border-slate-100 min-h-[600px]">
         {/* Left Panel (Primary Color) */}
-        <div className="w-full md:w-[35%] bg-primary text-primary-foreground p-10 flex flex-col justify-between">
+        <div className="w-full md:w-[35%] bg-primary text-primary-foreground p-6 md:p-10 flex flex-col justify-between">
           <div>
-            <MoreHorizontal className="w-6 h-6 text-primary-foreground/70 mb-12" />
-            <div className="mb-12">
-              <h1 className="text-8xl font-bold mb-2">{format(selectedDate, 'd')}</h1>
-              <p className="text-2xl tracking-widest uppercase font-medium text-primary-foreground/90">{format(selectedDate, 'EEEE')}</p>
+            <MoreHorizontal className="w-6 h-6 text-primary-foreground/70 mb-8 md:mb-12" />
+            <div className="mb-8 md:mb-12">
+              <h1 className="text-6xl md:text-8xl font-bold mb-2">{format(selectedDate, 'd')}</h1>
+              <p className="text-xl md:text-2xl tracking-widest uppercase font-medium text-primary-foreground/90">{format(selectedDate, 'EEEE')}</p>
             </div>
             
             <div>
@@ -115,7 +115,7 @@ export function Dashboard() {
             </div>
           </div>
           
-          <div className="mt-12">
+          <div className="mt-8 md:mt-12">
             <div className="flex items-center justify-between border-b border-primary-foreground/20 pb-4">
               <span className="text-sm text-primary-foreground/80">Create an Event</span>
               <Plus className="w-5 h-5 text-primary-foreground/80 cursor-pointer hover:text-white" />
@@ -124,7 +124,7 @@ export function Dashboard() {
         </div>
 
         {/* Right Panel (Calendar Grid) */}
-        <div className="w-full md:w-[65%] p-10 flex flex-col bg-white">
+        <div className="w-full md:w-[65%] p-6 md:p-10 flex flex-col bg-white">
           {/* Header Controls */}
           <div className="flex justify-between items-center mb-12">
             <div className="flex space-x-6 overflow-x-auto hide-scrollbar">

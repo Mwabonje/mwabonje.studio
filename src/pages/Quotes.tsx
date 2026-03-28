@@ -162,9 +162,9 @@ export function Quotes() {
 
   return (
     <div className="space-y-6 pb-20">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Quotes</h2>
-        <Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90">
+        <Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" />
           Create Quote
         </Button>
@@ -399,7 +399,7 @@ export function Quotes() {
               <DialogTitle className="text-xl font-bold">Quote Preview</DialogTitle>
             </div>
             
-            <div className="p-8 sm:p-12 m-6 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
+            <div className="p-6 sm:p-12 m-4 sm:m-6 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
               {/* Decorative Top Line */}
               <div className="absolute top-0 left-0 w-full h-1 bg-slate-900"></div>
 
@@ -539,8 +539,8 @@ export function Quotes() {
       </div>
 
       <Card>
-        <CardContent className="p-0">
-          <Table>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table className="min-w-[800px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Quote ID</TableHead>

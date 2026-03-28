@@ -44,11 +44,11 @@ export function SharedQuote() {
     if (!quoteRef.current) return;
     
     const opt = {
-      margin:       [15, 15, 15, 15],
+      margin:       [15, 15, 15, 15] as [number, number, number, number],
       filename:     `Proposal_${quote.projectTitle.replace(/\s+/g, '_')}.pdf`,
-      image:        { type: 'jpeg', quality: 1 },
+      image:        { type: 'jpeg' as const, quality: 1 },
       html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
     };
 
     const element = quoteRef.current;
@@ -64,24 +64,24 @@ export function SharedQuote() {
       <div className="max-w-4xl mx-auto">
         
         {/* Action Bar */}
-        <div className="flex justify-between items-center mb-8 print:hidden">
-          <Button variant="ghost" asChild className="text-slate-500 hover:text-slate-900 rounded-none">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 print:hidden">
+          <Button variant="ghost" asChild className="text-slate-500 hover:text-slate-900 rounded-none w-full sm:w-auto justify-start sm:justify-center">
             <Link to="/quotes">
               <ArrowLeft className="w-4 h-4 mr-2" /> Back
             </Link>
           </Button>
-          <div className="flex space-x-3">
-            <Button onClick={handlePrint} variant="outline" className="text-slate-600 bg-white shadow-sm rounded-none border-slate-300">
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+            <Button onClick={handlePrint} variant="outline" className="text-slate-600 bg-white shadow-sm rounded-none border-slate-300 w-full sm:w-auto">
               <Printer className="w-4 h-4 mr-2" /> Print
             </Button>
-            <Button onClick={handleDownloadPDF} className="bg-slate-900 hover:bg-slate-800 text-white rounded-none px-6 shadow-sm">
+            <Button onClick={handleDownloadPDF} className="bg-slate-900 hover:bg-slate-800 text-white rounded-none px-6 shadow-sm w-full sm:w-auto">
               <Download className="w-4 h-4 mr-2" /> Download PDF
             </Button>
           </div>
         </div>
 
         {/* Quote Document */}
-        <div ref={quoteRef} className="bg-white shadow-xl border border-slate-100 p-12 sm:p-20 print:shadow-none print:border-none print:p-0 relative overflow-hidden">
+        <div ref={quoteRef} className="bg-white shadow-xl border border-slate-100 p-6 sm:p-12 md:p-20 print:shadow-none print:border-none print:p-0 relative overflow-hidden">
           
           {/* Decorative Top Line */}
           <div className="absolute top-0 left-0 w-full h-1 bg-slate-900"></div>
