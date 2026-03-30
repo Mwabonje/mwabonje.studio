@@ -83,6 +83,7 @@ export type Payment = {
   amount: number;
   date: string;
   method: 'cash' | 'mpesa' | 'bank';
+  reference?: string;
 };
 
 type AppState = {
@@ -109,6 +110,7 @@ type AppState = {
   deleteInvoice: (id: string) => void;
 
   addPayment: (payment: Payment) => void;
+  updatePayment: (id: string, payment: Partial<Payment>) => void;
   deletePayment: (id: string) => void;
 };
 
@@ -194,6 +196,40 @@ export const useStore = create<AppState>()(
             );
             return { payments: newPayments, invoices: newInvoices };
           }
+          return { payments: newPayments };
+        }),
+      updatePayment: (id, updatedPayment) =>
+        set((state) => {
+          const oldPayment = state.payments.find((p) => p.id === id);
+          if (!oldPayment) return state;
+
+          const newPayments = state.payments.map((p) =>
+            p.id === id ? { ...p, ...updatedPayment } : p
+          );
+
+          // If amount changed, update invoice balance
+          if (updatedPayment.amount !== undefined && updatedPayment.amount !== oldPayment.amount) {
+            const amountDiff = updatedPayment.amount - oldPayment.amount;
+            const invoice = state.invoices.find((i) => i.id === oldPayment.invoiceId);
+            
+            if (invoice) {
+              const newAmountPaid = invoice.amountPaid + amountDiff;
+              let newStatus: Invoice['status'] = 'unpaid';
+              if (newAmountPaid >= invoice.totalAmount) {
+                newStatus = 'paid';
+              } else if (newAmountPaid > 0) {
+                newStatus = 'partially_paid';
+              }
+
+              const newInvoices = state.invoices.map((i) =>
+                i.id === invoice.id
+                  ? { ...i, amountPaid: newAmountPaid, status: newStatus }
+                  : i
+              );
+              return { payments: newPayments, invoices: newInvoices };
+            }
+          }
+
           return { payments: newPayments };
         }),
       deletePayment: (id) =>

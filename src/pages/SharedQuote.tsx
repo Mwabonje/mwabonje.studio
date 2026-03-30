@@ -33,8 +33,8 @@ export function SharedQuote() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#fcfcfc] p-4">
         <h1 className="text-2xl font-serif text-slate-800 mb-2">Quote Not Found</h1>
         <p className="text-slate-500 mb-6">{error || "Loading quote data..."}</p>
-        <Button asChild variant="outline" className="rounded-none border-slate-300">
-          <Link to="/">Return to Dashboard</Link>
+        <Button render={<Link to="/" />} variant="outline" className="rounded-none border-slate-300">
+          Return to Dashboard
         </Button>
       </div>
     );
@@ -65,10 +65,8 @@ export function SharedQuote() {
         
         {/* Action Bar */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 print:hidden">
-          <Button variant="ghost" asChild className="text-slate-500 hover:text-slate-900 rounded-none w-full sm:w-auto justify-start sm:justify-center">
-            <Link to="/quotes">
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back
-            </Link>
+          <Button variant="ghost" render={<Link to="/quotes" />} className="text-slate-500 hover:text-slate-900 rounded-none w-full sm:w-auto justify-start sm:justify-center">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back
           </Button>
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
             <Button onClick={handlePrint} variant="outline" className="text-slate-600 bg-white shadow-sm rounded-none border-slate-300 w-full sm:w-auto">
