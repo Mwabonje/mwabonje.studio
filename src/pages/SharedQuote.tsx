@@ -188,6 +188,18 @@ export function SharedQuote() {
                   <p className="text-slate-500 text-sm whitespace-pre-wrap leading-relaxed">{quote.usageLicense}</p>
                 </div>
               )}
+              {quote.usageRights && (
+                <div>
+                  <h5 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Usage Rights</h5>
+                  <p className="text-slate-500 text-sm whitespace-pre-wrap leading-relaxed">{quote.usageRights}</p>
+                </div>
+              )}
+              {quote.transportLogistics && (
+                <div>
+                  <h5 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Transport & Logistics</h5>
+                  <p className="text-slate-500 text-sm whitespace-pre-wrap leading-relaxed">{quote.transportLogistics}</p>
+                </div>
+              )}
               {quote.cancellationRescheduling && (
                 <div>
                   <h5 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Cancellation</h5>

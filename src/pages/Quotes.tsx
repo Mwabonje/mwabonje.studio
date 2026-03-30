@@ -618,6 +618,18 @@ export function Quotes() {
                       <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.usageLicense}</p>
                     </div>
                   )}
+                  {formData.usageRights && (
+                    <div>
+                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Usage Rights</h5>
+                      <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.usageRights}</p>
+                    </div>
+                  )}
+                  {formData.transportLogistics && (
+                    <div>
+                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Transport & Logistics</h5>
+                      <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.transportLogistics}</p>
+                    </div>
+                  )}
                   {formData.cancellationRescheduling && (
                     <div>
                       <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Cancellation</h5>
