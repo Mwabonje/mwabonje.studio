@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, Package, StickyNote, ShieldCheck, FileCheck2, ExternalLink, Link as LinkIcon, CheckSquare } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, Package, StickyNote, ShieldCheck, FileCheck2, ExternalLink, Link as LinkIcon, CheckSquare, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 
 export function Quotes() {
@@ -24,6 +24,7 @@ export function Quotes() {
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   
   const defaultFormData = {
+    quoteNumber: '',
     projectId: '',
     clientName: '',
     clientEmail: '',
@@ -42,15 +43,52 @@ export function Quotes() {
     paymentDetails: 'Bank: Standard Chartered\nAcc Name: Mwabonje Photography\nAcc No: 0100000000000',
     status: 'draft' as Quote['status'],
     date: format(new Date(), 'yyyy-MM-dd'),
+    revisionOf: undefined as string | undefined,
   };
 
   const [formData, setFormData] = useState(defaultFormData);
   const [packages, setPackages] = useState<QuotePackage[]>([]);
 
+  const generateQuoteNumber = () => {
+    let maxNum = 0;
+    quotes.forEach(q => {
+      if (q.quoteNumber && q.quoteNumber.startsWith('QT-')) {
+        const parts = q.quoteNumber.split('-');
+        if (parts.length >= 2) {
+          const num = parseInt(parts[1], 10);
+          if (!isNaN(num) && num > maxNum) {
+            maxNum = num;
+          }
+        }
+      }
+    });
+    return `QT-${String(maxNum + 1).padStart(4, '0')}`;
+  };
+
+  const generateRevisionNumber = (originalQuote: Quote) => {
+    const baseNumber = originalQuote.quoteNumber || `QT-${originalQuote.id.substring(0, 8).toUpperCase()}`;
+    const baseWithoutRev = baseNumber.replace(/-R\d+$/, '');
+    
+    let maxRev = 0;
+    quotes.forEach(q => {
+      if (q.quoteNumber && q.quoteNumber.startsWith(`${baseWithoutRev}-R`)) {
+        const revPart = q.quoteNumber.split('-R')[1];
+        if (revPart) {
+          const num = parseInt(revPart, 10);
+          if (!isNaN(num) && num > maxRev) {
+            maxRev = num;
+          }
+        }
+      }
+    });
+    return `${baseWithoutRev}-R${maxRev + 1}`;
+  };
+
   const handleOpenDialog = (quote?: Quote) => {
     if (quote) {
       setEditingQuote(quote);
       setFormData({
+        quoteNumber: quote.quoteNumber || '',
         projectId: quote.projectId || '',
         clientName: quote.clientName || '',
         clientEmail: quote.clientEmail || '',
@@ -69,13 +107,45 @@ export function Quotes() {
         paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
         status: quote.status,
         date: quote.date,
+        revisionOf: quote.revisionOf,
       });
       setPackages(quote.packages || []);
     } else {
       setEditingQuote(null);
-      setFormData(defaultFormData);
+      setFormData({
+        ...defaultFormData,
+        quoteNumber: generateQuoteNumber(),
+      });
       setPackages([]);
     }
+    setIsDialogOpen(true);
+  };
+
+  const handleDuplicateQuote = (quote: Quote) => {
+    setEditingQuote(null);
+    setFormData({
+      quoteNumber: generateRevisionNumber(quote),
+      projectId: quote.projectId || '',
+      clientName: quote.clientName || '',
+      clientEmail: quote.clientEmail || '',
+      clientPhone: quote.clientPhone || '',
+      projectTitle: `${quote.projectTitle || ''} (Revision)`,
+      issueDate: format(new Date(), 'yyyy-MM-dd'),
+      eventDate: quote.eventDate || '',
+      moodboardLink: quote.moodboardLink || '',
+      note: quote.note || '',
+      retainerClause: quote.retainerClause || defaultFormData.retainerClause,
+      fulfillmentSchedule: quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
+      usageLicense: quote.usageLicense || defaultFormData.usageLicense,
+      usageRights: quote.usageRights || defaultFormData.usageRights,
+      transportLogistics: quote.transportLogistics || defaultFormData.transportLogistics,
+      cancellationRescheduling: quote.cancellationRescheduling || defaultFormData.cancellationRescheduling,
+      paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
+      status: 'draft',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      revisionOf: quote.id,
+    });
+    setPackages(quote.packages?.map(p => ({ ...p, id: crypto.randomUUID() })) || []);
     setIsDialogOpen(true);
   };
 
@@ -326,6 +396,10 @@ export function Quotes() {
                       <p className="text-xs text-slate-400">This appears as the main heading of the quote.</p>
                     </div>
                     <div className="space-y-2">
+                      <Label htmlFor="quoteNumber" className="text-xs font-bold text-slate-500 uppercase">Quote Number</Label>
+                      <Input id="quoteNumber" value={formData.quoteNumber} onChange={(e) => setFormData({...formData, quoteNumber: e.target.value})} required />
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="issueDate" className="text-xs font-bold text-slate-500 uppercase">Issue Date</Label>
                       <Input id="issueDate" type="date" value={formData.issueDate} onChange={(e) => setFormData({...formData, issueDate: e.target.value})} required />
                     </div>
@@ -519,11 +593,21 @@ export function Quotes() {
                 <div className="mb-6 sm:mb-0">
                   <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Proposal For</h2>
                   <h1 className="text-3xl sm:text-4xl font-serif text-slate-900 leading-tight">{formData.clientName || 'Client Name'}</h1>
-                  <p className="text-base text-slate-500 mt-2 font-serif italic">{formData.projectTitle || 'Project Title'}</p>
+                  <p className="text-base text-slate-500 mt-2 font-serif italic">
+                    {formData.projectTitle || 'Project Title'}
+                    {formData.revisionOf && (
+                      <span className="ml-2 text-[10px] font-sans font-bold tracking-widest uppercase text-slate-400 border border-slate-200 px-2 py-0.5 rounded-full align-middle">
+                        Revision
+                      </span>
+                    )}
+                  </p>
                 </div>
                 <div className="text-left sm:text-right">
                   <h2 className="text-2xl sm:text-3xl font-serif text-slate-200 tracking-widest uppercase mb-4">Quote</h2>
                   <div className="space-y-1">
+                    <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Quote No.</p>
+                    <p className="text-xs text-slate-800 mb-3 font-mono">{formData.quoteNumber || 'N/A'}</p>
+                    
                     <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Issue Date</p>
                     <p className="text-xs text-slate-800 mb-3">{formData.issueDate ? format(new Date(formData.issueDate), 'MMMM d, yyyy') : 'N/A'}</p>
                     
@@ -742,9 +826,16 @@ export function Quotes() {
                   return (
                     <TableRow key={quote.id}>
                       <TableCell className="font-mono text-xs text-muted-foreground">
-                        {quote.id.substring(0, 8).toUpperCase()}
+                        {quote.quoteNumber || quote.id.substring(0, 8).toUpperCase()}
                       </TableCell>
-                      <TableCell className="font-medium">{quote.projectTitle || 'Unknown Project'}</TableCell>
+                      <TableCell className="font-medium">
+                        {quote.projectTitle || 'Unknown Project'}
+                        {quote.revisionOf && (
+                          <Badge variant="outline" className="ml-2 text-[10px] bg-slate-100 text-slate-500 border-slate-200">
+                            Revision
+                          </Badge>
+                        )}
+                      </TableCell>
                       <TableCell>{quote.clientName || 'Unknown Client'}</TableCell>
                       <TableCell>{format(new Date(quote.issueDate || quote.date), 'MMM d, yyyy')}</TableCell>
                       <TableCell className="font-semibold">KES {quote.totalAmount.toLocaleString()}</TableCell>
@@ -767,10 +858,13 @@ export function Quotes() {
                             <LinkIcon className="w-4 h-4 text-slate-500 hover:text-primary" />
                           )}
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)}>
+                        <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)} title="Create Revision">
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)} title="Edit Quote">
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deleteQuote(quote.id)}>
+                        <Button variant="ghost" size="icon" onClick={() => deleteQuote(quote.id)} title="Delete Quote">
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </TableCell>

@@ -41,6 +41,7 @@ export type QuotePackage = {
 
 export type Quote = {
   id: string;
+  quoteNumber?: string; // Optional for backward compatibility
   projectId: string; // We might still link to a project, or create one later
   clientName: string;
   clientEmail: string;
@@ -62,6 +63,7 @@ export type Quote = {
   status: 'draft' | 'sent' | 'approved';
   date: string; // Keep for backward compatibility or use issueDate
   selectedPackages?: string[]; // IDs of selected packages
+  revisionOf?: string; // ID of the original quote if this is a revision
 };
 
 export type Invoice = {
