@@ -151,6 +151,20 @@ const defaultSettings: Settings = {
   paymentDetails: 'Bank: Standard Chartered\nAcc Name: Mwabonje Photography\nAcc No: 0100000000000\nM-Pesa Till: 123456',
 };
 
+const cleanData = (obj: any): any => {
+  if (Array.isArray(obj)) {
+    return obj.map(cleanData);
+  } else if (obj !== null && typeof obj === 'object') {
+    return Object.keys(obj).reduce((acc, key) => {
+      if (obj[key] !== undefined) {
+        acc[key] = cleanData(obj[key]);
+      }
+      return acc;
+    }, {} as any);
+  }
+  return obj;
+};
+
 export const useStore = create<AppState>((set, get) => ({
   clients: [],
   projects: [],
@@ -166,7 +180,7 @@ export const useStore = create<AppState>((set, get) => ({
   addClient: async (client) => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
-    const data = { ...client, uid };
+    const data = cleanData({ ...client, uid });
     await setDoc(doc(db, `users/${uid}/clients`, client.id), data);
   },
   updateClient: async (id, client) => {
@@ -174,7 +188,7 @@ export const useStore = create<AppState>((set, get) => ({
     if (!uid) return;
     const existing = get().clients.find(c => c.id === id);
     if (!existing) return;
-    await setDoc(doc(db, `users/${uid}/clients`, id), { ...existing, ...client, uid });
+    await setDoc(doc(db, `users/${uid}/clients`, id), cleanData({ ...existing, ...client, uid }));
   },
   deleteClient: async (id) => {
     const uid = auth.currentUser?.uid;
@@ -185,7 +199,7 @@ export const useStore = create<AppState>((set, get) => ({
   addProject: async (project) => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
-    const data = { ...project, uid };
+    const data = cleanData({ ...project, uid });
     await setDoc(doc(db, `users/${uid}/projects`, project.id), data);
   },
   updateProject: async (id, project) => {
@@ -193,7 +207,7 @@ export const useStore = create<AppState>((set, get) => ({
     if (!uid) return;
     const existing = get().projects.find(p => p.id === id);
     if (!existing) return;
-    await setDoc(doc(db, `users/${uid}/projects`, id), { ...existing, ...project, uid });
+    await setDoc(doc(db, `users/${uid}/projects`, id), cleanData({ ...existing, ...project, uid }));
   },
   deleteProject: async (id) => {
     const uid = auth.currentUser?.uid;
@@ -204,7 +218,7 @@ export const useStore = create<AppState>((set, get) => ({
   addQuote: async (quote) => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
-    const data = { ...quote, uid };
+    const data = cleanData({ ...quote, uid });
     await setDoc(doc(db, `users/${uid}/quotes`, quote.id), data);
   },
   updateQuote: async (id, quote) => {
@@ -212,7 +226,7 @@ export const useStore = create<AppState>((set, get) => ({
     if (!uid) return;
     const existing = get().quotes.find(q => q.id === id);
     if (!existing) return;
-    await setDoc(doc(db, `users/${uid}/quotes`, id), { ...existing, ...quote, uid });
+    await setDoc(doc(db, `users/${uid}/quotes`, id), cleanData({ ...existing, ...quote, uid }));
   },
   deleteQuote: async (id) => {
     const uid = auth.currentUser?.uid;
@@ -223,7 +237,7 @@ export const useStore = create<AppState>((set, get) => ({
   addInvoice: async (invoice) => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
-    const data = { ...invoice, uid };
+    const data = cleanData({ ...invoice, uid });
     await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), data);
   },
   updateInvoice: async (id, invoice) => {
@@ -231,7 +245,7 @@ export const useStore = create<AppState>((set, get) => ({
     if (!uid) return;
     const existing = get().invoices.find(i => i.id === id);
     if (!existing) return;
-    await setDoc(doc(db, `users/${uid}/invoices`, id), { ...existing, ...invoice, uid });
+    await setDoc(doc(db, `users/${uid}/invoices`, id), cleanData({ ...existing, ...invoice, uid }));
   },
   deleteInvoice: async (id) => {
     const uid = auth.currentUser?.uid;
@@ -242,7 +256,7 @@ export const useStore = create<AppState>((set, get) => ({
   addPayment: async (payment) => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
-    const data = { ...payment, uid };
+    const data = cleanData({ ...payment, uid });
     await setDoc(doc(db, `users/${uid}/payments`, payment.id), data);
     
     // Update invoice balance
@@ -255,7 +269,7 @@ export const useStore = create<AppState>((set, get) => ({
       } else if (newAmountPaid > 0) {
         newStatus = 'partially_paid';
       }
-      await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), { ...invoice, amountPaid: newAmountPaid, status: newStatus, uid });
+      await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), cleanData({ ...invoice, amountPaid: newAmountPaid, status: newStatus, uid }));
     }
   },
   updatePayment: async (id, payment) => {
@@ -263,7 +277,7 @@ export const useStore = create<AppState>((set, get) => ({
     if (!uid) return;
     const oldPayment = get().payments.find((p) => p.id === id);
     if (!oldPayment) return;
-    await setDoc(doc(db, `users/${uid}/payments`, id), { ...oldPayment, ...payment, uid });
+    await setDoc(doc(db, `users/${uid}/payments`, id), cleanData({ ...oldPayment, ...payment, uid }));
 
     // If amount changed, update invoice balance
     if (payment.amount !== undefined && payment.amount !== oldPayment.amount) {
@@ -277,7 +291,7 @@ export const useStore = create<AppState>((set, get) => ({
         } else if (newAmountPaid > 0) {
           newStatus = 'partially_paid';
         }
-        await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), { ...invoice, amountPaid: newAmountPaid, status: newStatus, uid });
+        await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), cleanData({ ...invoice, amountPaid: newAmountPaid, status: newStatus, uid }));
       }
     }
   },
@@ -298,7 +312,7 @@ export const useStore = create<AppState>((set, get) => ({
       } else if (newAmountPaid > 0) {
         newStatus = 'partially_paid';
       }
-      await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), { ...invoice, amountPaid: newAmountPaid, status: newStatus, uid });
+      await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), cleanData({ ...invoice, amountPaid: newAmountPaid, status: newStatus, uid }));
     }
   },
 
@@ -306,6 +320,6 @@ export const useStore = create<AppState>((set, get) => ({
     const uid = auth.currentUser?.uid;
     if (!uid) return;
     const existing = get().settings;
-    await setDoc(doc(db, `users/${uid}/settings`, 'profile'), { ...existing, ...updatedSettings });
+    await setDoc(doc(db, `users/${uid}/settings`, 'profile'), cleanData({ ...existing, ...updatedSettings }));
   },
 }));
