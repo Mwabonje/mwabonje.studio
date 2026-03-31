@@ -26,17 +26,22 @@ export function Clients() {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingClient) {
-      updateClient(editingClient.id, formData);
-    } else {
-      addClient({
-        id: crypto.randomUUID(),
-        ...formData,
-      });
+    try {
+      if (editingClient) {
+        await updateClient(editingClient.id, formData);
+      } else {
+        await addClient({
+          id: crypto.randomUUID(),
+          ...formData,
+        });
+      }
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error("Error saving client:", error);
+      alert("Failed to save client. Please check your connection and try again.");
     }
-    setIsDialogOpen(false);
   };
 
   return (

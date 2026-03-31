@@ -33,9 +33,14 @@ export default function Settings() {
     }
   };
 
-  const handleSave = () => {
-    updateSettings(formData);
-    toast.success('Settings saved successfully');
+  const handleSave = async () => {
+    try {
+      await updateSettings(formData);
+      toast.success('Settings saved successfully');
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast.error('Failed to save settings. Please check your connection.');
+    }
   };
 
   return (

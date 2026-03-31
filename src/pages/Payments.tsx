@@ -60,39 +60,44 @@ export function Payments() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingPaymentId) {
-      const updatedPayment: Partial<Payment> = {
+    try {
+      if (editingPaymentId) {
+        const updatedPayment: Partial<Payment> = {
+          invoiceId: formData.invoiceId,
+          amount: Number(formData.amount),
+          date: formData.date,
+          method: formData.method,
+          reference: formData.reference,
+        };
+        await updatePayment(editingPaymentId, updatedPayment);
+        setIsDialogOpen(false);
+        return;
+      }
+
+      const newPayment: Payment = {
+        id: crypto.randomUUID(),
         invoiceId: formData.invoiceId,
         amount: Number(formData.amount),
         date: formData.date,
         method: formData.method,
         reference: formData.reference,
       };
-      updatePayment(editingPaymentId, updatedPayment);
+      
+      await addPayment(newPayment);
+      
+      // Auto-generate receipt
+      setTimeout(() => {
+        generateReceipt(newPayment, 'download');
+      }, 500);
+      
       setIsDialogOpen(false);
-      return;
+    } catch (error) {
+      console.error("Error saving payment:", error);
+      alert("Failed to save payment. Please check your connection and try again.");
     }
-
-    const newPayment: Payment = {
-      id: crypto.randomUUID(),
-      invoiceId: formData.invoiceId,
-      amount: Number(formData.amount),
-      date: formData.date,
-      method: formData.method,
-      reference: formData.reference,
-    };
-    
-    addPayment(newPayment);
-    
-    // Auto-generate receipt
-    setTimeout(() => {
-      generateReceipt(newPayment, 'download');
-    }, 500);
-    
-    setIsDialogOpen(false);
   };
 
   const generateReceipt = (payment: Payment, mode: 'download' | 'preview' = 'download') => {

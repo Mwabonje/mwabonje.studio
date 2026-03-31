@@ -163,21 +163,26 @@ export function Quotes() {
 
   const calculateTotal = () => packages.reduce((sum, pkg) => sum + (Number(pkg.settlement) || 0), 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const totalAmount = calculateTotal();
     
-    if (editingQuote) {
-      updateQuote(editingQuote.id, { ...formData, packages, totalAmount });
-    } else {
-      addQuote({
-        id: crypto.randomUUID(),
-        ...formData,
-        packages,
-        totalAmount,
-      });
+    try {
+      if (editingQuote) {
+        await updateQuote(editingQuote.id, { ...formData, packages, totalAmount });
+      } else {
+        await addQuote({
+          id: crypto.randomUUID(),
+          ...formData,
+          packages,
+          totalAmount,
+        });
+      }
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error("Error saving quote:", error);
+      alert("Failed to save quote. Please check your connection and try again.");
     }
-    setIsDialogOpen(false);
   };
 
   const addPackage = () => {

@@ -60,7 +60,7 @@ service cloud.firestore {
     function isValidQuote() {
       let data = request.resource.data;
       return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
-             data.projectId is string && data.projectId.size() > 0 && data.projectId.size() < 100 &&
+             data.projectId is string && data.projectId.size() >= 0 && data.projectId.size() < 100 &&
              data.totalAmount is number && data.totalAmount >= 0 &&
              data.status in ['draft', 'sent', 'approved'] &&
              data.uid == request.auth.uid;
@@ -69,8 +69,8 @@ service cloud.firestore {
     function isValidInvoice() {
       let data = request.resource.data;
       return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
-             data.projectId is string && data.projectId.size() > 0 && data.projectId.size() < 100 &&
-             data.clientId is string && data.clientId.size() > 0 && data.clientId.size() < 100 &&
+             data.projectId is string && data.projectId.size() >= 0 && data.projectId.size() < 100 &&
+             data.clientId is string && data.clientId.size() >= 0 && data.clientId.size() < 100 &&
              data.totalAmount is number && data.totalAmount >= 0 &&
              data.amountPaid is number && data.amountPaid >= 0 &&
              data.status in ['unpaid', 'partially_paid', 'paid'] &&

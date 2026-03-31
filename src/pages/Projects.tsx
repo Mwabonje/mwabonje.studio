@@ -51,18 +51,23 @@ export function Projects() {
     setIsSplitDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingProject) {
-      updateProject(editingProject.id, { ...formData, collaborators });
-    } else {
-      addProject({
-        id: crypto.randomUUID(),
-        ...formData,
-        collaborators,
-      });
+    try {
+      if (editingProject) {
+        await updateProject(editingProject.id, { ...formData, collaborators });
+      } else {
+        await addProject({
+          id: crypto.randomUUID(),
+          ...formData,
+          collaborators,
+        });
+      }
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error("Error saving project:", error);
+      alert("Failed to save project. Please check your connection and try again.");
     }
-    setIsDialogOpen(false);
   };
 
   const addCollaborator = () => {

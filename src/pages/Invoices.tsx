@@ -97,24 +97,29 @@ export function Invoices() {
 
   const calculateTotal = () => lineItems.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const totalAmount = calculateTotal();
     
-    if (editingInvoice) {
-      updateInvoice(editingInvoice.id, { ...formData, lineItems, totalAmount });
-    } else {
-      addInvoice({
-        id: crypto.randomUUID(),
-        ...formData,
-        quoteId: formData.quoteId === 'none' ? undefined : formData.quoteId,
-        lineItems,
-        totalAmount,
-        amountPaid: 0,
-        status: 'unpaid',
-      });
+    try {
+      if (editingInvoice) {
+        await updateInvoice(editingInvoice.id, { ...formData, lineItems, totalAmount });
+      } else {
+        await addInvoice({
+          id: crypto.randomUUID(),
+          ...formData,
+          quoteId: formData.quoteId === 'none' ? undefined : formData.quoteId,
+          lineItems,
+          totalAmount,
+          amountPaid: 0,
+          status: 'unpaid',
+        });
+      }
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error("Error saving invoice:", error);
+      alert("Failed to save invoice. Please check your connection and try again.");
     }
-    setIsDialogOpen(false);
   };
 
   const addLineItem = () => {
