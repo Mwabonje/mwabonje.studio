@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 
@@ -15,6 +15,7 @@ export function Layout() {
     { name: 'Invoices', href: '/invoices', icon: Receipt, badge: invoices.filter(i => i.status !== 'paid').length > 0 ? invoices.filter(i => i.status !== 'paid').length : undefined },
     { name: 'Payments', href: '/payments', icon: CreditCard },
     { name: 'Performance', href: '/performance', icon: PieChart },
+    { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
@@ -90,14 +91,25 @@ export function Layout() {
         </nav>
 
         <div className="px-6 lg:px-10 mt-auto pt-8">
-          <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-bold text-lg">
-              M
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-bold text-lg">
+                M
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-semibold text-white">Mwabonje Admin</p>
+                <p className="text-xs text-primary-foreground/60">Studio Manager</p>
+              </div>
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-semibold text-white">Mwabonje Admin</p>
-              <p className="text-xs text-primary-foreground/60">Studio Manager</p>
-            </div>
+            <button 
+              onClick={() => {
+                import('@/lib/firebase').then(({ logout }) => logout());
+              }}
+              className="p-2 text-primary-foreground/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              title="Sign Out"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
           </div>
         </div>
       </aside>

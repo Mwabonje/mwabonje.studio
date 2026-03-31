@@ -14,7 +14,7 @@ import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, 
 import { format } from 'date-fns';
 
 export function Quotes() {
-  const { quotes, clients, projects, addQuote, updateQuote, deleteQuote, addClient, addProject, addInvoice } = useStore();
+  const { quotes, clients, projects, settings, addQuote, updateQuote, deleteQuote, addClient, addProject, addInvoice } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
@@ -40,7 +40,7 @@ export function Quotes() {
     usageRights: 'Client receives specific usage rights as detailed. Copyright remains with the photographer.',
     transportLogistics: 'Transport within Nairobi is included. Transport outside Nairobi will be billed at cost.',
     cancellationRescheduling: 'Cancellations made less than 7 days before the shoot forfeit the retainer.',
-    paymentDetails: 'Bank: Standard Chartered\nAcc Name: Mwabonje Photography\nAcc No: 0100000000000',
+    paymentDetails: settings.paymentDetails,
     status: 'draft' as Quote['status'],
     date: format(new Date(), 'yyyy-MM-dd'),
     revisionOf: undefined as string | undefined,
@@ -82,6 +82,18 @@ export function Quotes() {
       }
     });
     return `${baseWithoutRev}-R${maxRev + 1}`;
+  };
+
+  const getColorClass = (color: string) => {
+    const colors: Record<string, string> = {
+      slate: 'bg-slate-900',
+      blue: 'bg-blue-900',
+      green: 'bg-green-900',
+      rose: 'bg-rose-900',
+      amber: 'bg-amber-900',
+      violet: 'bg-violet-900',
+    };
+    return colors[color] || 'bg-slate-900';
   };
 
   const handleOpenDialog = (quote?: Quote) => {
@@ -314,9 +326,12 @@ export function Quotes() {
     if (!quote) return;
     
     try {
-      // Encode the quote data so it can be shared without a backend
-      const encodedQuote = btoa(encodeURIComponent(JSON.stringify(quote)));
-      const url = `${window.location.origin}/quote/shared?data=${encodedQuote}`;
+      const userId = useStore.getState().userId;
+      if (!userId) {
+        toast.error('You must be logged in to share quotes.');
+        return;
+      }
+      const url = `${window.location.origin}/quote/shared?uid=${userId}&id=${quoteId}`;
       
       navigator.clipboard.writeText(url);
       setCopiedId(quoteId);
@@ -586,11 +601,14 @@ export function Quotes() {
             
             <div className="p-6 sm:p-12 m-4 sm:m-6 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
               {/* Decorative Top Line */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-slate-900"></div>
+              <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(settings.colorScheme)}`}></div>
 
               {/* Header */}
               <div className="flex flex-col sm:flex-row justify-between items-start mb-12">
                 <div className="mb-6 sm:mb-0">
+                  {settings.logoUrl && (
+                    <img src={settings.logoUrl} alt="Company Logo" className="h-12 object-contain mb-6" />
+                  )}
                   <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Proposal For</h2>
                   <h1 className="text-3xl sm:text-4xl font-serif text-slate-900 leading-tight">{formData.clientName || 'Client Name'}</h1>
                   <p className="text-base text-slate-500 mt-2 font-serif italic">
@@ -737,7 +755,12 @@ export function Quotes() {
                   <p className="text-[10px] text-slate-500">Signature / Date</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-serif text-slate-900 font-bold">Thank you for your business.</p>
+                  <p className="font-bold text-slate-900 text-sm">{settings.companyName}</p>
+                  {settings.companyEmail && <p className="text-xs text-slate-500">{settings.companyEmail}</p>}
+                  {settings.companyPhone && <p className="text-xs text-slate-500">{settings.companyPhone}</p>}
+                  {settings.companyWebsite && <p className="text-xs text-slate-500">{settings.companyWebsite}</p>}
+                  {settings.companyAddress && <p className="text-xs text-slate-500 whitespace-pre-wrap mt-1">{settings.companyAddress}</p>}
+                  <p className="text-xs text-slate-500 mt-2 italic">Thank you for your business.</p>
                 </div>
               </div>
             </div>

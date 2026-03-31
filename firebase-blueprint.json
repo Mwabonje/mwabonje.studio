@@ -1,0 +1,153 @@
+{
+  "entities": {
+    "Client": {
+      "title": "Client",
+      "description": "A client of the studio",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "notes": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "name", "uid"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "A project for a client",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clientId": { "type": "string" },
+        "title": { "type": "string" },
+        "location": { "type": "string" },
+        "date": { "type": "string" },
+        "description": { "type": "string" },
+        "collaborators": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "splitType": { "type": "string", "enum": ["equal", "percentage"] },
+              "percentage": { "type": "number" }
+            }
+          }
+        },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "clientId", "title", "uid"]
+    },
+    "Quote": {
+      "title": "Quote",
+      "description": "A quote for a project",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "quoteNumber": { "type": "string" },
+        "projectId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "clientEmail": { "type": "string" },
+        "clientPhone": { "type": "string" },
+        "projectTitle": { "type": "string" },
+        "issueDate": { "type": "string" },
+        "eventDate": { "type": "string" },
+        "moodboardLink": { "type": "string" },
+        "packages": { "type": "array" },
+        "note": { "type": "string" },
+        "retainerClause": { "type": "string" },
+        "fulfillmentSchedule": { "type": "string" },
+        "usageLicense": { "type": "string" },
+        "usageRights": { "type": "string" },
+        "transportLogistics": { "type": "string" },
+        "cancellationRescheduling": { "type": "string" },
+        "paymentDetails": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["draft", "sent", "approved"] },
+        "date": { "type": "string" },
+        "selectedPackages": { "type": "array" },
+        "revisionOf": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "projectId", "totalAmount", "status", "uid"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "An invoice for a project",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "quoteId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "clientId": { "type": "string" },
+        "lineItems": { "type": "array" },
+        "totalAmount": { "type": "number" },
+        "amountPaid": { "type": "number" },
+        "status": { "type": "string", "enum": ["unpaid", "partially_paid", "paid"] },
+        "date": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "projectId", "clientId", "totalAmount", "amountPaid", "status", "uid"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "A payment for an invoice",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "invoiceId": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string" },
+        "method": { "type": "string", "enum": ["cash", "mpesa", "bank"] },
+        "reference": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "invoiceId", "amount", "date", "method", "uid"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "User settings",
+      "type": "object",
+      "properties": {
+        "logoUrl": { "type": "string" },
+        "companyName": { "type": "string" },
+        "companyAddress": { "type": "string" },
+        "companyEmail": { "type": "string" },
+        "companyPhone": { "type": "string" },
+        "companyWebsite": { "type": "string" },
+        "colorScheme": { "type": "string" },
+        "paymentDetails": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}/clients/{clientId}": {
+      "schema": { "$ref": "#/entities/Client" },
+      "description": "Clients belonging to a user"
+    },
+    "/users/{userId}/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "Projects belonging to a user"
+    },
+    "/users/{userId}/quotes/{quoteId}": {
+      "schema": { "$ref": "#/entities/Quote" },
+      "description": "Quotes belonging to a user"
+    },
+    "/users/{userId}/invoices/{invoiceId}": {
+      "schema": { "$ref": "#/entities/Invoice" },
+      "description": "Invoices belonging to a user"
+    },
+    "/users/{userId}/payments/{paymentId}": {
+      "schema": { "$ref": "#/entities/Payment" },
+      "description": "Payments belonging to a user"
+    },
+    "/users/{userId}/settings/profile": {
+      "schema": { "$ref": "#/entities/Settings" },
+      "description": "Settings for a user"
+    }
+  }
+}

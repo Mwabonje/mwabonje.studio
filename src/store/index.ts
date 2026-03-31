@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { db, auth } from '../lib/firebase';
+import { collection, doc, setDoc, deleteDoc, onSnapshot, query } from 'firebase/firestore';
 
 export type Client = {
   id: string;
@@ -7,13 +8,14 @@ export type Client = {
   phone: string;
   email: string;
   notes: string;
+  uid?: string;
 };
 
 export type CollaboratorSplit = {
   id: string;
   name: string;
   splitType: 'equal' | 'percentage';
-  percentage?: number; // if splitType is percentage
+  percentage?: number;
 };
 
 export type Project = {
@@ -24,6 +26,7 @@ export type Project = {
   date: string;
   description: string;
   collaborators: CollaboratorSplit[];
+  uid?: string;
 };
 
 export type LineItem = {
@@ -41,8 +44,8 @@ export type QuotePackage = {
 
 export type Quote = {
   id: string;
-  quoteNumber?: string; // Optional for backward compatibility
-  projectId: string; // We might still link to a project, or create one later
+  quoteNumber?: string;
+  projectId: string;
   clientName: string;
   clientEmail: string;
   clientPhone: string;
@@ -59,11 +62,12 @@ export type Quote = {
   transportLogistics: string;
   cancellationRescheduling: string;
   paymentDetails: string;
-  totalAmount: number; // Sum of packages
+  totalAmount: number;
   status: 'draft' | 'sent' | 'approved';
-  date: string; // Keep for backward compatibility or use issueDate
-  selectedPackages?: string[]; // IDs of selected packages
-  revisionOf?: string; // ID of the original quote if this is a revision
+  date: string;
+  selectedPackages?: string[];
+  revisionOf?: string;
+  uid?: string;
 };
 
 export type Invoice = {
@@ -77,6 +81,7 @@ export type Invoice = {
   status: 'unpaid' | 'partially_paid' | 'paid';
   date: string;
   dueDate: string;
+  uid?: string;
 };
 
 export type Payment = {
@@ -86,6 +91,18 @@ export type Payment = {
   date: string;
   method: 'cash' | 'mpesa' | 'bank';
   reference?: string;
+  uid?: string;
+};
+
+export type Settings = {
+  logoUrl: string;
+  companyName: string;
+  companyAddress: string;
+  companyEmail: string;
+  companyPhone: string;
+  companyWebsite: string;
+  colorScheme: string;
+  paymentDetails: string;
 };
 
 type AppState = {
@@ -94,177 +111,201 @@ type AppState = {
   quotes: Quote[];
   invoices: Invoice[];
   payments: Payment[];
+  settings: Settings;
+  isAuthReady: boolean;
+  userId: string | null;
 
-  addClient: (client: Client) => void;
-  updateClient: (id: string, client: Partial<Client>) => void;
-  deleteClient: (id: string) => void;
+  setAuthReady: (ready: boolean, userId: string | null) => void;
 
-  addProject: (project: Project) => void;
-  updateProject: (id: string, project: Partial<Project>) => void;
-  deleteProject: (id: string) => void;
+  addClient: (client: Client) => Promise<void>;
+  updateClient: (id: string, client: Partial<Client>) => Promise<void>;
+  deleteClient: (id: string) => Promise<void>;
 
-  addQuote: (quote: Quote) => void;
-  updateQuote: (id: string, quote: Partial<Quote>) => void;
-  deleteQuote: (id: string) => void;
+  addProject: (project: Project) => Promise<void>;
+  updateProject: (id: string, project: Partial<Project>) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
 
-  addInvoice: (invoice: Invoice) => void;
-  updateInvoice: (id: string, invoice: Partial<Invoice>) => void;
-  deleteInvoice: (id: string) => void;
+  addQuote: (quote: Quote) => Promise<void>;
+  updateQuote: (id: string, quote: Partial<Quote>) => Promise<void>;
+  deleteQuote: (id: string) => Promise<void>;
 
-  addPayment: (payment: Payment) => void;
-  updatePayment: (id: string, payment: Partial<Payment>) => void;
-  deletePayment: (id: string) => void;
+  addInvoice: (invoice: Invoice) => Promise<void>;
+  updateInvoice: (id: string, invoice: Partial<Invoice>) => Promise<void>;
+  deleteInvoice: (id: string) => Promise<void>;
+
+  addPayment: (payment: Payment) => Promise<void>;
+  updatePayment: (id: string, payment: Partial<Payment>) => Promise<void>;
+  deletePayment: (id: string) => Promise<void>;
+
+  updateSettings: (settings: Partial<Settings>) => Promise<void>;
 };
 
-export const useStore = create<AppState>()(
-  persist(
-    (set) => ({
-      clients: [],
-      projects: [],
-      quotes: [],
-      invoices: [],
-      payments: [],
+const defaultSettings: Settings = {
+  logoUrl: '',
+  companyName: 'Mwabonje Studio',
+  companyAddress: '',
+  companyEmail: '',
+  companyPhone: '',
+  companyWebsite: '',
+  colorScheme: 'slate',
+  paymentDetails: 'Bank: Standard Chartered\nAcc Name: Mwabonje Photography\nAcc No: 0100000000000\nM-Pesa Till: 123456',
+};
 
-      addClient: (client) =>
-        set((state) => ({ clients: [...state.clients, client] })),
-      updateClient: (id, updatedClient) =>
-        set((state) => ({
-          clients: state.clients.map((c) =>
-            c.id === id ? { ...c, ...updatedClient } : c
-          ),
-        })),
-      deleteClient: (id) =>
-        set((state) => ({
-          clients: state.clients.filter((c) => c.id !== id),
-        })),
+export const useStore = create<AppState>((set, get) => ({
+  clients: [],
+  projects: [],
+  quotes: [],
+  invoices: [],
+  payments: [],
+  settings: defaultSettings,
+  isAuthReady: false,
+  userId: null,
 
-      addProject: (project) =>
-        set((state) => ({ projects: [...state.projects, project] })),
-      updateProject: (id, updatedProject) =>
-        set((state) => ({
-          projects: state.projects.map((p) =>
-            p.id === id ? { ...p, ...updatedProject } : p
-          ),
-        })),
-      deleteProject: (id) =>
-        set((state) => ({
-          projects: state.projects.filter((p) => p.id !== id),
-        })),
+  setAuthReady: (ready, userId) => set({ isAuthReady: ready, userId }),
 
-      addQuote: (quote) =>
-        set((state) => ({ quotes: [...state.quotes, quote] })),
-      updateQuote: (id, updatedQuote) =>
-        set((state) => ({
-          quotes: state.quotes.map((q) =>
-            q.id === id ? { ...q, ...updatedQuote } : q
-          ),
-        })),
-      deleteQuote: (id) =>
-        set((state) => ({
-          quotes: state.quotes.filter((q) => q.id !== id),
-        })),
+  addClient: async (client) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const data = { ...client, uid };
+    await setDoc(doc(db, `users/${uid}/clients`, client.id), data);
+  },
+  updateClient: async (id, client) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const existing = get().clients.find(c => c.id === id);
+    if (!existing) return;
+    await setDoc(doc(db, `users/${uid}/clients`, id), { ...existing, ...client, uid });
+  },
+  deleteClient: async (id) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    await deleteDoc(doc(db, `users/${uid}/clients`, id));
+  },
 
-      addInvoice: (invoice) =>
-        set((state) => ({ invoices: [...state.invoices, invoice] })),
-      updateInvoice: (id, updatedInvoice) =>
-        set((state) => ({
-          invoices: state.invoices.map((i) =>
-            i.id === id ? { ...i, ...updatedInvoice } : i
-          ),
-        })),
-      deleteInvoice: (id) =>
-        set((state) => ({
-          invoices: state.invoices.filter((i) => i.id !== id),
-        })),
+  addProject: async (project) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const data = { ...project, uid };
+    await setDoc(doc(db, `users/${uid}/projects`, project.id), data);
+  },
+  updateProject: async (id, project) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const existing = get().projects.find(p => p.id === id);
+    if (!existing) return;
+    await setDoc(doc(db, `users/${uid}/projects`, id), { ...existing, ...project, uid });
+  },
+  deleteProject: async (id) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    await deleteDoc(doc(db, `users/${uid}/projects`, id));
+  },
 
-      addPayment: (payment) =>
-        set((state) => {
-          const newPayments = [...state.payments, payment];
-          // Automatically update invoice balance
-          const invoice = state.invoices.find((i) => i.id === payment.invoiceId);
-          if (invoice) {
-            const newAmountPaid = invoice.amountPaid + payment.amount;
-            let newStatus: Invoice['status'] = 'unpaid';
-            if (newAmountPaid >= invoice.totalAmount) {
-              newStatus = 'paid';
-            } else if (newAmountPaid > 0) {
-              newStatus = 'partially_paid';
-            }
+  addQuote: async (quote) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const data = { ...quote, uid };
+    await setDoc(doc(db, `users/${uid}/quotes`, quote.id), data);
+  },
+  updateQuote: async (id, quote) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const existing = get().quotes.find(q => q.id === id);
+    if (!existing) return;
+    await setDoc(doc(db, `users/${uid}/quotes`, id), { ...existing, ...quote, uid });
+  },
+  deleteQuote: async (id) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    await deleteDoc(doc(db, `users/${uid}/quotes`, id));
+  },
 
-            const newInvoices = state.invoices.map((i) =>
-              i.id === invoice.id
-                ? { ...i, amountPaid: newAmountPaid, status: newStatus }
-                : i
-            );
-            return { payments: newPayments, invoices: newInvoices };
-          }
-          return { payments: newPayments };
-        }),
-      updatePayment: (id, updatedPayment) =>
-        set((state) => {
-          const oldPayment = state.payments.find((p) => p.id === id);
-          if (!oldPayment) return state;
+  addInvoice: async (invoice) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const data = { ...invoice, uid };
+    await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), data);
+  },
+  updateInvoice: async (id, invoice) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const existing = get().invoices.find(i => i.id === id);
+    if (!existing) return;
+    await setDoc(doc(db, `users/${uid}/invoices`, id), { ...existing, ...invoice, uid });
+  },
+  deleteInvoice: async (id) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    await deleteDoc(doc(db, `users/${uid}/invoices`, id));
+  },
 
-          const newPayments = state.payments.map((p) =>
-            p.id === id ? { ...p, ...updatedPayment } : p
-          );
-
-          // If amount changed, update invoice balance
-          if (updatedPayment.amount !== undefined && updatedPayment.amount !== oldPayment.amount) {
-            const amountDiff = updatedPayment.amount - oldPayment.amount;
-            const invoice = state.invoices.find((i) => i.id === oldPayment.invoiceId);
-            
-            if (invoice) {
-              const newAmountPaid = invoice.amountPaid + amountDiff;
-              let newStatus: Invoice['status'] = 'unpaid';
-              if (newAmountPaid >= invoice.totalAmount) {
-                newStatus = 'paid';
-              } else if (newAmountPaid > 0) {
-                newStatus = 'partially_paid';
-              }
-
-              const newInvoices = state.invoices.map((i) =>
-                i.id === invoice.id
-                  ? { ...i, amountPaid: newAmountPaid, status: newStatus }
-                  : i
-              );
-              return { payments: newPayments, invoices: newInvoices };
-            }
-          }
-
-          return { payments: newPayments };
-        }),
-      deletePayment: (id) =>
-        set((state) => {
-          const payment = state.payments.find((p) => p.id === id);
-          if (!payment) return state;
-
-          const newPayments = state.payments.filter((p) => p.id !== id);
-          
-          // Revert invoice balance
-          const invoice = state.invoices.find((i) => i.id === payment.invoiceId);
-          if (invoice) {
-            const newAmountPaid = invoice.amountPaid - payment.amount;
-            let newStatus: Invoice['status'] = 'unpaid';
-            if (newAmountPaid >= invoice.totalAmount) {
-              newStatus = 'paid';
-            } else if (newAmountPaid > 0) {
-              newStatus = 'partially_paid';
-            }
-
-            const newInvoices = state.invoices.map((i) =>
-              i.id === invoice.id
-                ? { ...i, amountPaid: newAmountPaid, status: newStatus }
-                : i
-            );
-            return { payments: newPayments, invoices: newInvoices };
-          }
-
-          return { payments: newPayments };
-        }),
-    }),
-    {
-      name: 'mwabonje-storage',
+  addPayment: async (payment) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const data = { ...payment, uid };
+    await setDoc(doc(db, `users/${uid}/payments`, payment.id), data);
+    
+    // Update invoice balance
+    const invoice = get().invoices.find((i) => i.id === payment.invoiceId);
+    if (invoice) {
+      const newAmountPaid = invoice.amountPaid + payment.amount;
+      let newStatus: Invoice['status'] = 'unpaid';
+      if (newAmountPaid >= invoice.totalAmount) {
+        newStatus = 'paid';
+      } else if (newAmountPaid > 0) {
+        newStatus = 'partially_paid';
+      }
+      await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), { ...invoice, amountPaid: newAmountPaid, status: newStatus, uid });
     }
-  )
-);
+  },
+  updatePayment: async (id, payment) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const oldPayment = get().payments.find((p) => p.id === id);
+    if (!oldPayment) return;
+    await setDoc(doc(db, `users/${uid}/payments`, id), { ...oldPayment, ...payment, uid });
+
+    // If amount changed, update invoice balance
+    if (payment.amount !== undefined && payment.amount !== oldPayment.amount) {
+      const amountDiff = payment.amount - oldPayment.amount;
+      const invoice = get().invoices.find((i) => i.id === oldPayment.invoiceId);
+      if (invoice) {
+        const newAmountPaid = invoice.amountPaid + amountDiff;
+        let newStatus: Invoice['status'] = 'unpaid';
+        if (newAmountPaid >= invoice.totalAmount) {
+          newStatus = 'paid';
+        } else if (newAmountPaid > 0) {
+          newStatus = 'partially_paid';
+        }
+        await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), { ...invoice, amountPaid: newAmountPaid, status: newStatus, uid });
+      }
+    }
+  },
+  deletePayment: async (id) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const payment = get().payments.find((p) => p.id === id);
+    if (!payment) return;
+    await deleteDoc(doc(db, `users/${uid}/payments`, id));
+
+    // Revert invoice balance
+    const invoice = get().invoices.find((i) => i.id === payment.invoiceId);
+    if (invoice) {
+      const newAmountPaid = invoice.amountPaid - payment.amount;
+      let newStatus: Invoice['status'] = 'unpaid';
+      if (newAmountPaid >= invoice.totalAmount) {
+        newStatus = 'paid';
+      } else if (newAmountPaid > 0) {
+        newStatus = 'partially_paid';
+      }
+      await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), { ...invoice, amountPaid: newAmountPaid, status: newStatus, uid });
+    }
+  },
+
+  updateSettings: async (updatedSettings) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const existing = get().settings;
+    await setDoc(doc(db, `users/${uid}/settings`, 'profile'), { ...existing, ...updatedSettings });
+  },
+}));

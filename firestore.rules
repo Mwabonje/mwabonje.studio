@@ -1,0 +1,155 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if user owns the resource (for user-owned documents)
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Validate string length
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    // Validate optional string
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidClient() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             isValidOptionalString('phone', 0, 50) &&
+             isValidOptionalString('email', 0, 150) &&
+             isValidOptionalString('notes', 0, 5000) &&
+             data.uid == request.auth.uid;
+    }
+
+    function isValidProject() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.clientId is string && data.clientId.size() > 0 && data.clientId.size() < 100 &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             isValidOptionalString('location', 0, 500) &&
+             isValidOptionalString('date', 0, 100) &&
+             isValidOptionalString('description', 0, 5000) &&
+             data.uid == request.auth.uid;
+    }
+
+    function isValidQuote() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.projectId is string && data.projectId.size() > 0 && data.projectId.size() < 100 &&
+             data.totalAmount is number && data.totalAmount >= 0 &&
+             data.status in ['draft', 'sent', 'approved'] &&
+             data.uid == request.auth.uid;
+    }
+
+    function isValidInvoice() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.projectId is string && data.projectId.size() > 0 && data.projectId.size() < 100 &&
+             data.clientId is string && data.clientId.size() > 0 && data.clientId.size() < 100 &&
+             data.totalAmount is number && data.totalAmount >= 0 &&
+             data.amountPaid is number && data.amountPaid >= 0 &&
+             data.status in ['unpaid', 'partially_paid', 'paid'] &&
+             data.uid == request.auth.uid;
+    }
+
+    function isValidPayment() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.invoiceId is string && data.invoiceId.size() > 0 && data.invoiceId.size() < 100 &&
+             data.amount is number && data.amount > 0 &&
+             data.date is string && data.date.size() > 0 && data.date.size() < 100 &&
+             data.method in ['cash', 'mpesa', 'bank'] &&
+             isValidOptionalString('reference', 0, 200) &&
+             data.uid == request.auth.uid;
+    }
+
+    function isValidSettings() {
+      return isValidOptionalString('logoUrl', 0, 2000) &&
+             isValidOptionalString('companyName', 0, 200) &&
+             isValidOptionalString('companyAddress', 0, 1000) &&
+             isValidOptionalString('companyEmail', 0, 150) &&
+             isValidOptionalString('companyPhone', 0, 50) &&
+             isValidOptionalString('companyWebsite', 0, 200) &&
+             isValidOptionalString('colorScheme', 0, 50) &&
+             isValidOptionalString('paymentDetails', 0, 2000);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      // Allow user to read/write their own top-level document if needed
+      allow read, write: if isOwner(userId);
+
+      match /clients/{clientId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidClient();
+        allow update: if isOwner(userId) && isValidClient() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isOwner(userId);
+      }
+
+      match /projects/{projectId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidProject();
+        allow update: if isOwner(userId) && isValidProject() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isOwner(userId);
+      }
+
+      match /quotes/{quoteId} {
+        // Allow public read for quotes so they can be shared with clients
+        allow read: if true;
+        allow create: if isOwner(userId) && isValidQuote();
+        allow update: if isOwner(userId) && isValidQuote() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isOwner(userId);
+      }
+
+      match /invoices/{invoiceId} {
+        // Allow public read for invoices so they can be shared with clients
+        allow read: if true;
+        allow create: if isOwner(userId) && isValidInvoice();
+        allow update: if isOwner(userId) && isValidInvoice() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isOwner(userId);
+      }
+
+      match /payments/{paymentId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidPayment();
+        allow update: if isOwner(userId) && isValidPayment() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isOwner(userId);
+      }
+
+      match /settings/{settingId} {
+        allow read: if true; // Allow public read so shared quotes/invoices can load the logo/colors
+        allow create: if isOwner(userId) && isValidSettings();
+        allow update: if isOwner(userId) && isValidSettings();
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

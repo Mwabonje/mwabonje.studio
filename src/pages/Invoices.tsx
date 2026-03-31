@@ -12,7 +12,7 @@ import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle, ExternalLink }
 import { format } from 'date-fns';
 
 export function Invoices() {
-  const { invoices, quotes, projects, clients, addInvoice, updateInvoice, deleteInvoice } = useStore();
+  const { invoices, quotes, projects, clients, settings, addInvoice, updateInvoice, deleteInvoice } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -30,6 +30,18 @@ export function Invoices() {
   const handleOpenPreview = (invoice: Invoice) => {
     setPreviewInvoice(invoice);
     setIsPreviewOpen(true);
+  };
+
+  const getColorClass = (color: string) => {
+    const colors: Record<string, string> = {
+      slate: 'bg-slate-900',
+      blue: 'bg-blue-900',
+      green: 'bg-green-900',
+      rose: 'bg-rose-900',
+      amber: 'bg-amber-900',
+      violet: 'bg-violet-900',
+    };
+    return colors[color] || 'bg-slate-900';
   };
 
   const handleOpenDialog = (invoice?: Invoice) => {
@@ -287,11 +299,14 @@ export function Invoices() {
               return (
                 <div className="p-6 sm:p-12 m-4 sm:m-6 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
                   {/* Decorative Top Line */}
-                  <div className="absolute top-0 left-0 w-full h-1 bg-slate-900"></div>
+                  <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(settings.colorScheme)}`}></div>
 
                   {/* Header */}
                   <div className="flex flex-col sm:flex-row justify-between items-start mb-12">
                     <div className="mb-6 sm:mb-0">
+                      {settings.logoUrl && (
+                        <img src={settings.logoUrl} alt="Company Logo" className="h-12 object-contain mb-6" />
+                      )}
                       <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Billed To</h2>
                       <h1 className="text-3xl sm:text-4xl font-serif text-slate-900 leading-tight">{client?.name || 'Client Name'}</h1>
                       <p className="text-sm text-slate-500 mt-1">{client?.email}</p>
@@ -361,15 +376,16 @@ export function Invoices() {
                     <div className="flex-1">
                       <h3 className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] mb-4">Payment Details</h3>
                       <div className="bg-slate-50 p-4 border border-slate-100 rounded text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">
-                        Bank: Standard Chartered{'\n'}
-                        Acc Name: Mwabonje Photography{'\n'}
-                        Acc No: 0100000000000{'\n'}
-                        M-Pesa Till: 123456
+                        {settings.paymentDetails}
                       </div>
                     </div>
                     <div className="text-left sm:text-right mt-auto">
-                      <p className="font-bold text-slate-900 text-sm">Mwabonje Studio</p>
-                      <p className="text-xs text-slate-500">Thank you for your business.</p>
+                      <p className="font-bold text-slate-900 text-sm">{settings.companyName}</p>
+                      {settings.companyEmail && <p className="text-xs text-slate-500">{settings.companyEmail}</p>}
+                      {settings.companyPhone && <p className="text-xs text-slate-500">{settings.companyPhone}</p>}
+                      {settings.companyWebsite && <p className="text-xs text-slate-500">{settings.companyWebsite}</p>}
+                      {settings.companyAddress && <p className="text-xs text-slate-500 whitespace-pre-wrap mt-1">{settings.companyAddress}</p>}
+                      <p className="text-xs text-slate-500 mt-2 italic">Thank you for your business.</p>
                     </div>
                   </div>
                 </div>

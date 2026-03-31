@@ -1,34 +1,94 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Quote } from '@/store';
+import { Quote, Settings } from '@/store';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Printer, ArrowLeft, Download } from 'lucide-react';
+import { CheckCircle2, Printer, ArrowLeft, Download, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import html2pdf from 'html2pdf.js';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export function SharedQuote() {
   const [searchParams] = useSearchParams();
   const [quote, setQuote] = useState<Quote | null>(null);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const quoteRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    try {
-      const dataParam = searchParams.get('data');
-      if (dataParam) {
-        const decodedString = decodeURIComponent(atob(dataParam));
-        const parsedQuote = JSON.parse(decodedString) as Quote;
-        setQuote(parsedQuote);
-      } else {
-        setError("No quote data found in the link.");
+    const fetchQuoteData = async () => {
+      try {
+        const uid = searchParams.get('uid');
+        const quoteId = searchParams.get('id');
+        const dataParam = searchParams.get('data'); // Fallback for old links
+
+        if (uid && quoteId) {
+          // Fetch quote
+          const quoteDoc = await getDoc(doc(db, `users/${uid}/quotes`, quoteId));
+          if (quoteDoc.exists()) {
+            setQuote(quoteDoc.data() as Quote);
+          } else {
+            setError("Quote not found.");
+            setLoading(false);
+            return;
+          }
+
+          // Fetch settings
+          const settingsDoc = await getDoc(doc(db, `users/${uid}/settings`, 'profile'));
+          if (settingsDoc.exists()) {
+            setSettings(settingsDoc.data() as Settings);
+          } else {
+            // Fallback settings
+            setSettings({
+              logoUrl: '',
+              companyName: 'Mwabonje Studio',
+              companyAddress: '',
+              companyEmail: '',
+              companyPhone: '',
+              companyWebsite: '',
+              colorScheme: 'slate',
+              paymentDetails: '',
+            });
+          }
+        } else if (dataParam) {
+          // Handle old encoded links
+          const decodedString = decodeURIComponent(atob(dataParam));
+          const parsedQuote = JSON.parse(decodedString) as Quote;
+          setQuote(parsedQuote);
+          setSettings({
+            logoUrl: '',
+            companyName: 'Mwabonje Studio',
+            companyAddress: '',
+            companyEmail: '',
+            companyPhone: '',
+            companyWebsite: '',
+            colorScheme: 'slate',
+            paymentDetails: '',
+          });
+        } else {
+          setError("No quote data found in the link.");
+        }
+      } catch (err) {
+        console.error("Failed to fetch quote data:", err);
+        setError("The quote link appears to be invalid or corrupted.");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Failed to parse quote data:", err);
-      setError("The quote link appears to be invalid or corrupted.");
-    }
+    };
+
+    fetchQuoteData();
   }, [searchParams]);
 
-  if (error || !quote) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fcfcfc]">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
+      </div>
+    );
+  }
+
+  if (error || !quote || !settings) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#fcfcfc] p-4">
         <h1 className="text-2xl font-serif text-slate-800 mb-2">Quote Not Found</h1>
@@ -39,6 +99,18 @@ export function SharedQuote() {
       </div>
     );
   }
+
+  const getColorClass = (color: string) => {
+    const colors: Record<string, string> = {
+      slate: 'bg-slate-900',
+      blue: 'bg-blue-900',
+      green: 'bg-green-900',
+      rose: 'bg-rose-900',
+      amber: 'bg-amber-900',
+      violet: 'bg-violet-900',
+    };
+    return colors[color] || 'bg-slate-900';
+  };
 
   const handleDownloadPDF = () => {
     if (!quoteRef.current) return;
@@ -82,11 +154,14 @@ export function SharedQuote() {
         <div ref={quoteRef} className="bg-white shadow-xl border border-slate-100 p-6 sm:p-12 md:p-20 print:shadow-none print:border-none print:p-0 relative overflow-hidden">
           
           {/* Decorative Top Line */}
-          <div className="absolute top-0 left-0 w-full h-1 bg-slate-900"></div>
+          <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(settings.colorScheme)}`}></div>
 
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start mb-16">
             <div className="mb-8 sm:mb-0">
+              {settings.logoUrl && (
+                <img src={settings.logoUrl} alt="Company Logo" className="h-16 object-contain mb-8" />
+              )}
               <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Proposal For</h2>
               <h1 className="text-4xl sm:text-5xl font-serif text-slate-900 leading-tight">{quote.clientName || 'Client Name'}</h1>
               <p className="text-lg text-slate-500 mt-2 font-serif italic">
@@ -233,7 +308,12 @@ export function SharedQuote() {
               <p className="text-xs text-slate-500">Signature / Date</p>
             </div>
             <div className="text-right">
-              <p className="text-sm font-serif text-slate-900 font-bold">Thank you for your business.</p>
+              <p className="font-bold text-slate-900 text-sm">{settings.companyName}</p>
+              {settings.companyEmail && <p className="text-xs text-slate-500">{settings.companyEmail}</p>}
+              {settings.companyPhone && <p className="text-xs text-slate-500">{settings.companyPhone}</p>}
+              {settings.companyWebsite && <p className="text-xs text-slate-500">{settings.companyWebsite}</p>}
+              {settings.companyAddress && <p className="text-xs text-slate-500 whitespace-pre-wrap mt-1">{settings.companyAddress}</p>}
+              <p className="text-xs text-slate-500 mt-2 italic">Thank you for your business.</p>
             </div>
           </div>
 
