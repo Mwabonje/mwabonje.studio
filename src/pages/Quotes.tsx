@@ -45,6 +45,9 @@ export function Quotes() {
     status: 'draft' as Quote['status'],
     date: format(new Date(), 'yyyy-MM-dd'),
     revisionOf: undefined as string | undefined,
+    isCollaboration: false,
+    collaborationCut: 0,
+    collaborationType: 'percentage' as 'percentage' | 'fixed',
   };
 
   const [formData, setFormData] = useState(defaultFormData);
@@ -121,6 +124,9 @@ export function Quotes() {
         status: quote.status,
         date: quote.date,
         revisionOf: quote.revisionOf,
+        isCollaboration: quote.isCollaboration || false,
+        collaborationCut: quote.collaborationCut || 0,
+        collaborationType: quote.collaborationType || 'percentage',
       });
       setPackages(quote.packages || []);
     } else {
@@ -441,6 +447,57 @@ export function Quotes() {
                       </div>
                     </div>
                   </div>
+                </div>
+                {/* Collaboration Settings */}
+                <div className="space-y-4 pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                      <User className="w-4 h-4 mr-2 text-primary" />
+                      Collaboration & Commission
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="isCollaboration" 
+                        checked={!!formData.isCollaboration}
+                        onCheckedChange={(checked) => setFormData({...formData, isCollaboration: checked as boolean})}
+                      />
+                      <Label htmlFor="isCollaboration" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        Enable My Cut
+                      </Label>
+                    </div>
+                  </div>
+                  
+                  {formData.isCollaboration && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border">
+                      <div className="space-y-2">
+                        <Label htmlFor="collaborationType" className="text-xs font-bold text-slate-500 uppercase">Cut Type</Label>
+                        <Select value={formData.collaborationType || 'percentage'} onValueChange={(value: any) => setFormData({...formData, collaborationType: value})}>
+                          <SelectTrigger id="collaborationType" className="bg-white">
+                            <SelectValue placeholder="Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="percentage">Percentage (%)</SelectItem>
+                            <SelectItem value="fixed">Fixed Amount</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="collaborationCut" className="text-xs font-bold text-slate-500 uppercase">My Cut Value</Label>
+                        <Input 
+                          id="collaborationCut" 
+                          type="number" 
+                          min="0"
+                          step={formData.collaborationType === 'percentage' ? "0.1" : "1"}
+                          className="bg-white"
+                          value={formData.collaborationCut || ''} 
+                          onChange={(e) => setFormData({...formData, collaborationCut: parseFloat(e.target.value) || 0})} 
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500 md:col-span-2">
+                        This is an internal metric and will not be visible to the client on the shared quote.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -844,6 +901,7 @@ export function Quotes() {
                 <TableHead>Client</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Total Amount</TableHead>
+                <TableHead>My Cut</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -851,12 +909,18 @@ export function Quotes() {
             <TableBody>
               {quotes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No quotes found. Create one to get started.
                   </TableCell>
                 </TableRow>
               ) : (
                 quotes.map((quote) => {
+                  const myCut = quote.isCollaboration 
+                    ? (quote.collaborationType === 'percentage' 
+                        ? (quote.totalAmount * (quote.collaborationCut || 0) / 100) 
+                        : (quote.collaborationCut || 0))
+                    : 0;
+                    
                   return (
                     <TableRow key={quote.id}>
                       <TableCell className="font-mono text-xs text-muted-foreground">
@@ -873,6 +937,13 @@ export function Quotes() {
                       <TableCell>{quote.clientName || 'Unknown Client'}</TableCell>
                       <TableCell>{format(new Date(quote.issueDate || quote.date), 'MMM d, yyyy')}</TableCell>
                       <TableCell className="font-semibold">KES {quote.totalAmount.toLocaleString()}</TableCell>
+                      <TableCell>
+                        {quote.isCollaboration ? (
+                          <span className="text-green-600 font-semibold">KES {myCut.toLocaleString()}</span>
+                        ) : (
+                          <span className="text-slate-400 text-xs">-</span>
+                        )}
+                      </TableCell>
                       <TableCell>{getStatusBadge(quote.status)}</TableCell>
                       <TableCell className="text-right">
                         {quote.status !== 'approved' && (

@@ -67,6 +67,9 @@ export type Quote = {
   date: string;
   selectedPackages?: string[];
   revisionOf?: string;
+  isCollaboration?: boolean;
+  collaborationCut?: number;
+  collaborationType?: 'percentage' | 'fixed';
   uid?: string;
 };
 

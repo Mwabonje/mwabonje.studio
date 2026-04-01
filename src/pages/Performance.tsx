@@ -20,6 +20,18 @@ export function Performance() {
 
       if (projectRevenue === 0) return;
 
+      // Check if this project has an approved quote with collaboration settings
+      const projectQuote = quotes.find(q => q.projectId === project.id && q.status === 'approved');
+      
+      if (projectQuote?.isCollaboration) {
+        // The user is taking a cut of the total project revenue
+        const myCut = projectQuote.collaborationType === 'percentage' 
+          ? (projectRevenue * (projectQuote.collaborationCut || 0) / 100)
+          : Math.min(projectRevenue, projectQuote.collaborationCut || 0);
+        totalNet += myCut;
+        return;
+      }
+
       if (!project.collaborators || project.collaborators.length === 0) {
         totalNet += projectRevenue;
         return;
