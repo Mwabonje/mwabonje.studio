@@ -4,7 +4,6 @@ import { Quote, Settings } from '@/store';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Printer, ArrowLeft, Download, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import html2pdf from 'html2pdf.js';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -112,19 +111,28 @@ export function SharedQuote() {
     return colors[color] || 'bg-slate-900';
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!quoteRef.current) return;
     
-    const opt = {
-      margin:       [15, 15, 15, 15] as [number, number, number, number],
-      filename:     `Proposal_${quote.projectTitle.replace(/\s+/g, '_')}.pdf`,
-      image:        { type: 'jpeg' as const, quality: 1 },
-      html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
-    };
+    try {
+      // Dynamically import html2pdf to avoid Vite build/runtime issues
+      const html2pdfModule = await import('html2pdf.js');
+      const html2pdf = html2pdfModule.default || html2pdfModule;
 
-    const element = quoteRef.current;
-    html2pdf().set(opt).from(element).save();
+      const opt = {
+        margin:       [15, 15, 15, 15] as [number, number, number, number],
+        filename:     `Proposal_${quote.projectTitle.replace(/\s+/g, '_')}.pdf`,
+        image:        { type: 'jpeg' as const, quality: 1 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      };
+
+      const element = quoteRef.current;
+      html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      alert("Failed to generate PDF. Please try again or use the Print option.");
+    }
   };
 
   const handlePrint = () => {
@@ -136,10 +144,7 @@ export function SharedQuote() {
       <div className="max-w-4xl mx-auto">
         
         {/* Action Bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 print:hidden">
-          <Button variant="ghost" render={<Link to="/quotes" />} className="text-slate-500 hover:text-slate-900 rounded-none w-full sm:w-auto justify-start sm:justify-center">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back
-          </Button>
+        <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-8 gap-4 print:hidden">
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
             <Button onClick={handlePrint} variant="outline" className="text-slate-600 bg-white shadow-sm rounded-none border-slate-300 w-full sm:w-auto">
               <Printer className="w-4 h-4 mr-2" /> Print

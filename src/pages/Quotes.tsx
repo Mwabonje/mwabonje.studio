@@ -243,85 +243,90 @@ export function Quotes() {
     setIsApproveDialogOpen(true);
   };
 
-  const handleApproveAndInvoice = () => {
+  const handleApproveAndInvoice = async () => {
     if (!quoteToApprove) return;
     
-    // 1. Update quote status and selected packages
-    updateQuote(quoteToApprove.id, {
-      status: 'approved',
-      selectedPackages: selectedPackageIds
-    });
-
-    // 2. Create invoice
-    const selectedPkgs = quoteToApprove.packages.filter(p => selectedPackageIds.includes(p.id));
-    const totalSelectedAmount = selectedPkgs.reduce((sum, p) => sum + p.settlement, 0);
-    
-    if (totalSelectedAmount > 0) {
-      const lineItems = selectedPkgs.map(p => ({
-        id: crypto.randomUUID(),
-        description: p.name + (p.inclusions.length > 0 ? ` (${p.inclusions.join(', ')})` : ''),
-        price: p.settlement
-      }));
-
-      // Add deposit note if applicable
-      if (depositPercentage > 0 && depositPercentage < 100) {
-        lineItems.push({
-          id: crypto.randomUUID(),
-          description: `Note: A ${depositPercentage}% deposit (KES ${(totalSelectedAmount * depositPercentage / 100).toLocaleString()}) is required to secure the booking.`,
-          price: 0
-        });
-      }
-
+    try {
+      const selectedPkgs = quoteToApprove.packages.filter(p => selectedPackageIds.includes(p.id));
+      const totalSelectedAmount = selectedPkgs.reduce((sum, p) => sum + p.settlement, 0);
+      
       let clientId = '';
       let projectId = quoteToApprove.projectId;
 
-      // Find or create client
-      const existingClient = clients.find(c => c.name.toLowerCase() === quoteToApprove.clientName.toLowerCase());
-      if (existingClient) {
-        clientId = existingClient.id;
-      } else {
-        clientId = crypto.randomUUID();
-        addClient({
-          id: clientId,
-          name: quoteToApprove.clientName,
-          email: quoteToApprove.clientEmail,
-          phone: quoteToApprove.clientPhone,
-          notes: 'Auto-created from quote'
-        });
-      }
+      if (totalSelectedAmount > 0) {
+        const lineItems = selectedPkgs.map(p => ({
+          id: crypto.randomUUID(),
+          description: p.name + (p.inclusions.length > 0 ? ` (${p.inclusions.join(', ')})` : ''),
+          price: p.settlement
+        }));
 
-      // Find or create project
-      if (!projectId || !projects.find(p => p.id === projectId)) {
-        projectId = crypto.randomUUID();
-        addProject({
-          id: projectId,
+        // Add deposit note if applicable
+        if (depositPercentage > 0 && depositPercentage < 100) {
+          lineItems.push({
+            id: crypto.randomUUID(),
+            description: `Note: A ${depositPercentage}% deposit (KES ${(totalSelectedAmount * depositPercentage / 100).toLocaleString()}) is required to secure the booking.`,
+            price: 0
+          });
+        }
+
+        // Find or create client
+        const existingClient = clients.find(c => c.name.toLowerCase() === quoteToApprove.clientName.toLowerCase());
+        if (existingClient) {
+          clientId = existingClient.id;
+        } else {
+          clientId = crypto.randomUUID();
+          await addClient({
+            id: clientId,
+            name: quoteToApprove.clientName,
+            email: quoteToApprove.clientEmail,
+            phone: quoteToApprove.clientPhone,
+            notes: 'Auto-created from quote'
+          });
+        }
+
+        // Find or create project
+        if (!projectId || !projects.find(p => p.id === projectId)) {
+          projectId = crypto.randomUUID();
+          await addProject({
+            id: projectId,
+            clientId,
+            title: quoteToApprove.projectTitle,
+            location: '',
+            date: quoteToApprove.eventDate || quoteToApprove.issueDate || format(new Date(), 'yyyy-MM-dd'),
+            description: quoteToApprove.note || 'Auto-created from quote',
+            collaborators: []
+          });
+        }
+
+        await addInvoice({
+          id: crypto.randomUUID(),
+          quoteId: quoteToApprove.id,
+          projectId,
           clientId,
-          title: quoteToApprove.projectTitle,
-          location: '',
-          date: quoteToApprove.eventDate || quoteToApprove.issueDate || format(new Date(), 'yyyy-MM-dd'),
-          description: quoteToApprove.note || 'Auto-created from quote',
-          collaborators: []
+          lineItems,
+          totalAmount: totalSelectedAmount,
+          amountPaid: 0,
+          status: 'unpaid',
+          date: format(new Date(), 'yyyy-MM-dd'),
+          dueDate: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
         });
-        updateQuote(quoteToApprove.id, { projectId });
       }
 
-      addInvoice({
-        id: crypto.randomUUID(),
-        quoteId: quoteToApprove.id,
-        projectId,
-        clientId,
-        lineItems,
-        totalAmount: totalSelectedAmount,
-        amountPaid: 0,
-        status: 'unpaid',
-        date: format(new Date(), 'yyyy-MM-dd'),
-        dueDate: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+      // Update quote status, selected packages, and projectId in a single call
+      await updateQuote(quoteToApprove.id, {
+        status: 'approved',
+        selectedPackages: selectedPackageIds,
+        ...(projectId ? { projectId } : {})
       });
-    }
 
-    setIsApproveDialogOpen(false);
-    setQuoteToApprove(null);
-    setSelectedPackageIds([]);
+      setIsApproveDialogOpen(false);
+      setQuoteToApprove(null);
+      setSelectedPackageIds([]);
+      alert("Quote approved and invoice generated successfully!");
+    } catch (error) {
+      console.error("Error approving quote:", error);
+      alert("Failed to approve quote. Please check your connection and try again.");
+    }
   };
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
