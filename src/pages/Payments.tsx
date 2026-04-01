@@ -173,10 +173,10 @@ export function Payments() {
     if (balance <= 0) {
       doc.setFontSize(40);
       doc.setTextColor(0, 150, 0); // Green
-      doc.setGState(new doc.GState({ opacity: 0.2 }));
+      doc.setGState(new (doc.GState as any)({ opacity: 0.2 }));
       // Rotate and center the stamp
       doc.text('FULLY PAID', 105, 150, { align: 'center', angle: 45 });
-      doc.setGState(new doc.GState({ opacity: 1 })); // Reset opacity
+      doc.setGState(new (doc.GState as any)({ opacity: 1 })); // Reset opacity
     }
 
     // Footer

@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, Package, StickyNote, ShieldCheck, FileCheck2, ExternalLink, Link as LinkIcon, CheckSquare, Copy } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 export function Quotes() {
   const { quotes, clients, projects, settings, addQuote, updateQuote, deleteQuote, addClient, addProject, addInvoice } = useStore();

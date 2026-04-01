@@ -6,6 +6,8 @@ import { CheckCircle2, Printer, ArrowLeft, Download, Loader2 } from 'lucide-reac
 import { format } from 'date-fns';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { toPng } from 'html-to-image';
+import jsPDF from 'jspdf';
 
 export function SharedQuote() {
   const [searchParams] = useSearchParams();
@@ -13,6 +15,7 @@ export function SharedQuote() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const quoteRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -112,26 +115,71 @@ export function SharedQuote() {
   };
 
   const handleDownloadPDF = async () => {
-    if (!quoteRef.current) return;
+    if (!quoteRef.current || isGeneratingPDF) return;
     
+    setIsGeneratingPDF(true);
     try {
-      // Dynamically import html2pdf to avoid Vite build/runtime issues
-      const html2pdfModule = await import('html2pdf.js');
-      const html2pdf = html2pdfModule.default || html2pdfModule;
-
-      const opt = {
-        margin:       [15, 15, 15, 15] as [number, number, number, number],
-        filename:     `Proposal_${quote.projectTitle.replace(/\s+/g, '_')}.pdf`,
-        image:        { type: 'jpeg' as const, quality: 1 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
-      };
-
       const element = quoteRef.current;
-      html2pdf().set(opt).from(element).save();
+      
+      // Store original styles that might affect rendering
+      const originalStyle = element.style.cssText;
+      
+      // Force a specific width for consistent rendering before capturing
+      element.style.width = '800px';
+      element.style.maxWidth = 'none';
+      element.style.padding = '40px';
+
+      const imgData = await toPng(element, {
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top left',
+          width: '800px'
+        }
+      });
+      
+      // Restore original styles
+      element.style.cssText = originalStyle;
+      
+      const JSPDF = typeof jsPDF === 'function' ? jsPDF : (jsPDF as any).jsPDF || (jsPDF as any).default;
+      const pdf = new JSPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      // Calculate image dimensions to fit PDF width
+      const imgProps = pdf.getImageProperties(imgData);
+      const ratio = pdfWidth / imgProps.width;
+      const totalPdfHeight = imgProps.height * ratio;
+      
+      let heightLeft = totalPdfHeight;
+      let position = 0;
+
+      // Add first page
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+      heightLeft -= pdfHeight;
+
+      // Add subsequent pages if content is taller than one page
+      while (heightLeft > 0) {
+        position = heightLeft - totalPdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      const safeTitle = (quote.projectTitle || 'Quote').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      pdf.save(`Proposal_${safeTitle}.pdf`);
     } catch (error) {
       console.error("Failed to generate PDF:", error);
-      alert("Failed to generate PDF. Please try again or use the Print option.");
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      alert(`Failed to generate PDF: ${errorMessage}. Please try again or use the Print option.`);
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -149,8 +197,12 @@ export function SharedQuote() {
             <Button onClick={handlePrint} variant="outline" className="text-slate-600 bg-white shadow-sm rounded-none border-slate-300 w-full sm:w-auto">
               <Printer className="w-4 h-4 mr-2" /> Print
             </Button>
-            <Button onClick={handleDownloadPDF} className="bg-slate-900 hover:bg-slate-800 text-white rounded-none px-6 shadow-sm w-full sm:w-auto">
-              <Download className="w-4 h-4 mr-2" /> Download PDF
+            <Button onClick={handleDownloadPDF} disabled={isGeneratingPDF} className="bg-slate-900 hover:bg-slate-800 text-white rounded-none px-6 shadow-sm w-full sm:w-auto">
+              {isGeneratingPDF ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
+              ) : (
+                <><Download className="w-4 h-4 mr-2" /> Download PDF</>
+              )}
             </Button>
           </div>
         </div>
