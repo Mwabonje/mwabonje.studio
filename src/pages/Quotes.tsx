@@ -679,7 +679,7 @@ export function Quotes() {
                   )}
                   <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Proposal For</h2>
                   <h1 className="text-3xl sm:text-4xl font-serif text-slate-900 leading-tight">{formData.clientName || 'Client Name'}</h1>
-                  <p className="text-base text-slate-500 mt-2 font-serif italic">
+                  <p className="text-base text-slate-500 mt-2 font-serif italic mb-3">
                     {formData.projectTitle || 'Project Title'}
                     {formData.revisionOf && (
                       <span className="ml-2 text-[10px] font-sans font-bold tracking-widest uppercase text-slate-400 border border-slate-200 px-2 py-0.5 rounded-full align-middle">
@@ -687,6 +687,12 @@ export function Quotes() {
                       </span>
                     )}
                   </p>
+                  {(formData.clientEmail || formData.clientPhone) && (
+                    <div className="text-xs text-slate-500 space-y-1">
+                      {formData.clientEmail && <p>{formData.clientEmail}</p>}
+                      {formData.clientPhone && <p>{formData.clientPhone}</p>}
+                    </div>
+                  )}
                 </div>
                 <div className="text-left sm:text-right">
                   <h2 className="text-2xl sm:text-3xl font-serif text-slate-200 tracking-widest uppercase mb-4">Quote</h2>

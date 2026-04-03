@@ -1,15 +1,44 @@
 import { useState } from 'react';
 import { useStore } from '@/store';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays } from 'date-fns';
-import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera } from 'lucide-react';
+import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function Dashboard() {
-  const { projects, quotes, clients, invoices } = useStore();
+  const { projects, quotes, clients, invoices, deleteProject, addProject } = useStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
+  const [eventFormData, setEventFormData] = useState({
+    title: '',
+    clientId: '',
+    location: '',
+    date: format(new Date(), 'yyyy-MM-dd'),
+    description: '',
+  });
+
+  const handleCreateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await addProject({
+      id: crypto.randomUUID(),
+      ...eventFormData,
+      collaborators: [],
+    });
+    setIsEventDialogOpen(false);
+    setEventFormData({
+      title: '',
+      clientId: '',
+      location: '',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      description: '',
+    });
+  };
 
   // Calendar logic
   const monthStart = startOfMonth(currentDate);
@@ -103,9 +132,18 @@ export function Dashboard() {
                   {selectedDayEvents.map(event => {
                     const client = clients.find(c => c.id === event.clientId);
                     return (
-                      <div key={event.id} className="bg-white/10 p-4 rounded-xl">
-                        <p className="font-semibold text-lg">{event.title}</p>
-                        <p className="text-sm text-primary-foreground/70 mt-1">{client?.name || 'Unknown Client'} • {event.location}</p>
+                      <div key={event.id} className="bg-white/10 p-4 rounded-xl relative group">
+                        <div className="pr-8">
+                          <p className="font-semibold text-lg">{event.title}</p>
+                          <p className="text-sm text-primary-foreground/70 mt-1">{client?.name || 'Unknown Client'} • {event.location}</p>
+                        </div>
+                        <button 
+                          onClick={() => deleteProject(event.id)}
+                          className="absolute top-4 right-4 text-primary-foreground/50 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Delete Event"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     );
                   })}
@@ -116,10 +154,74 @@ export function Dashboard() {
           </div>
           
           <div className="mt-8 md:mt-12">
-            <div className="flex items-center justify-between border-b border-primary-foreground/20 pb-4">
-              <span className="text-sm text-primary-foreground/80">Create an Event</span>
-              <Plus className="w-5 h-5 text-primary-foreground/80 cursor-pointer hover:text-white" />
-            </div>
+            <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>
+              <DialogTrigger className="w-full block text-left">
+                <div className="flex items-center justify-between border-b border-primary-foreground/20 pb-4 cursor-pointer group">
+                  <span className="text-sm text-primary-foreground/80 group-hover:text-white transition-colors">Create an Event</span>
+                  <Plus className="w-5 h-5 text-primary-foreground/80 group-hover:text-white transition-colors" />
+                </div>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Create New Event</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreateEvent} className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="event-title">Event Title</Label>
+                    <Input
+                      id="event-title"
+                      value={eventFormData.title}
+                      onChange={(e) => setEventFormData({ ...eventFormData, title: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-client">Client</Label>
+                    <Select
+                      value={eventFormData.clientId}
+                      onValueChange={(value) => setEventFormData({ ...eventFormData, clientId: value })}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a client" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-date">Date</Label>
+                    <Input
+                      id="event-date"
+                      type="date"
+                      value={eventFormData.date}
+                      onChange={(e) => setEventFormData({ ...eventFormData, date: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-location">Location</Label>
+                    <Input
+                      id="event-location"
+                      value={eventFormData.location}
+                      onChange={(e) => setEventFormData({ ...eventFormData, location: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button type="button" variant="outline" onClick={() => setIsEventDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">Create Event</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 

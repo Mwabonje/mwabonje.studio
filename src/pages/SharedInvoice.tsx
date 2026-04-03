@@ -1,0 +1,316 @@
+import React, { useRef, useEffect, useState } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { Invoice, Project, Client, Settings } from '@/store';
+import { Button } from '@/components/ui/button';
+import { Printer, Download, Loader2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { toPng } from 'html-to-image';
+import jsPDF from 'jspdf';
+
+export function SharedInvoice() {
+  const [searchParams] = useSearchParams();
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
+  const [client, setClient] = useState<Client | null>(null);
+  const [settings, setSettings] = useState<Settings | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const invoiceRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const fetchInvoiceData = async () => {
+      try {
+        const uid = searchParams.get('uid');
+        const invoiceId = searchParams.get('id');
+
+        if (uid && invoiceId) {
+          // Fetch invoice
+          const invoiceDoc = await getDoc(doc(db, `users/${uid}/invoices`, invoiceId));
+          if (invoiceDoc.exists()) {
+            const invData = invoiceDoc.data() as Invoice;
+            setInvoice(invData);
+            
+            // Fetch client
+            if (invData.clientId) {
+              const clientDoc = await getDoc(doc(db, `users/${uid}/clients`, invData.clientId));
+              if (clientDoc.exists()) {
+                setClient(clientDoc.data() as Client);
+              }
+            }
+            
+            // Fetch project
+            if (invData.projectId) {
+              const projectDoc = await getDoc(doc(db, `users/${uid}/projects`, invData.projectId));
+              if (projectDoc.exists()) {
+                setProject(projectDoc.data() as Project);
+              }
+            }
+          } else {
+            setError("Invoice not found.");
+            setLoading(false);
+            return;
+          }
+
+          // Fetch settings
+          const settingsDoc = await getDoc(doc(db, `users/${uid}/settings`, 'profile'));
+          if (settingsDoc.exists()) {
+            setSettings(settingsDoc.data() as Settings);
+          } else {
+            // Fallback settings
+            setSettings({
+              logoUrl: '',
+              companyName: 'Mwabonje Studio',
+              companyAddress: '',
+              companyEmail: '',
+              companyPhone: '',
+              companyWebsite: '',
+              colorScheme: 'slate',
+              paymentDetails: '',
+            });
+          }
+        } else {
+          setError("No invoice data found in the link.");
+        }
+      } catch (err) {
+        console.error("Failed to fetch invoice data:", err);
+        setError("The invoice link appears to be invalid or corrupted.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoiceData();
+  }, [searchParams]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fcfcfc]">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
+      </div>
+    );
+  }
+
+  if (error || !invoice || !settings) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#fcfcfc] p-4">
+        <h1 className="text-2xl font-serif text-slate-800 mb-2">Invoice Not Found</h1>
+        <p className="text-slate-500 mb-6">{error || "Loading invoice data..."}</p>
+        <Button render={<Link to="/" />} variant="outline" className="rounded-none border-slate-300">
+          Return to Dashboard
+        </Button>
+      </div>
+    );
+  }
+
+  const getColorClass = (color: string) => {
+    const colors: Record<string, string> = {
+      slate: 'bg-slate-900',
+      blue: 'bg-blue-900',
+      green: 'bg-green-900',
+      rose: 'bg-rose-900',
+      amber: 'bg-amber-900',
+      violet: 'bg-violet-900',
+    };
+    return colors[color] || 'bg-slate-900';
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!invoiceRef.current || isGeneratingPDF) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      const element = invoiceRef.current;
+      
+      // Store original styles that might affect rendering
+      const originalStyle = element.style.cssText;
+      
+      // Force a specific width for consistent rendering before capturing
+      element.style.width = '800px';
+      element.style.maxWidth = 'none';
+      element.style.padding = '40px';
+
+      const imgData = await toPng(element, {
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top left',
+          width: '800px'
+        }
+      });
+      
+      // Restore original styles
+      element.style.cssText = originalStyle;
+      
+      const JSPDF = typeof jsPDF === 'function' ? jsPDF : (jsPDF as any).jsPDF || (jsPDF as any).default;
+      const pdf = new JSPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      // Calculate image dimensions to fit PDF width
+      const imgProps = pdf.getImageProperties(imgData);
+      const ratio = pdfWidth / imgProps.width;
+      const totalPdfHeight = imgProps.height * ratio;
+      
+      let heightLeft = totalPdfHeight;
+      let position = 0;
+
+      // Add first page
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+      heightLeft -= pdfHeight;
+
+      // Add subsequent pages if content is taller than one page
+      while (heightLeft > 0) {
+        position = heightLeft - totalPdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      pdf.save(`Invoice_${safeTitle}.pdf`);
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      alert(`Failed to generate PDF: ${errorMessage}. Please try again or use the Print option.`);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const balance = invoice.totalAmount - invoice.amountPaid;
+
+  return (
+    <div className="min-h-screen bg-[#f5f5f5] py-12 px-4 sm:px-6 lg:px-8 print:bg-white print:py-0 print:px-0 font-sans text-slate-800">
+      <div className="max-w-4xl mx-auto">
+        
+        {/* Action Bar */}
+        <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-8 gap-4 print:hidden">
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+            <Button onClick={handlePrint} variant="outline" className="text-slate-600 bg-white shadow-sm rounded-none border-slate-300 w-full sm:w-auto">
+              <Printer className="w-4 h-4 mr-2" /> Print
+            </Button>
+            <Button onClick={handleDownloadPDF} disabled={isGeneratingPDF} className="bg-slate-900 hover:bg-slate-800 text-white rounded-none px-6 shadow-sm w-full sm:w-auto">
+              {isGeneratingPDF ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
+              ) : (
+                <><Download className="w-4 h-4 mr-2" /> Download PDF</>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Invoice Document */}
+        <div ref={invoiceRef} className="bg-white shadow-xl border border-slate-100 p-6 sm:p-12 md:p-20 print:shadow-none print:border-none print:p-0 relative overflow-hidden">
+          
+          {/* Decorative Top Line */}
+          <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(settings.colorScheme)}`}></div>
+
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start mb-16">
+            <div className="mb-8 sm:mb-0">
+              {settings.logoUrl && (
+                <img src={settings.logoUrl} alt="Company Logo" className="h-16 object-contain mb-8" />
+              )}
+              <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Billed To</h2>
+              <h1 className="text-4xl sm:text-5xl font-serif text-slate-900 leading-tight">{client?.name || 'Client Name'}</h1>
+              <p className="text-sm text-slate-500 mt-1">{client?.email}</p>
+              <p className="text-sm text-slate-500">{client?.phone}</p>
+              <p className="text-lg text-slate-500 mt-4 font-serif italic">{project?.title || 'Project Title'}</p>
+            </div>
+            <div className="text-left sm:text-right">
+              <h2 className="text-3xl sm:text-4xl font-serif text-slate-200 tracking-widest uppercase mb-4">Invoice</h2>
+              <div className="space-y-1">
+                <p className="text-xs font-bold tracking-[0.1em] text-slate-400 uppercase">Invoice No.</p>
+                <p className="text-sm text-slate-800 mb-4 font-mono">{invoice.id.slice(0, 8).toUpperCase()}</p>
+                
+                <p className="text-xs font-bold tracking-[0.1em] text-slate-400 uppercase">Issue Date</p>
+                <p className="text-sm text-slate-800 mb-4">{invoice.date ? format(new Date(invoice.date), 'MMMM d, yyyy') : 'N/A'}</p>
+                
+                {invoice.dueDate && (
+                  <>
+                    <p className="text-xs font-bold tracking-[0.1em] text-slate-400 uppercase">Due Date</p>
+                    <p className="text-sm text-slate-800">{format(new Date(invoice.dueDate), 'MMMM d, yyyy')}</p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full h-px bg-slate-200 mb-16"></div>
+
+          {/* Line Items */}
+          <div className="mb-16">
+            <div className="grid grid-cols-12 gap-4 pb-4 border-b border-slate-200 mb-6">
+              <div className="col-span-8 sm:col-span-9 text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Description</div>
+              <div className="col-span-4 sm:col-span-3 text-right text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Amount</div>
+            </div>
+            
+            <div className="space-y-6">
+              {invoice.lineItems.map((item, index) => (
+                <div key={index} className="grid grid-cols-12 gap-4 pb-6 border-b border-slate-100 last:border-0">
+                  <div className="col-span-8 sm:col-span-9">
+                    <p className="text-slate-800">{item.description}</p>
+                  </div>
+                  <div className="col-span-4 sm:col-span-3 text-right">
+                    <p className="text-slate-800">KES {item.amount.toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Totals */}
+          <div className="flex justify-end pt-8 border-t border-slate-200 mb-16">
+            <div className="w-full sm:w-1/2 lg:w-1/3 space-y-4">
+              <div className="flex justify-between text-slate-500">
+                <span>Subtotal</span>
+                <span>KES {invoice.totalAmount.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-slate-500">
+                <span>Amount Paid</span>
+                <span>KES {invoice.amountPaid.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center pt-4 border-t border-slate-200">
+                <span className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Balance Due</span>
+                <span className="text-3xl font-serif text-slate-900">
+                  KES {balance.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="pt-16 border-t border-slate-200 text-sm text-slate-500 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+            <div className="space-y-1">
+              <p className="font-bold text-slate-900">{settings.companyName}</p>
+              {settings.companyAddress && <p>{settings.companyAddress}</p>}
+              <div className="flex space-x-4 pt-2">
+                {settings.companyEmail && <p>{settings.companyEmail}</p>}
+                {settings.companyPhone && <p>{settings.companyPhone}</p>}
+              </div>
+            </div>
+            {settings.paymentDetails && (
+              <div className="sm:text-right max-w-xs">
+                <p className="font-bold text-slate-900 mb-1">Payment Details</p>
+                <p className="whitespace-pre-line">{settings.paymentDetails}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

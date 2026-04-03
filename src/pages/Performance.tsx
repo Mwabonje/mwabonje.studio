@@ -110,7 +110,7 @@ export function Performance() {
           <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}>
             <ChevronLeft className="w-3 h-3" />
           </Button>
-          <span className="text-xs font-semibold w-16 text-center">{format(selectedMonth, 'MMM yy')}</span>
+          <span className="text-xs font-semibold w-20 text-center">{format(selectedMonth, 'MMM yyyy')}</span>
           <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))}>
             <ChevronRight className="w-3 h-3" />
           </Button>

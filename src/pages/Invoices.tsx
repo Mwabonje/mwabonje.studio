@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useStore, Invoice, LineItem, Quote } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle, ExternalLink, Download, Copy, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { toPng } from 'html-to-image';
+import jsPDF from 'jspdf';
+import { auth } from '@/lib/firebase';
+import { toast } from 'sonner';
 
 export function Invoices() {
   const { invoices, quotes, projects, clients, settings, addInvoice, updateInvoice, deleteInvoice } = useStore();
@@ -17,6 +21,8 @@ export function Invoices() {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewInvoice, setPreviewInvoice] = useState<Invoice | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const invoiceRef = useRef<HTMLDivElement>(null);
   
   const [formData, setFormData] = useState({
     quoteId: 'none',
@@ -30,6 +36,80 @@ export function Invoices() {
   const handleOpenPreview = (invoice: Invoice) => {
     setPreviewInvoice(invoice);
     setIsPreviewOpen(true);
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!invoiceRef.current || isGeneratingPDF || !previewInvoice) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      const element = invoiceRef.current;
+      const originalStyle = element.style.cssText;
+      
+      element.style.width = '800px';
+      element.style.maxWidth = 'none';
+      element.style.padding = '40px';
+
+      const imgData = await toPng(element, {
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top left',
+          width: '800px'
+        }
+      });
+      
+      element.style.cssText = originalStyle;
+      
+      const JSPDF = typeof jsPDF === 'function' ? jsPDF : (jsPDF as any).jsPDF || (jsPDF as any).default;
+      const pdf = new JSPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const imgProps = pdf.getImageProperties(imgData);
+      const ratio = pdfWidth / imgProps.width;
+      const totalPdfHeight = imgProps.height * ratio;
+      
+      let heightLeft = totalPdfHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - totalPdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      const project = projects.find(p => p.id === previewInvoice.projectId);
+      const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      pdf.save(`Invoice_${safeTitle}.pdf`);
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      toast.error("Failed to generate PDF. Please try again.");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (!previewInvoice) return;
+    const uid = auth.currentUser?.uid;
+    if (!uid) {
+      toast.error("You must be logged in to share an invoice.");
+      return;
+    }
+    const url = `${window.location.origin}/invoice/shared?uid=${uid}&id=${previewInvoice.id}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Invoice link copied to clipboard!");
   };
 
   const getColorClass = (color: string) => {
@@ -294,6 +374,18 @@ export function Invoices() {
           <DialogContent className="max-w-4xl sm:max-w-4xl md:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
             <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
               <DialogTitle className="text-xl font-bold">Invoice Preview</DialogTitle>
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm" onClick={handleCopyLink}>
+                  <Copy className="w-4 h-4 mr-2" /> Copy Link
+                </Button>
+                <Button size="sm" onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
+                  {isGeneratingPDF ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
+                  ) : (
+                    <><Download className="w-4 h-4 mr-2" /> Download PDF</>
+                  )}
+                </Button>
+              </div>
             </div>
             
             {previewInvoice && (() => {
@@ -302,7 +394,7 @@ export function Invoices() {
               const balance = previewInvoice.totalAmount - previewInvoice.amountPaid;
 
               return (
-                <div className="p-6 sm:p-12 m-4 sm:m-6 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
+                <div ref={invoiceRef} className="p-6 sm:p-12 m-4 sm:m-6 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
                   {/* Decorative Top Line */}
                   <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(settings.colorScheme)}`}></div>
 

@@ -13,6 +13,7 @@ import { Invoices } from '@/pages/Invoices';
 import { Payments } from '@/pages/Payments';
 import { Performance } from '@/pages/Performance';
 import { SharedQuote } from '@/pages/SharedQuote';
+import { SharedInvoice } from '@/pages/SharedInvoice';
 import Settings from '@/pages/Settings';
 import Login from '@/pages/Login';
 import { Toaster } from 'sonner';
@@ -26,6 +27,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/quote/shared" element={<SharedQuote />} />
+          <Route path="/invoice/shared" element={<SharedInvoice />} />
           
           <Route element={<AuthGuard />}>
             <Route path="/" element={<Layout />}>

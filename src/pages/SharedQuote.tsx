@@ -221,7 +221,7 @@ export function SharedQuote() {
               )}
               <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Proposal For</h2>
               <h1 className="text-4xl sm:text-5xl font-serif text-slate-900 leading-tight">{quote.clientName || 'Client Name'}</h1>
-              <p className="text-lg text-slate-500 mt-2 font-serif italic">
+              <p className="text-lg text-slate-500 mt-2 font-serif italic mb-4">
                 {quote.projectTitle || 'Project Title'}
                 {quote.revisionOf && (
                   <span className="ml-3 text-xs font-sans font-bold tracking-widest uppercase text-slate-400 border border-slate-200 px-3 py-1 rounded-full align-middle print:border-slate-300">
@@ -229,6 +229,12 @@ export function SharedQuote() {
                   </span>
                 )}
               </p>
+              {(quote.clientEmail || quote.clientPhone) && (
+                <div className="text-sm text-slate-500 space-y-1">
+                  {quote.clientEmail && <p>{quote.clientEmail}</p>}
+                  {quote.clientPhone && <p>{quote.clientPhone}</p>}
+                </div>
+              )}
             </div>
             <div className="text-left sm:text-right">
               <h2 className="text-3xl sm:text-4xl font-serif text-slate-200 tracking-widest uppercase mb-4">Quote</h2>
