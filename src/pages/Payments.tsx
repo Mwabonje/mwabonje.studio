@@ -13,7 +13,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export function Payments() {
-  const { payments, invoices, clients, projects, addPayment, updatePayment, deletePayment } = useStore();
+  const { payments, invoices, clients, projects, settings, addPayment, updatePayment, deletePayment } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -107,18 +107,19 @@ export function Payments() {
     
     const project = useStore.getState().projects.find(p => p.id === invoice.projectId);
     const client = useStore.getState().clients.find(c => c.id === invoice.clientId);
+    const settings = useStore.getState().settings;
     
     const doc = new jsPDF();
     
     // Header
     doc.setFontSize(22);
     doc.setTextColor(0, 50, 35); // Primary Dark
-    doc.text('MWABONJE STUDIO', 14, 20);
+    doc.text(settings?.companyName?.toUpperCase() || 'MWABONJE STUDIO', 14, 20);
     
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text('Malindi, Kenya', 14, 28);
-    doc.text('Email: hello@mwabonje.com', 14, 33);
+    if (settings?.companyAddress) doc.text(settings.companyAddress, 14, 28);
+    if (settings?.companyEmail) doc.text(`Email: ${settings.companyEmail}`, 14, 33);
     
     // Receipt Title
     doc.setFontSize(16);
@@ -149,7 +150,7 @@ export function Payments() {
     
     const bodyData = [
       ['Project', project?.title || 'Unknown Project'],
-      ['Invoice No.', `INV-${invoice.id.substring(0, 6).toUpperCase()}`],
+      ['Invoice No.', invoice.id.substring(0, 8).toUpperCase()],
       ['Payment Method', payment.method.toUpperCase()],
     ];
 
@@ -311,9 +312,9 @@ export function Payments() {
               <div className="mt-4 p-4 sm:p-8 bg-white border rounded-lg shadow-sm font-sans text-slate-800 overflow-x-auto">
                 <div className="flex flex-col sm:flex-row justify-between items-start mb-8 gap-4 sm:gap-0">
                   <div>
-                    <h1 className="text-xl sm:text-2xl font-bold text-primary tracking-tight">MWABONJE STUDIO</h1>
-                    <p className="text-sm text-slate-500 mt-1">Malindi, Kenya</p>
-                    <p className="text-sm text-slate-500">Email: hello@mwabonje.com</p>
+                    <h1 className="text-xl sm:text-2xl font-bold text-primary tracking-tight">{settings?.companyName?.toUpperCase() || 'MWABONJE STUDIO'}</h1>
+                    {settings?.companyAddress && <p className="text-sm text-slate-500 mt-1">{settings.companyAddress}</p>}
+                    {settings?.companyEmail && <p className="text-sm text-slate-500">Email: {settings.companyEmail}</p>}
                   </div>
                   <div className="text-left sm:text-right">
                     <h2 className="text-lg sm:text-xl font-semibold text-slate-800 uppercase tracking-wider">Payment Receipt</h2>
@@ -361,7 +362,7 @@ export function Payments() {
                               </TableRow>
                               <TableRow>
                                 <TableCell className="font-medium">Invoice No.</TableCell>
-                                <TableCell className="text-right font-mono text-xs">INV-{invoice?.id.substring(0, 6).toUpperCase()}</TableCell>
+                                <TableCell className="text-right font-mono text-xs">{invoice?.id.substring(0, 8).toUpperCase()}</TableCell>
                               </TableRow>
                               <TableRow>
                                 <TableCell className="font-medium">Payment Method</TableCell>

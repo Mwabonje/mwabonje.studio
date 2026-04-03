@@ -124,6 +124,34 @@ export function Invoices() {
     return colors[color] || 'bg-slate-900';
   };
 
+  const renderDescription = (description: string) => {
+    if (!description) return 'Item description';
+    
+    // Check if description matches "Title (Item 1, Item 2)" format
+    const match = description.match(/^(.*?)\s*\((.*?)\)$/);
+    if (match) {
+      const [_, title, inclusionsStr] = match;
+      const inclusions = inclusionsStr.split(',').map(s => s.trim()).filter(Boolean);
+      return (
+        <div>
+          <p className="font-medium text-slate-900">{title}</p>
+          {inclusions.length > 0 && (
+            <ul className="mt-1 space-y-1">
+              {inclusions.map((inc, i) => (
+                <li key={i} className="text-xs text-slate-500 flex items-start">
+                  <span className="w-1 h-1 rounded-full bg-slate-300 mr-2 mt-1.5 shrink-0"></span>
+                  {inc}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    }
+    
+    return <p className="text-slate-800">{description}</p>;
+  };
+
   const handleOpenDialog = (invoice?: Invoice) => {
     if (invoice) {
       setEditingInvoice(invoice);
@@ -439,7 +467,7 @@ export function Invoices() {
                       <tbody>
                         {previewInvoice.lineItems.map((item, index) => (
                           <tr key={item.id || index} className="border-b border-slate-100">
-                            <td className="py-4 text-sm text-slate-700">{item.description || 'Item description'}</td>
+                            <td className="py-4 text-sm text-slate-700">{renderDescription(item.description)}</td>
                             <td className="py-4 text-sm text-slate-900 font-medium text-right">KES {item.price.toLocaleString()}</td>
                           </tr>
                         ))}

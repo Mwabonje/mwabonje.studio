@@ -117,6 +117,34 @@ export function SharedInvoice() {
     return colors[color] || 'bg-slate-900';
   };
 
+  const renderDescription = (description: string) => {
+    if (!description) return 'Item description';
+    
+    // Check if description matches "Title (Item 1, Item 2)" format
+    const match = description.match(/^(.*?)\s*\((.*?)\)$/);
+    if (match) {
+      const [_, title, inclusionsStr] = match;
+      const inclusions = inclusionsStr.split(',').map(s => s.trim()).filter(Boolean);
+      return (
+        <div>
+          <p className="font-medium text-slate-900">{title}</p>
+          {inclusions.length > 0 && (
+            <ul className="mt-1 space-y-1">
+              {inclusions.map((inc, i) => (
+                <li key={i} className="text-xs text-slate-500 flex items-start">
+                  <span className="w-1 h-1 rounded-full bg-slate-300 mr-2 mt-1.5 shrink-0"></span>
+                  {inc}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    }
+    
+    return <p className="text-slate-800">{description}</p>;
+  };
+
   const handleDownloadPDF = async () => {
     if (!invoiceRef.current || isGeneratingPDF) return;
     
@@ -262,7 +290,7 @@ export function SharedInvoice() {
               {invoice.lineItems.map((item, index) => (
                 <div key={index} className="grid grid-cols-12 gap-4 pb-6 border-b border-slate-100 last:border-0">
                   <div className="col-span-8 sm:col-span-9">
-                    <p className="text-slate-800">{item.description}</p>
+                    {renderDescription(item.description)}
                   </div>
                   <div className="col-span-4 sm:col-span-3 text-right">
                     <p className="text-slate-800">KES {item.amount.toLocaleString()}</p>
