@@ -422,9 +422,10 @@ export function Invoices() {
               const balance = previewInvoice.totalAmount - previewInvoice.amountPaid;
 
               return (
-                <div ref={invoiceRef} className="p-6 sm:p-12 m-4 sm:m-6 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
-                  {/* Decorative Top Line */}
-                  <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(settings.colorScheme)}`}></div>
+                <div className="m-4 sm:m-6">
+                  <div ref={invoiceRef} className="p-6 sm:p-12 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
+                    {/* Decorative Top Line */}
+                    <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(settings.colorScheme)}`}></div>
 
                   {/* Header */}
                   <div className="flex flex-col sm:flex-row justify-between items-start mb-12">
@@ -512,6 +513,7 @@ export function Invoices() {
                       {settings.companyAddress && <p className="text-xs text-slate-500 whitespace-pre-wrap mt-1">{settings.companyAddress}</p>}
                       <p className="text-xs text-slate-500 mt-2 italic">Thank you for your business.</p>
                     </div>
+                  </div>
                   </div>
                 </div>
               );
