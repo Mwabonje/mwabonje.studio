@@ -316,7 +316,12 @@ export function Projects() {
                   </TableCell>
                 </TableRow>
               ) : (
-                projects.map((project) => {
+                [...projects].sort((a, b) => {
+                  const dateA = new Date(a.date).getTime();
+                  const dateB = new Date(b.date).getTime();
+                  if (dateB !== dateA) return dateB - dateA;
+                  return b.id.localeCompare(a.id);
+                }).map((project) => {
                   const client = clients.find(c => c.id === project.clientId);
                   return (
                     <TableRow key={project.id}>

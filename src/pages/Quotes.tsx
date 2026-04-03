@@ -920,7 +920,14 @@ export function Quotes() {
                   </TableCell>
                 </TableRow>
               ) : (
-                quotes.map((quote) => {
+                [...quotes].sort((a, b) => {
+                  const dateA = new Date(a.date || a.issueDate).getTime();
+                  const dateB = new Date(b.date || b.issueDate).getTime();
+                  if (dateB !== dateA) return dateB - dateA;
+                  const numA = a.quoteNumber || '';
+                  const numB = b.quoteNumber || '';
+                  return numB.localeCompare(numA);
+                }).map((quote) => {
                   const myCut = quote.isCollaboration 
                     ? (quote.collaborationType === 'percentage' 
                         ? (quote.totalAmount * (quote.collaborationCut || 0) / 100) 

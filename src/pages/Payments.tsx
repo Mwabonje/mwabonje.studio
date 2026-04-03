@@ -442,7 +442,12 @@ export function Payments() {
                   </TableCell>
                 </TableRow>
               ) : (
-                payments.map((payment) => {
+                [...payments].sort((a, b) => {
+                  const dateA = new Date(a.date).getTime();
+                  const dateB = new Date(b.date).getTime();
+                  if (dateB !== dateA) return dateB - dateA;
+                  return b.id.localeCompare(a.id);
+                }).map((payment) => {
                   const invoice = invoices.find(i => i.id === payment.invoiceId);
                   const project = projects.find(p => p.id === invoice?.projectId);
                   const client = clients.find(c => c.id === invoice?.clientId);

@@ -545,7 +545,12 @@ export function Invoices() {
                   </TableCell>
                 </TableRow>
               ) : (
-                invoices.map((invoice) => {
+                [...invoices].sort((a, b) => {
+                  const dateA = new Date(a.date).getTime();
+                  const dateB = new Date(b.date).getTime();
+                  if (dateB !== dateA) return dateB - dateA;
+                  return b.id.localeCompare(a.id);
+                }).map((invoice) => {
                   const project = projects.find(p => p.id === invoice.projectId);
                   const client = clients.find(c => c.id === invoice.clientId);
                   const balance = invoice.totalAmount - invoice.amountPaid;
