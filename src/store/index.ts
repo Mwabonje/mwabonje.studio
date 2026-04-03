@@ -234,7 +234,28 @@ export const useStore = create<AppState>((set, get) => ({
   deleteQuote: async (id) => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
+    
+    const quote = get().quotes.find(q => q.id === id);
+    
+    // Delete the quote
     await deleteDoc(doc(db, `users/${uid}/quotes`, id));
+    
+    // Delete related invoices and their payments
+    const relatedInvoices = get().invoices.filter(i => i.quoteId === id);
+    for (const invoice of relatedInvoices) {
+      await deleteDoc(doc(db, `users/${uid}/invoices`, invoice.id));
+      
+      // Delete payments for this invoice
+      const relatedPayments = get().payments.filter(p => p.invoiceId === invoice.id);
+      for (const payment of relatedPayments) {
+        await deleteDoc(doc(db, `users/${uid}/payments`, payment.id));
+      }
+    }
+    
+    // Delete related project if it exists
+    if (quote?.projectId) {
+      await deleteDoc(doc(db, `users/${uid}/projects`, quote.projectId));
+    }
   },
 
   addInvoice: async (invoice) => {
