@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore, Project } from '@/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Wallet, Clock, FileText, Calendar } from 'lucide-react';
-import { isSameMonth } from 'date-fns';
+import { DollarSign, Wallet, Clock, FileText, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { isSameMonth, format, subMonths, addMonths } from 'date-fns';
+import { Button } from '@/components/ui/button';
 
 export function Performance() {
   const { projects, quotes, invoices, payments } = useStore();
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
 
   // 1. Total Earning
   const totalEarning = payments.reduce((sum, payment) => sum + payment.amount, 0);
@@ -69,9 +71,8 @@ export function Performance() {
   const openQuotes = quotes.filter((q) => q.status === 'draft' || q.status === 'sent').length;
 
   // 5. Monthly Earning
-  const currentMonth = new Date();
   const monthlyEarning = payments
-    .filter((p) => isSameMonth(new Date(p.date), currentMonth))
+    .filter((p) => isSameMonth(new Date(p.date), selectedMonth))
     .reduce((sum, p) => sum + p.amount, 0);
 
   const stats = [
@@ -100,10 +101,21 @@ export function Performance() {
       description: 'Quotes awaiting client approval',
     },
     {
-      title: 'Monthly Earning',
+      title: `Monthly Earning`,
       value: `Ksh ${monthlyEarning.toLocaleString()}`,
       icon: Calendar,
-      description: 'Earnings received this month',
+      description: `Earnings received in ${format(selectedMonth, 'MMMM yyyy')}`,
+      action: (
+        <div className="flex items-center space-x-1 mt-1">
+          <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}>
+            <ChevronLeft className="w-3 h-3" />
+          </Button>
+          <span className="text-xs font-semibold w-16 text-center">{format(selectedMonth, 'MMM yy')}</span>
+          <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))}>
+            <ChevronRight className="w-3 h-3" />
+          </Button>
+        </div>
+      )
     },
   ];
 
@@ -116,11 +128,14 @@ export function Performance() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat, index) => (
           <Card key={index} className="border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500 uppercase tracking-wider">
-                {stat.title}
-              </CardTitle>
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <CardHeader className="flex flex-row items-start justify-between pb-2">
+              <div className="flex flex-col">
+                <CardTitle className="text-sm font-medium text-slate-500 uppercase tracking-wider">
+                  {stat.title}
+                </CardTitle>
+                {stat.action}
+              </div>
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
                 <stat.icon className="w-5 h-5" />
               </div>
             </CardHeader>
