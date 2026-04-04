@@ -11,10 +11,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function Dashboard() {
-  const { projects, quotes, clients, invoices, deleteProject, addProject } = useStore();
+  const { projects, quotes, clients, invoices, deleteProject, addProject, deleteQuote } = useStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
+  const [isClearQuotesDialogOpen, setIsClearQuotesDialogOpen] = useState(false);
   const [eventFormData, setEventFormData] = useState({
     title: '',
     clientId: '',
@@ -314,7 +315,40 @@ export function Dashboard() {
 
         {/* Recent Quotes */}
         <div>
-          <h3 className="text-xs font-bold tracking-widest text-slate-800 uppercase mb-8">Recent Quotes</h3>
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-xs font-bold tracking-widest text-slate-800 uppercase">Recent Quotes</h3>
+            {recentQuotes.length > 0 && (
+              <Dialog open={isClearQuotesDialogOpen} onOpenChange={setIsClearQuotesDialogOpen}>
+                <DialogTrigger 
+                  render={<Button variant="ghost" size="sm" className="text-[10px] text-slate-400 hover:text-red-500 uppercase tracking-wider h-auto py-1 px-2" />}
+                >
+                  Clear History
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Clear Quote History</DialogTitle>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <p className="text-sm text-slate-500">Are you sure you want to clear all quotes? This action cannot be undone.</p>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setIsClearQuotesDialogOpen(false)}>Cancel</Button>
+                    <Button 
+                      variant="destructive" 
+                      onClick={async () => {
+                        for (const quote of quotes) {
+                          await deleteQuote(quote.id);
+                        }
+                        setIsClearQuotesDialogOpen(false);
+                      }}
+                    >
+                      Clear All Quotes
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
           <div className="space-y-6 mb-10">
             {recentQuotes.length === 0 ? (
               <p className="text-sm text-slate-500">No recent quotes.</p>
