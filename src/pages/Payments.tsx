@@ -112,9 +112,15 @@ export function Payments() {
     const doc = new jsPDF();
     
     // Header
+    const companyName = settings?.companyName?.toUpperCase() || 'MWABONJE STUDIO';
     doc.setFontSize(22);
+    let fontSize = 22;
+    while (doc.getTextWidth(companyName) > 110 && fontSize > 10) {
+      fontSize--;
+      doc.setFontSize(fontSize);
+    }
     doc.setTextColor(0, 50, 35); // Primary Dark
-    doc.text(settings?.companyName?.toUpperCase() || 'MWABONJE STUDIO', 14, 20);
+    doc.text(companyName, 14, 20);
     
     doc.setFontSize(10);
     doc.setTextColor(100);
@@ -124,11 +130,11 @@ export function Payments() {
     // Receipt Title
     doc.setFontSize(16);
     doc.setTextColor(0);
-    doc.text('PAYMENT RECEIPT', 140, 20);
+    doc.text('PAYMENT RECEIPT', 196, 20, { align: 'right' });
     
     doc.setFontSize(10);
-    doc.text(`Receipt No: RCT-${payment.id.substring(0, 6).toUpperCase()}`, 140, 28);
-    doc.text(`Date: ${format(new Date(payment.date), 'MMM d, yyyy')}`, 140, 33);
+    doc.text(`Receipt No: RCT-${payment.id.substring(0, 6).toUpperCase()}`, 196, 28, { align: 'right' });
+    doc.text(`Date: ${format(new Date(payment.date), 'MMM d, yyyy')}`, 196, 33, { align: 'right' });
     
     // Client Info
     doc.setFontSize(12);
