@@ -746,17 +746,6 @@ export function Quotes() {
                     ))}
                   </div>
                 )}
-                
-                {packages.length > 0 && (
-                  <div className="flex justify-end pt-8">
-                    <div className="text-right">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1">Total Estimated Value</p>
-                      <p className="text-3xl font-serif text-slate-900">
-                        Ksh {packages.reduce((sum, pkg) => sum + pkg.settlement, 0).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Note */}

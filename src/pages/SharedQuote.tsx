@@ -288,17 +288,6 @@ export function SharedQuote() {
                 ))}
               </div>
             )}
-            
-            {quote.packages.length > 0 && (
-              <div className="flex justify-end pt-12">
-                <div className="text-right">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.15em] mb-2">Total Estimated Value</p>
-                  <p className="text-4xl font-serif text-slate-900">
-                    Ksh {quote.totalAmount.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Note */}
