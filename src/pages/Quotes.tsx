@@ -23,6 +23,8 @@ export function Quotes() {
   const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
   const [depositPercentage, setDepositPercentage] = useState<number>(50);
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('');
   
   const defaultFormData = {
     quoteNumber: '',
@@ -363,10 +365,35 @@ export function Quotes() {
     <div className="space-y-6 pb-20">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Quotes</h2>
-        <Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto">
-          <Plus className="w-4 h-4 mr-2" />
-          Create Quote
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[150px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="sent">Sent</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input 
+            type="date" 
+            value={dateFilter} 
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="w-full sm:w-[150px]"
+            placeholder="Filter by date"
+          />
+          {dateFilter && (
+            <Button variant="ghost" size="icon" onClick={() => setDateFilter('')} className="shrink-0" title="Clear date filter">
+              <Trash2 className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          )}
+          <Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto">
+            <Plus className="w-4 h-4 mr-2" />
+            Create Quote
+          </Button>
+        </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
@@ -902,14 +929,22 @@ export function Quotes() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {quotes.length === 0 ? (
+              {quotes.filter(quote => {
+                const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
+                const matchesDate = !dateFilter || (quote.issueDate === dateFilter || quote.date === dateFilter);
+                return matchesStatus && matchesDate;
+              }).length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    No quotes found. Create one to get started.
+                    No quotes found matching your filters.
                   </TableCell>
                 </TableRow>
               ) : (
-                [...quotes].sort((a, b) => {
+                [...quotes].filter(quote => {
+                  const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
+                  const matchesDate = !dateFilter || (quote.issueDate === dateFilter || quote.date === dateFilter);
+                  return matchesStatus && matchesDate;
+                }).sort((a, b) => {
                   const dateA = new Date(a.date || a.issueDate).getTime();
                   const dateB = new Date(b.date || b.issueDate).getTime();
                   if (dateB !== dateA) return dateB - dateA;

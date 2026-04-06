@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useStore } from '@/store';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays } from 'date-fns';
 import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2 } from 'lucide-react';

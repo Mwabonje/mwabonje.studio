@@ -7,13 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
 
 export function Clients() {
   const { clients, addClient, updateClient, deleteClient } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', notes: '' });
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleOpenDialog = (client?: Client) => {
     if (client) {
@@ -44,16 +45,33 @@ export function Clients() {
     }
   };
 
+  const filteredClients = clients.filter(client => 
+    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.phone.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Clients</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger render={<Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto" />}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Client
-          </DialogTrigger>
-          <DialogContent>
+        <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search clients..."
+              className="pl-8 w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger render={<Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto" />}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Client
+            </DialogTrigger>
+            <DialogContent>
             <DialogHeader>
               <DialogTitle>{editingClient ? 'Edit Client' : 'Add New Client'}</DialogTitle>
             </DialogHeader>
@@ -103,6 +121,7 @@ export function Clients() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card>
@@ -118,14 +137,14 @@ export function Clients() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clients.length === 0 ? (
+              {filteredClients.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    No clients found. Add one to get started.
+                    {searchQuery ? 'No clients found matching your search.' : 'No clients found. Add one to get started.'}
                   </TableCell>
                 </TableRow>
               ) : (
-                [...clients].sort((a, b) => a.name.localeCompare(b.name)).map((client) => (
+                [...filteredClients].sort((a, b) => a.name.localeCompare(b.name)).map((client) => (
                   <TableRow key={client.id}>
                     <TableCell className="font-medium">{client.name}</TableCell>
                     <TableCell>{client.email}</TableCell>
