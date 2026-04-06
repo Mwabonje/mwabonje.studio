@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useStore, Payment } from '@/store';
+import { useStore, Payment, CollaboratorSplit } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,11 +13,12 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export function Payments() {
-  const { payments, invoices, clients, projects, settings, addPayment, updatePayment, deletePayment } = useStore();
+  const { payments, invoices, clients, projects, settings, addPayment, updatePayment, deletePayment, updateProject } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewPayment, setPreviewPayment] = useState<Payment | null>(null);
+  const [collaborators, setCollaborators] = useState<CollaboratorSplit[]>([]);
   
   const [formData, setFormData] = useState({
     invoiceId: '',
@@ -39,6 +40,13 @@ export function Payments() {
         method: payment.method,
         reference: payment.reference || '',
       });
+      const invoice = invoices.find(i => i.id === payment.invoiceId);
+      if (invoice) {
+        const project = projects.find(p => p.id === invoice.projectId);
+        setCollaborators(project?.collaborators || []);
+      } else {
+        setCollaborators([]);
+      }
     } else {
       setEditingPaymentId(null);
       setFormData({
@@ -48,6 +56,7 @@ export function Payments() {
         method: 'mpesa',
         reference: '',
       });
+      setCollaborators([]);
     }
     setIsDialogOpen(true);
   };
@@ -57,7 +66,26 @@ export function Payments() {
     if (invoice) {
       const balance = invoice.totalAmount - invoice.amountPaid;
       setFormData({ ...formData, invoiceId, amount: balance });
+      
+      const project = projects.find(p => p.id === invoice.projectId);
+      if (project) {
+        setCollaborators(project.collaborators || []);
+      } else {
+        setCollaborators([]);
+      }
     }
+  };
+
+  const addCollaborator = () => {
+    setCollaborators([...collaborators, { id: crypto.randomUUID(), name: '', splitType: 'equal' }]);
+  };
+
+  const updateCollaborator = (id: string, field: keyof CollaboratorSplit, value: any) => {
+    setCollaborators(collaborators.map(c => c.id === id ? { ...c, [field]: value } : c));
+  };
+
+  const removeCollaborator = (id: string) => {
+    setCollaborators(collaborators.filter(c => c.id !== id));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,6 +101,16 @@ export function Payments() {
           reference: formData.reference,
         };
         await updatePayment(editingPaymentId, updatedPayment);
+        
+        // Update project collaborators if they changed
+        const invoice = invoices.find(i => i.id === formData.invoiceId);
+        if (invoice) {
+          const project = projects.find(p => p.id === invoice.projectId);
+          if (project) {
+            await updateProject(project.id, { collaborators });
+          }
+        }
+        
         setIsDialogOpen(false);
         return;
       }
@@ -87,6 +125,15 @@ export function Payments() {
       };
       
       await addPayment(newPayment);
+      
+      // Update project collaborators if they changed
+      const invoice = invoices.find(i => i.id === formData.invoiceId);
+      if (invoice) {
+        const project = projects.find(p => p.id === invoice.projectId);
+        if (project) {
+          await updateProject(project.id, { collaborators });
+        }
+      }
       
       // Auto-generate receipt
       setTimeout(() => {
@@ -256,7 +303,7 @@ export function Payments() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="date">Date</Label>
                   <Input
@@ -297,6 +344,64 @@ export function Payments() {
                 </div>
               )}
 
+              {formData.invoiceId && (
+                <div className="space-y-4 pt-4 border-t">
+                  <div className="flex justify-between items-center">
+                    <Label>Payment Split (Optional)</Label>
+                    <Button type="button" variant="outline" size="sm" onClick={addCollaborator}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Split
+                    </Button>
+                  </div>
+                  {collaborators.length > 0 && (
+                    <div className="space-y-3">
+                      {collaborators.map((collab) => (
+                        <div key={collab.id} className="flex items-center gap-2">
+                          <div className="flex-1">
+                            <Input
+                              placeholder="Name"
+                              value={collab.name}
+                              onChange={(e) => updateCollaborator(collab.id, 'name', e.target.value)}
+                              required
+                            />
+                          </div>
+                          <div className="w-32">
+                            <Select
+                              value={collab.splitType}
+                              onValueChange={(value: any) => updateCollaborator(collab.id, 'splitType', value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="equal">Equal</SelectItem>
+                                <SelectItem value="percentage">%</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {collab.splitType === 'percentage' && (
+                            <div className="w-24">
+                              <Input
+                                type="number"
+                                placeholder="%"
+                                min="0"
+                                max="100"
+                                value={collab.percentage || ''}
+                                onChange={(e) => updateCollaborator(collab.id, 'percentage', Number(e.target.value))}
+                                required
+                              />
+                            </div>
+                          )}
+                          <Button type="button" variant="ghost" size="icon" onClick={() => removeCollaborator(collab.id)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-end space-x-2 pt-4">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
@@ -310,7 +415,7 @@ export function Payments() {
         </Dialog>
 
         <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-          <DialogContent className="max-w-2xl sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Receipt Preview</DialogTitle>
             </DialogHeader>

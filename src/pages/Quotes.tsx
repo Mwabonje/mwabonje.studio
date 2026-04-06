@@ -369,7 +369,7 @@ export function Quotes() {
         </Button>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-4xl sm:max-w-4xl md:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
             <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
               <DialogTitle className="text-xl font-bold">{editingQuote ? 'Edit Quote' : 'Create New Quote'}</DialogTitle>
             </div>
@@ -662,7 +662,7 @@ export function Quotes() {
         </Dialog>
 
         <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-          <DialogContent className="max-w-4xl sm:max-w-4xl md:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
             <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
               <DialogTitle className="text-xl font-bold">Quote Preview</DialogTitle>
             </div>

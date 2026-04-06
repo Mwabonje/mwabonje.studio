@@ -259,12 +259,12 @@ export function Invoices() {
             <Plus className="w-4 h-4 mr-2" />
             Create Invoice
           </DialogTrigger>
-          <DialogContent className="max-w-3xl sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingInvoice ? 'Edit Invoice' : 'Create New Invoice'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="quote">Generate from Quote</Label>
                   <Select
@@ -399,7 +399,7 @@ export function Invoices() {
         </Dialog>
 
         <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-          <DialogContent className="max-w-4xl sm:max-w-4xl md:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
             <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
               <DialogTitle className="text-xl font-bold">Invoice Preview</DialogTitle>
               <div className="flex space-x-2">
@@ -457,8 +457,8 @@ export function Invoices() {
                   <div className="w-full h-px bg-slate-200 mb-8"></div>
 
                   {/* Line Items */}
-                  <div className="mb-12">
-                    <table className="w-full text-left border-collapse">
+                  <div className="mb-12 overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[400px]">
                       <thead>
                         <tr className="border-b border-slate-200">
                           <th className="py-3 text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Description</th>

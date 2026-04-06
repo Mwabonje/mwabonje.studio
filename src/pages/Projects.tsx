@@ -117,12 +117,12 @@ export function Projects() {
             <Plus className="w-4 h-4 mr-2" />
             New Project
           </DialogTrigger>
-          <DialogContent className="max-w-2xl sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingProject ? 'Edit Project' : 'Create New Project'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Project Title</Label>
                   <Input
@@ -269,8 +269,9 @@ export function Projects() {
                     KES {invoices.filter(i => i.projectId === viewingSplitProject.id).reduce((sum, i) => sum + i.amountPaid, 0).toLocaleString()}
                   </span>
                 </div>
-                <Table>
-                  <TableHeader>
+                <div className="overflow-x-auto">
+                  <Table className="min-w-[400px]">
+                    <TableHeader>
                     <TableRow>
                       <TableHead>Collaborator</TableHead>
                       <TableHead>Share</TableHead>
@@ -289,6 +290,7 @@ export function Projects() {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
               </div>
             ) : null}
           </div>
