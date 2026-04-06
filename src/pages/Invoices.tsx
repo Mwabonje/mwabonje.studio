@@ -478,7 +478,7 @@ export function Invoices() {
 
                   {/* Totals */}
                   <div className="flex justify-end mb-12">
-                    <div className="w-full sm:w-1/2 md:w-1/3 space-y-3">
+                    <div className="w-full sm:w-1/2 md:w-5/12 lg:w-1/3 min-w-[300px] space-y-3">
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-500">Subtotal</span>
                         <span className="text-slate-900 font-medium">KES {previewInvoice.totalAmount.toLocaleString()}</span>
@@ -489,8 +489,8 @@ export function Invoices() {
                       </div>
                       <div className="w-full h-px bg-slate-200 my-2"></div>
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Balance Due</span>
-                        <span className="text-2xl font-serif text-slate-900 font-bold">KES {balance.toLocaleString()}</span>
+                        <span className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] shrink-0 mr-4">Balance Due</span>
+                        <span className="text-2xl font-serif text-slate-900 font-bold whitespace-nowrap">KES {balance.toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
