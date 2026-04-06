@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Download, Edit, Eye } from 'lucide-react';
+import { Plus, Trash2, Download, Edit, Eye, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -19,6 +19,8 @@ export function Payments() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewPayment, setPreviewPayment] = useState<Payment | null>(null);
   const [collaborators, setCollaborators] = useState<CollaboratorSplit[]>([]);
+  const [sortField, setSortField] = useState<'date' | 'amount' | 'method'>('date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   
   const [formData, setFormData] = useState({
     invoiceId: '',
@@ -243,6 +245,15 @@ export function Payments() {
       setIsPreviewOpen(true);
     } else {
       doc.save(`Receipt_${payment.id.substring(0, 6)}.pdf`);
+    }
+  };
+
+  const handleSort = (field: 'date' | 'amount' | 'method') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
     }
   };
 
@@ -536,28 +547,67 @@ export function Payments() {
             <TableHeader>
               <TableRow>
                 <TableHead>Receipt No</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort('date')}>
+                  <div className="flex items-center gap-1">
+                    Date
+                    {sortField === 'date' ? (
+                      sortDirection === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-slate-300" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Project</TableHead>
-                <TableHead>Method</TableHead>
+                <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort('method')}>
+                  <div className="flex items-center gap-1">
+                    Method
+                    {sortField === 'method' ? (
+                      sortDirection === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-slate-300" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead>Reference</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort('amount')}>
+                  <div className="flex items-center gap-1">
+                    Amount
+                    {sortField === 'amount' ? (
+                      sortDirection === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-slate-300" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {payments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No payments recorded yet.
                   </TableCell>
                 </TableRow>
               ) : (
                 [...payments].sort((a, b) => {
-                  const dateA = new Date(a.date).getTime();
-                  const dateB = new Date(b.date).getTime();
-                  if (dateB !== dateA) return dateB - dateA;
-                  return b.id.localeCompare(a.id);
+                  let comparison = 0;
+                  if (sortField === 'date') {
+                    const dateA = new Date(a.date).getTime();
+                    const dateB = new Date(b.date).getTime();
+                    comparison = dateA - dateB;
+                  } else if (sortField === 'amount') {
+                    comparison = a.amount - b.amount;
+                  } else if (sortField === 'method') {
+                    comparison = a.method.localeCompare(b.method);
+                  }
+                  
+                  if (comparison === 0) {
+                    return b.id.localeCompare(a.id);
+                  }
+                  
+                  return sortDirection === 'asc' ? comparison : -comparison;
                 }).map((payment) => {
                   const invoice = invoices.find(i => i.id === payment.invoiceId);
                   const project = projects.find(p => p.id === invoice?.projectId);
