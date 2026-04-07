@@ -287,13 +287,13 @@ export function SharedInvoice() {
             </div>
             
             <div className="space-y-6">
-              {invoice.lineItems.map((item, index) => (
+              {(invoice.lineItems || []).map((item, index) => (
                 <div key={index} className="grid grid-cols-12 gap-4 pb-6 border-b border-slate-100 last:border-0">
                   <div className="col-span-8 sm:col-span-9">
                     {renderDescription(item.description)}
                   </div>
                   <div className="col-span-4 sm:col-span-3 text-right">
-                    <p className="text-slate-800">KES {item.amount.toLocaleString()}</p>
+                    <p className="text-slate-800">KES {(item.price || 0).toLocaleString()}</p>
                   </div>
                 </div>
               ))}

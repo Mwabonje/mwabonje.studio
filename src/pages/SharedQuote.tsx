@@ -261,11 +261,11 @@ export function SharedQuote() {
           <div className="mb-16">
             <h3 className="text-sm font-bold text-slate-900 uppercase tracking-[0.15em] mb-8">Investment Options</h3>
             
-            {quote.packages.length === 0 ? (
+            {(quote.packages || []).length === 0 ? (
               <p className="text-slate-400 italic font-serif">No packages detailed.</p>
             ) : (
               <div className="space-y-8">
-                {quote.packages.map((pkg, index) => (
+                {(quote.packages || []).map((pkg, index) => (
                   <div key={pkg.id} className="border border-slate-200 p-8 print:border-slate-300 relative group">
                     <div className="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-slate-400 transition-colors"></div>
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -274,9 +274,9 @@ export function SharedQuote() {
                         Ksh {pkg.settlement.toLocaleString()}
                       </span>
                     </div>
-                    {pkg.inclusions.length > 0 && (
+                    {(pkg.inclusions || []).length > 0 && (
                       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8">
-                        {pkg.inclusions.map((inc, i) => (
+                        {(pkg.inclusions || []).map((inc, i) => (
                           <li key={i} className="flex items-start text-sm text-slate-600">
                             <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mr-3 mt-1.5 shrink-0"></span>
                             <span className="leading-relaxed">{inc || 'Empty inclusion'}</span>
