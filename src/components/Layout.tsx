@@ -7,7 +7,7 @@ import { auth } from '@/lib/firebase';
 
 export function Layout() {
   const location = useLocation();
-  const { clients, projects, invoices } = useStore();
+  const { clients, projects, invoices, settings } = useStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userName, setUserName] = useState('Mwabonje Admin');
   const [userInitial, setUserInitial] = useState('M');
@@ -46,8 +46,8 @@ export function Layout() {
     <div className="flex h-screen overflow-hidden bg-slate-50">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-primary text-primary-foreground flex items-center justify-between px-4 z-30 shadow-md">
-        <h1 className="text-xl font-bold tracking-widest text-white">MWABONJE</h1>
-        <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 -mr-2 text-white">
+        <h1 className="text-xl font-bold tracking-widest text-white truncate pr-4">{settings?.companyName?.toUpperCase() || 'STUDIO'}</h1>
+        <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 -mr-2 text-white shrink-0">
           <Menu className="w-6 h-6" />
         </button>
       </div>
@@ -67,8 +67,10 @@ export function Layout() {
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex items-center justify-between px-6 lg:px-10 mb-6 lg:mb-10 mt-2 lg:mt-0">
-          <h1 className="text-xl lg:text-2xl font-bold tracking-widest text-white">MWABONJE</h1>
-          <button onClick={closeMobileMenu} className="lg:hidden p-2 -mr-2 text-white">
+          <h1 className="text-xl lg:text-2xl font-bold tracking-widest text-white truncate pr-2" title={settings?.companyName?.toUpperCase() || 'STUDIO'}>
+            {settings?.companyName?.toUpperCase() || 'STUDIO'}
+          </h1>
+          <button onClick={closeMobileMenu} className="lg:hidden p-2 -mr-2 text-white shrink-0">
             <X className="w-6 h-6" />
           </button>
         </div>
