@@ -230,13 +230,13 @@ export function Dashboard() {
         <div className="w-full md:w-[65%] p-6 md:p-10 flex flex-col bg-white">
           {/* Header Controls */}
           <div className="flex justify-between items-center mb-12">
-            <div className="flex space-x-6 overflow-x-auto hide-scrollbar">
+            <div className="flex-1 min-w-0 flex gap-6 overflow-x-auto hide-scrollbar mr-4">
               {months.map((m, i) => (
                 <button 
                   key={m}
                   onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), i, 1))}
                   className={cn(
-                    "text-sm pb-1 border-b-2 transition-colors",
+                    "text-sm pb-1 px-1 border-b-2 transition-colors shrink-0 whitespace-nowrap",
                     currentDate.getMonth() === i 
                       ? "border-slate-800 text-slate-800 font-bold" 
                       : "border-transparent text-slate-400 hover:text-slate-600 font-medium"
@@ -246,7 +246,7 @@ export function Dashboard() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center space-x-3 text-slate-400 font-medium">
+            <div className="flex items-center space-x-3 text-slate-400 font-medium shrink-0">
               <button onClick={prevMonth} className="p-1 hover:bg-slate-100 rounded-full transition-colors"><ChevronLeft className="w-4 h-4" /></button>
               <span className="text-slate-600 font-bold">{format(currentDate, 'yyyy')}</span>
               <button onClick={nextMonth} className="p-1 hover:bg-slate-100 rounded-full transition-colors"><ChevronRight className="w-4 h-4" /></button>
