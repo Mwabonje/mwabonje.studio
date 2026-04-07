@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, doc, onSnapshot, query } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { useStore, Client, Project, Quote, Invoice, Payment, Settings } from '../store';
 
@@ -9,9 +9,18 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const userId = useStore((state) => state.userId);
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setAuthReady(true, user.uid);
+        // Create a top-level document so the user can see their data in the Firebase Console
+        try {
+          await setDoc(doc(db, 'users', user.uid), {
+            email: user.email,
+            lastLogin: new Date().toISOString()
+          }, { merge: true });
+        } catch (e) {
+          console.error("Error creating user document:", e);
+        }
       } else {
         setAuthReady(true, null);
         useStore.setState({

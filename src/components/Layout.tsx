@@ -1,13 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
+import { auth } from '@/lib/firebase';
 
 export function Layout() {
   const location = useLocation();
   const { clients, projects, invoices } = useStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userName, setUserName] = useState('Mwabonje Admin');
+  const [userInitial, setUserInitial] = useState('M');
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        if (user.displayName) {
+          // Remove any text in parentheses, e.g., "Michael Ringa (Mike)" -> "Michael Ringa"
+          const cleanName = user.displayName.replace(/\s*\(.*?\)\s*/g, '').trim();
+          setUserName(cleanName);
+          setUserInitial(cleanName.charAt(0).toUpperCase());
+        } else if (user.email) {
+          const emailName = user.email.split('@')[0];
+          const formattedName = emailName.split('.').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+          setUserName(formattedName);
+          setUserInitial(formattedName.charAt(0).toUpperCase());
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const navItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -94,10 +116,10 @@ export function Layout() {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-bold text-lg">
-                M
+                {userInitial}
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-semibold text-white">Mwabonje Admin</p>
+              <div className="ml-3 overflow-hidden">
+                <p className="text-sm font-semibold text-white truncate max-w-[130px]" title={userName}>{userName}</p>
                 <p className="text-xs text-primary-foreground/60">Studio Manager</p>
               </div>
             </div>
