@@ -1,16 +1,35 @@
 import { useState, useEffect } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 import { auth } from '@/lib/firebase';
+import { toast } from 'sonner';
 
 export function Layout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { clients, projects, invoices, settings } = useStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userName, setUserName] = useState('Mwabonje Admin');
   const [userInitial, setUserInitial] = useState('M');
+  const [hasPromptedSettings, setHasPromptedSettings] = useState(false);
+
+  useEffect(() => {
+    if (settings && !hasPromptedSettings) {
+      if (settings.companyName === 'CaptureCRM' || !settings.companyEmail) {
+        toast('Welcome to CaptureCRM!', {
+          description: 'Please head over to Settings to add your company details.',
+          duration: 8000,
+          action: {
+            label: 'Go to Settings',
+            onClick: () => navigate('/settings'),
+          },
+        });
+        setHasPromptedSettings(true);
+      }
+    }
+  }, [settings, hasPromptedSettings, navigate]);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
