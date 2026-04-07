@@ -107,7 +107,7 @@ export default function Settings() {
                 name="companyName"
                 value={formData.companyName}
                 onChange={handleChange}
-                placeholder="e.g. Mwabonje Studio"
+                placeholder="e.g. CaptureCRM"
               />
             </div>
 
@@ -119,7 +119,7 @@ export default function Settings() {
                 type="email"
                 value={formData.companyEmail}
                 onChange={handleChange}
-                placeholder="e.g. hello@mwabonje.com"
+                placeholder="e.g. hello@capturecrm.com"
               />
             </div>
 
@@ -141,7 +141,7 @@ export default function Settings() {
                 name="companyWebsite"
                 value={formData.companyWebsite}
                 onChange={handleChange}
-                placeholder="e.g. www.mwabonje.com"
+                placeholder="e.g. www.capturecrm.com"
               />
             </div>
 
@@ -208,7 +208,7 @@ export default function Settings() {
                   name="paymentDetails"
                   value={formData.paymentDetails}
                   onChange={handleChange}
-                  placeholder="e.g. Bank: Standard Chartered&#10;Acc Name: Mwabonje Photography&#10;Acc No: 0100000000000"
+                  placeholder="e.g. Bank: Standard Chartered&#10;Acc Name: CaptureCRM&#10;Acc No: 0100000000000"
                   rows={5}
                 />
               </div>

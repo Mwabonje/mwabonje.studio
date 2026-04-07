@@ -62,7 +62,7 @@ export function SharedInvoice() {
             // Fallback settings
             setSettings({
               logoUrl: '',
-              companyName: 'Mwabonje Studio',
+              companyName: 'CaptureCRM',
               companyAddress: '',
               companyEmail: '',
               companyPhone: '',

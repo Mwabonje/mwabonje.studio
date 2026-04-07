@@ -145,13 +145,13 @@ type AppState = {
 
 const defaultSettings: Settings = {
   logoUrl: '',
-  companyName: 'Mwabonje Studio',
+  companyName: 'CaptureCRM',
   companyAddress: '',
   companyEmail: '',
   companyPhone: '',
   companyWebsite: '',
   colorScheme: 'slate',
-  paymentDetails: 'Bank: Standard Chartered\nAcc Name: Mwabonje Photography\nAcc No: 0100000000000\nM-Pesa Till: 123456',
+  paymentDetails: 'Bank: Standard Chartered\nAcc Name: CaptureCRM\nAcc No: 0100000000000\nM-Pesa Till: 123456',
 };
 
 const cleanData = (obj: any): any => {

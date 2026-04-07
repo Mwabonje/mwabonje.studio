@@ -44,7 +44,7 @@ export function SharedQuote() {
             // Fallback settings
             setSettings({
               logoUrl: '',
-              companyName: 'Mwabonje Studio',
+              companyName: 'CaptureCRM',
               companyAddress: '',
               companyEmail: '',
               companyPhone: '',
@@ -60,7 +60,7 @@ export function SharedQuote() {
           setQuote(parsedQuote);
           setSettings({
             logoUrl: '',
-            companyName: 'Mwabonje Studio',
+            companyName: 'CaptureCRM',
             companyAddress: '',
             companyEmail: '',
             companyPhone: '',
