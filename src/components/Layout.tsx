@@ -9,15 +9,15 @@ import { toast } from 'sonner';
 export function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { clients, projects, invoices, settings } = useStore();
+  const { clients, projects, invoices, settings, isSettingsLoaded } = useStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userName, setUserName] = useState('Mwabonje Admin');
   const [userInitial, setUserInitial] = useState('M');
-  const [hasPromptedSettings, setHasPromptedSettings] = useState(false);
 
   useEffect(() => {
-    if (settings && !hasPromptedSettings) {
-      if (settings.companyName === 'CaptureCRM' || !settings.companyEmail) {
+    if (isSettingsLoaded && settings) {
+      const hasPrompted = sessionStorage.getItem('hasPromptedSettings');
+      if (!hasPrompted && settings.companyName === 'CaptureCRM') {
         toast('Welcome to CaptureCRM!', {
           description: 'Please head over to Settings to add your company details.',
           duration: 8000,
@@ -26,10 +26,10 @@ export function Layout() {
             onClick: () => navigate('/settings'),
           },
         });
-        setHasPromptedSettings(true);
+        sessionStorage.setItem('hasPromptedSettings', 'true');
       }
     }
-  }, [settings, hasPromptedSettings, navigate]);
+  }, [isSettingsLoaded, settings, navigate]);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {

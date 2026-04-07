@@ -115,10 +115,12 @@ type AppState = {
   invoices: Invoice[];
   payments: Payment[];
   settings: Settings;
+  isSettingsLoaded: boolean;
   isAuthReady: boolean;
   userId: string | null;
 
   setAuthReady: (ready: boolean, userId: string | null) => void;
+  setSettingsLoaded: (loaded: boolean) => void;
 
   addClient: (client: Client) => Promise<void>;
   updateClient: (id: string, client: Partial<Client>) => Promise<void>;
@@ -175,10 +177,12 @@ export const useStore = create<AppState>((set, get) => ({
   invoices: [],
   payments: [],
   settings: defaultSettings,
+  isSettingsLoaded: false,
   isAuthReady: false,
   userId: null,
 
   setAuthReady: (ready, userId) => set({ isAuthReady: ready, userId }),
+  setSettingsLoaded: (loaded) => set({ isSettingsLoaded: loaded }),
 
   addClient: async (client) => {
     const uid = auth.currentUser?.uid;

@@ -66,7 +66,9 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const unsubSettings = onSnapshot(doc(db, `users/${userId}/settings/profile`), (docSnap) => {
       if (docSnap.exists()) {
-        useStore.setState({ settings: docSnap.data() as Settings });
+        useStore.setState({ settings: docSnap.data() as Settings, isSettingsLoaded: true });
+      } else {
+        useStore.setState({ isSettingsLoaded: true });
       }
     });
 
