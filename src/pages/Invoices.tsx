@@ -259,7 +259,7 @@ export function Invoices() {
             <Plus className="w-4 h-4 mr-2" />
             Create Invoice
           </DialogTrigger>
-          <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] sm:max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingInvoice ? 'Edit Invoice' : 'Create New Invoice'}</DialogTitle>
             </DialogHeader>
@@ -499,17 +499,17 @@ export function Invoices() {
 
                   {/* Payment Details & Footer */}
                   <div className="flex flex-col sm:flex-row justify-between items-start gap-8">
-                    <div className="flex-1">
+                    <div className="flex-1 w-full sm:w-auto">
                       <h3 className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] mb-4">Payment Details</h3>
                       <div className="bg-slate-50 p-4 border border-slate-100 rounded text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">
                         {settings.paymentDetails}
                       </div>
                     </div>
-                    <div className="text-left sm:text-right mt-auto">
+                    <div className="text-left sm:text-right mt-auto w-full sm:w-auto">
                       <p className="font-bold text-slate-900 text-sm">{settings.companyName}</p>
-                      {settings.companyEmail && <p className="text-xs text-slate-500">{settings.companyEmail}</p>}
+                      {settings.companyEmail && <p className="text-xs text-slate-500 break-all">{settings.companyEmail}</p>}
                       {settings.companyPhone && <p className="text-xs text-slate-500">{settings.companyPhone}</p>}
-                      {settings.companyWebsite && <p className="text-xs text-slate-500">{settings.companyWebsite}</p>}
+                      {settings.companyWebsite && <p className="text-xs text-slate-500 break-all">{settings.companyWebsite}</p>}
                       {settings.companyAddress && <p className="text-xs text-slate-500 whitespace-pre-wrap mt-1">{settings.companyAddress}</p>}
                       <p className="text-xs text-slate-500 mt-2 italic">Thank you for your business.</p>
                     </div>

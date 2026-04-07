@@ -322,16 +322,16 @@ export function SharedInvoice() {
 
           {/* Footer */}
           <div className="pt-16 border-t border-slate-200 text-sm text-slate-500 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-            <div className="space-y-1">
+            <div className="space-y-1 w-full sm:w-auto">
               <p className="font-bold text-slate-900">{settings.companyName}</p>
               {settings.companyAddress && <p>{settings.companyAddress}</p>}
-              <div className="flex space-x-4 pt-2">
-                {settings.companyEmail && <p>{settings.companyEmail}</p>}
+              <div className="flex flex-col sm:flex-row sm:space-x-4 pt-2 gap-1 sm:gap-0">
+                {settings.companyEmail && <p className="break-all">{settings.companyEmail}</p>}
                 {settings.companyPhone && <p>{settings.companyPhone}</p>}
               </div>
             </div>
             {settings.paymentDetails && (
-              <div className="sm:text-right max-w-xs">
+              <div className="sm:text-right w-full sm:max-w-xs">
                 <p className="font-bold text-slate-900 mb-1">Payment Details</p>
                 <p className="whitespace-pre-line">{settings.paymentDetails}</p>
               </div>

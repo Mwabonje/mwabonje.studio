@@ -396,15 +396,16 @@ export function Quotes() {
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
-            <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
+          <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-slate-50 flex flex-col">
+            <div className="sticky top-0 z-10 bg-white border-b px-4 sm:px-6 py-4 flex justify-between items-center shrink-0">
               <DialogTitle className="text-xl font-bold">{editingQuote ? 'Edit Quote' : 'Create New Quote'}</DialogTitle>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-8">
-              
-              {/* Client Information & Quote Details Card */}
-              <div className="bg-white p-6 rounded-xl border shadow-sm space-y-8">
+            <div className="overflow-y-auto flex-1">
+              <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6 sm:space-y-8">
+                
+                {/* Client Information & Quote Details Card */}
+                <div className="bg-white p-4 sm:p-6 rounded-xl border shadow-sm space-y-6 sm:space-y-8">
                 
                 {/* Client Information */}
                 <div className="space-y-4">
@@ -670,30 +671,31 @@ export function Quotes() {
               </div>
 
               {/* Action Buttons */}
-              <div className="sticky bottom-0 bg-white border-t p-4 flex justify-between items-center -mx-6 -mb-6 mt-8 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-full px-6">
+              <div className="sticky bottom-0 bg-white border-t p-4 flex flex-col-reverse sm:flex-row justify-between items-center gap-3 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 mt-8 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-full px-6 w-full sm:w-auto">
                   Discard Quote
                 </Button>
-                <div className="flex space-x-3">
-                  <Button type="button" variant="outline" onClick={() => setIsPreviewOpen(true)} className="text-primary border-primary/20 hover:bg-primary/5 rounded-full px-6">
+                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+                  <Button type="button" variant="outline" onClick={() => setIsPreviewOpen(true)} className="text-primary border-primary/20 hover:bg-primary/5 rounded-full px-6 w-full sm:w-auto">
                     <ExternalLink className="w-4 h-4 mr-2" /> Review Document
                   </Button>
-                  <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6">
+                  <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6 w-full sm:w-auto">
                     Generate & Save Quote
                   </Button>
                 </div>
               </div>
-
             </form>
+            </div>
           </DialogContent>
         </Dialog>
 
         <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
-            <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
+          <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50 flex flex-col">
+            <div className="sticky top-0 z-10 bg-white border-b px-4 sm:px-6 py-4 flex justify-between items-center shrink-0">
               <DialogTitle className="text-xl font-bold">Quote Preview</DialogTitle>
             </div>
             
+            <div className="overflow-y-auto flex-1">
             <div className="p-6 sm:p-12 m-4 sm:m-6 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
               {/* Decorative Top Line */}
               <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(settings.colorScheme)}`}></div>
@@ -838,21 +840,22 @@ export function Quotes() {
               </div>
               
               {/* Footer Signature Area */}
-              <div className="mt-16 pt-8 border-t border-slate-200 flex justify-between items-end">
-                <div>
+              <div className="mt-16 pt-8 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 sm:gap-0">
+                <div className="w-full sm:w-auto">
                   <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase mb-6">Accepted By</p>
-                  <div className="w-32 h-px bg-slate-300 mb-2"></div>
+                  <div className="w-full sm:w-32 h-px bg-slate-300 mb-2"></div>
                   <p className="text-[10px] text-slate-500">Signature / Date</p>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right w-full sm:w-auto">
                   <p className="font-bold text-slate-900 text-sm">{settings.companyName}</p>
-                  {settings.companyEmail && <p className="text-xs text-slate-500">{settings.companyEmail}</p>}
+                  {settings.companyEmail && <p className="text-xs text-slate-500 break-all">{settings.companyEmail}</p>}
                   {settings.companyPhone && <p className="text-xs text-slate-500">{settings.companyPhone}</p>}
-                  {settings.companyWebsite && <p className="text-xs text-slate-500">{settings.companyWebsite}</p>}
+                  {settings.companyWebsite && <p className="text-xs text-slate-500 break-all">{settings.companyWebsite}</p>}
                   {settings.companyAddress && <p className="text-xs text-slate-500 whitespace-pre-wrap mt-1">{settings.companyAddress}</p>}
                   <p className="text-xs text-slate-500 mt-2 italic">Thank you for your business.</p>
                 </div>
               </div>
+            </div>
             </div>
           </DialogContent>
         </Dialog>

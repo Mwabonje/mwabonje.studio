@@ -353,17 +353,17 @@ export function SharedQuote() {
           </div>
 
           {/* Footer Signature Area */}
-          <div className="mt-24 pt-12 border-t border-slate-200 flex justify-between items-end print:break-inside-avoid">
-            <div>
+          <div className="mt-24 pt-12 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-12 sm:gap-0 print:break-inside-avoid">
+            <div className="w-full sm:w-auto">
               <p className="text-xs font-bold tracking-[0.1em] text-slate-400 uppercase mb-8">Accepted By</p>
-              <div className="w-48 h-px bg-slate-300 mb-2"></div>
+              <div className="w-full sm:w-48 h-px bg-slate-300 mb-2"></div>
               <p className="text-xs text-slate-500">Signature / Date</p>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right w-full sm:w-auto">
               <p className="font-bold text-slate-900 text-sm">{settings.companyName}</p>
-              {settings.companyEmail && <p className="text-xs text-slate-500">{settings.companyEmail}</p>}
+              {settings.companyEmail && <p className="text-xs text-slate-500 break-all">{settings.companyEmail}</p>}
               {settings.companyPhone && <p className="text-xs text-slate-500">{settings.companyPhone}</p>}
-              {settings.companyWebsite && <p className="text-xs text-slate-500">{settings.companyWebsite}</p>}
+              {settings.companyWebsite && <p className="text-xs text-slate-500 break-all">{settings.companyWebsite}</p>}
               {settings.companyAddress && <p className="text-xs text-slate-500 whitespace-pre-wrap mt-1">{settings.companyAddress}</p>}
               <p className="text-xs text-slate-500 mt-2 italic">Thank you for your business.</p>
             </div>
