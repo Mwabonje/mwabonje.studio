@@ -61,8 +61,8 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="logo">Company Logo</Label>
+            <div className="space-y-2 opacity-50 pointer-events-none">
+              <Label>Company Logo (Coming Soon)</Label>
               <div className="flex items-center gap-4">
                 <div className="h-20 w-20 rounded-md border flex items-center justify-center bg-slate-50 overflow-hidden">
                   {formData.logoUrl ? (
@@ -78,20 +78,20 @@ export default function Settings() {
                     accept="image/*"
                     className="hidden"
                     onChange={handleImageUpload}
+                    disabled
                   />
-                  <Label
-                    htmlFor="logo"
-                    className="cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                  <div
+                    className="cursor-not-allowed inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors border border-input bg-background shadow-sm h-9 px-4 py-2"
                   >
                     <Upload className="mr-2 h-4 w-4" />
                     Upload Logo
-                  </Label>
+                  </div>
                   {formData.logoUrl && (
                     <Button
                       variant="ghost"
                       size="sm"
                       className="ml-2 text-destructive"
-                      onClick={() => setFormData((prev) => ({ ...prev, logoUrl: '' }))}
+                      disabled
                     >
                       Remove
                     </Button>

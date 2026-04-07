@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/store';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays } from 'date-fns';
 import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2 } from 'lucide-react';
@@ -23,6 +23,17 @@ export function Dashboard() {
     date: format(new Date(), 'yyyy-MM-dd'),
     description: '',
   });
+
+  const monthContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (monthContainerRef.current) {
+      const selectedButton = monthContainerRef.current.children[currentDate.getMonth()] as HTMLElement;
+      if (selectedButton) {
+        selectedButton.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  }, [currentDate]);
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -230,7 +241,7 @@ export function Dashboard() {
         <div className="w-full md:w-[65%] p-6 md:p-10 flex flex-col bg-white">
           {/* Header Controls */}
           <div className="flex justify-between items-center mb-12">
-            <div className="flex-1 min-w-0 flex gap-6 overflow-x-auto hide-scrollbar mr-4">
+            <div ref={monthContainerRef} className="flex-1 min-w-0 flex gap-6 overflow-x-auto hide-scrollbar mr-4">
               {months.map((m, i) => (
                 <button 
                   key={m}
