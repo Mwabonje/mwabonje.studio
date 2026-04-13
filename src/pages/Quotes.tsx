@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Quotes() {
-  const { quotes, clients, projects, settings, addQuote, updateQuote, deleteQuote, addClient, addProject, addInvoice } = useStore();
+  const { quotes, clients, projects, settings, addQuote, updateQuote, deleteQuote, addClient, addProject, updateProject, addInvoice } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
@@ -181,13 +181,48 @@ export function Quotes() {
     try {
       if (editingQuote) {
         await updateQuote(editingQuote.id, { ...formData, packages, totalAmount });
+        
+        // Update associated project if it exists
+        if (formData.projectId) {
+          const project = projects.find(p => p.id === formData.projectId);
+          if (project) {
+            const updates: any = {};
+            if (formData.eventDate && project.date !== formData.eventDate) {
+              updates.date = formData.eventDate;
+            }
+            if (formData.projectTitle && project.title !== formData.projectTitle) {
+              updates.title = formData.projectTitle;
+            }
+            if (Object.keys(updates).length > 0) {
+              await updateProject(project.id, updates);
+            }
+          }
+        }
       } else {
+        const newQuoteId = crypto.randomUUID();
         await addQuote({
-          id: crypto.randomUUID(),
+          id: newQuoteId,
           ...formData,
           packages,
           totalAmount,
         });
+        
+        // Update associated project if it exists
+        if (formData.projectId) {
+          const project = projects.find(p => p.id === formData.projectId);
+          if (project) {
+            const updates: any = {};
+            if (formData.eventDate && project.date !== formData.eventDate) {
+              updates.date = formData.eventDate;
+            }
+            if (formData.projectTitle && project.title !== formData.projectTitle) {
+              updates.title = formData.projectTitle;
+            }
+            if (Object.keys(updates).length > 0) {
+              await updateProject(project.id, updates);
+            }
+          }
+        }
       }
       setIsDialogOpen(false);
     } catch (error) {

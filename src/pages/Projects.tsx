@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Projects() {
-  const { projects, clients, invoices, addProject, updateProject, deleteProject } = useStore();
+  const { projects, clients, invoices, quotes, addProject, updateProject, deleteProject, updateQuote } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -58,6 +58,21 @@ export function Projects() {
     try {
       if (editingProject) {
         await updateProject(editingProject.id, { ...formData, collaborators });
+        
+        // Update associated quotes
+        const associatedQuotes = quotes.filter(q => q.projectId === editingProject.id);
+        for (const quote of associatedQuotes) {
+          const updates: any = {};
+          if (formData.date && quote.eventDate !== formData.date) {
+            updates.eventDate = formData.date;
+          }
+          if (formData.title && quote.projectTitle !== formData.title) {
+            updates.projectTitle = formData.title;
+          }
+          if (Object.keys(updates).length > 0) {
+            await updateQuote(quote.id, updates);
+          }
+        }
       } else {
         await addProject({
           id: crypto.randomUUID(),
