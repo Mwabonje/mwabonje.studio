@@ -14,6 +14,7 @@ import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Invoices() {
   const { invoices, quotes, projects, clients, settings, addInvoice, updateInvoice, deleteInvoice } = useStore();
@@ -22,6 +23,7 @@ export function Invoices() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewInvoice, setPreviewInvoice] = useState<Invoice | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
   const invoiceRef = useRef<HTMLDivElement>(null);
   
   const [formData, setFormData] = useState({
@@ -575,7 +577,7 @@ export function Invoices() {
                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(invoice)}>
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deleteInvoice(invoice.id)}>
+                        <Button variant="ghost" size="icon" onClick={() => setInvoiceToDelete(invoice.id)}>
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </TableCell>
@@ -587,6 +589,19 @@ export function Invoices() {
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmDeleteDialog
+        isOpen={!!invoiceToDelete}
+        onOpenChange={(open) => !open && setInvoiceToDelete(null)}
+        onConfirm={() => {
+          if (invoiceToDelete) {
+            deleteInvoice(invoiceToDelete);
+            setInvoiceToDelete(null);
+          }
+        }}
+        title="Delete Invoice"
+        description="Are you sure you want to delete this invoice? This action cannot be undone."
+      />
     </div>
   );
 }

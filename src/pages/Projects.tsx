@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, Users, PieChart } from 'lucide-react';
 import { format } from 'date-fns';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Projects() {
   const { projects, clients, invoices, addProject, updateProject, deleteProject } = useStore();
@@ -17,6 +18,7 @@ export function Projects() {
   const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [viewingSplitProject, setViewingSplitProject] = useState<Project | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -339,7 +341,7 @@ export function Projects() {
                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(project)}>
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deleteProject(project.id)}>
+                        <Button variant="ghost" size="icon" onClick={() => setProjectToDelete(project.id)}>
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </TableCell>
@@ -351,6 +353,19 @@ export function Projects() {
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmDeleteDialog
+        isOpen={!!projectToDelete}
+        onOpenChange={(open) => !open && setProjectToDelete(null)}
+        onConfirm={() => {
+          if (projectToDelete) {
+            deleteProject(projectToDelete);
+            setProjectToDelete(null);
+          }
+        }}
+        title="Delete Project"
+        description="Are you sure you want to delete this project? This action cannot be undone."
+      />
     </div>
   );
 }

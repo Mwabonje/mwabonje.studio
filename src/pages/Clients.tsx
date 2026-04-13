@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Clients() {
   const { clients, addClient, updateClient, deleteClient } = useStore();
@@ -15,6 +16,7 @@ export function Clients() {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', notes: '' });
   const [searchQuery, setSearchQuery] = useState('');
+  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
 
   const handleOpenDialog = (client?: Client) => {
     if (client) {
@@ -154,7 +156,7 @@ export function Clients() {
                       <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(client)}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => deleteClient(client.id)}>
+                      <Button variant="ghost" size="icon" onClick={() => setClientToDelete(client.id)}>
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </TableCell>
@@ -165,6 +167,19 @@ export function Clients() {
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmDeleteDialog
+        isOpen={!!clientToDelete}
+        onOpenChange={(open) => !open && setClientToDelete(null)}
+        onConfirm={() => {
+          if (clientToDelete) {
+            deleteClient(clientToDelete);
+            setClientToDelete(null);
+          }
+        }}
+        title="Delete Client"
+        description="Are you sure you want to delete this client? This action cannot be undone."
+      />
     </div>
   );
 }

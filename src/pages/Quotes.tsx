@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, Package, StickyNote, ShieldCheck, FileCheck2, ExternalLink, Link as LinkIcon, CheckSquare, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Quotes() {
   const { quotes, clients, projects, settings, addQuote, updateQuote, deleteQuote, addClient, addProject, addInvoice } = useStore();
@@ -25,6 +26,7 @@ export function Quotes() {
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('');
+  const [quoteToDelete, setQuoteToDelete] = useState<string | null>(null);
   
   const defaultFormData = {
     quoteNumber: '',
@@ -1009,7 +1011,7 @@ export function Quotes() {
                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)} title="Edit Quote">
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deleteQuote(quote.id)} title="Delete Quote">
+                        <Button variant="ghost" size="icon" onClick={() => setQuoteToDelete(quote.id)} title="Delete Quote">
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </TableCell>
@@ -1021,6 +1023,19 @@ export function Quotes() {
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmDeleteDialog
+        isOpen={!!quoteToDelete}
+        onOpenChange={(open) => !open && setQuoteToDelete(null)}
+        onConfirm={() => {
+          if (quoteToDelete) {
+            deleteQuote(quoteToDelete);
+            setQuoteToDelete(null);
+          }
+        }}
+        title="Delete Quote"
+        description="Are you sure you want to delete this quote? This action cannot be undone."
+      />
     </div>
   );
 }

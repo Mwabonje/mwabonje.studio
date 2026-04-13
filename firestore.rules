@@ -108,14 +108,14 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
 
       match /clients/{clientId} {
-        allow read: if isOwner(userId);
+        allow read: if true;
         allow create: if isOwner(userId) && isValidClient();
         allow update: if isOwner(userId) && isValidClient() && request.resource.data.uid == resource.data.uid;
         allow delete: if isOwner(userId);
       }
 
       match /projects/{projectId} {
-        allow read: if isOwner(userId);
+        allow read: if true;
         allow create: if isOwner(userId) && isValidProject();
         allow update: if isOwner(userId) && isValidProject() && request.resource.data.uid == resource.data.uid;
         allow delete: if isOwner(userId);

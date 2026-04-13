@@ -11,6 +11,7 @@ import { Plus, Trash2, Download, Edit, Eye, ArrowUpDown, ArrowUp, ArrowDown } fr
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Payments() {
   const { payments, invoices, clients, projects, settings, addPayment, updatePayment, deletePayment, updateProject } = useStore();
@@ -21,6 +22,7 @@ export function Payments() {
   const [collaborators, setCollaborators] = useState<CollaboratorSplit[]>([]);
   const [sortField, setSortField] = useState<'date' | 'amount' | 'method'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [paymentToDelete, setPaymentToDelete] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     invoiceId: '',
@@ -636,7 +638,7 @@ export function Payments() {
                         <Button variant="ghost" size="icon" onClick={() => generateReceipt(payment, 'download')} title="Download Receipt">
                           <Download className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deletePayment(payment.id)} title="Delete Payment">
+                        <Button variant="ghost" size="icon" onClick={() => setPaymentToDelete(payment.id)} title="Delete Payment">
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </TableCell>
@@ -648,6 +650,19 @@ export function Payments() {
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmDeleteDialog
+        isOpen={!!paymentToDelete}
+        onOpenChange={(open) => !open && setPaymentToDelete(null)}
+        onConfirm={() => {
+          if (paymentToDelete) {
+            deletePayment(paymentToDelete);
+            setPaymentToDelete(null);
+          }
+        }}
+        title="Delete Payment"
+        description="Are you sure you want to delete this payment? This action cannot be undone."
+      />
     </div>
   );
 }
