@@ -321,21 +321,23 @@ export function SharedInvoice() {
           </div>
 
           {/* Footer */}
-          <div className="pt-16 border-t border-slate-200 text-sm text-slate-500 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-            <div className="space-y-1 w-full sm:w-auto">
-              <p className="font-bold text-slate-900">{settings.companyName}</p>
-              {settings.companyAddress && <p>{settings.companyAddress}</p>}
-              <div className="flex flex-col sm:flex-row sm:space-x-4 pt-2 gap-1 sm:gap-0">
-                {settings.companyEmail && <p className="break-all">{settings.companyEmail}</p>}
-                {settings.companyPhone && <p>{settings.companyPhone}</p>}
-              </div>
-            </div>
+          <div className="pt-16 border-t border-slate-200 text-sm text-slate-500 flex flex-col sm:flex-row justify-between items-start gap-8">
             {settings.paymentDetails && (
-              <div className="sm:text-right w-full sm:max-w-xs">
-                <p className="font-bold text-slate-900 mb-1">Payment Details</p>
-                <p className="whitespace-pre-line">{settings.paymentDetails}</p>
+              <div className="flex-1 w-full sm:w-auto">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] mb-4">Payment Details</h3>
+                <div className="bg-slate-50 p-4 border border-slate-100 rounded text-xs text-slate-600 whitespace-pre-wrap leading-relaxed print:bg-transparent print:border-0 print:p-0">
+                  {settings.paymentDetails}
+                </div>
               </div>
             )}
+            <div className="text-left sm:text-right mt-auto w-full sm:w-auto">
+              <p className="font-bold text-slate-900 text-sm">{settings.companyName}</p>
+              {settings.companyEmail && <p className="text-xs text-slate-500 break-all">{settings.companyEmail}</p>}
+              {settings.companyPhone && <p className="text-xs text-slate-500">{settings.companyPhone}</p>}
+              {settings.companyWebsite && <p className="text-xs text-slate-500 break-all">{settings.companyWebsite}</p>}
+              {settings.companyAddress && <p className="text-xs text-slate-500 whitespace-pre-wrap mt-1">{settings.companyAddress}</p>}
+              <p className="text-xs text-slate-500 mt-2 italic">Thank you for your business.</p>
+            </div>
           </div>
         </div>
       </div>
