@@ -109,7 +109,7 @@ export function Invoices() {
       toast.error("You must be logged in to share an invoice.");
       return;
     }
-    const url = `${window.location.origin}/invoice/shared?uid=${uid}&id=${previewInvoice.id}`;
+    const url = `https://capturecrm.netlify.app/invoice/shared?uid=${uid}&id=${previewInvoice.id}`;
     navigator.clipboard.writeText(url);
     toast.success("Invoice link copied to clipboard!");
   };

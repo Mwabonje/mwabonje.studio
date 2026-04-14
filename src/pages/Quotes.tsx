@@ -417,7 +417,7 @@ export function Quotes() {
         toast.error('You must be logged in to share quotes.');
         return;
       }
-      const url = `${window.location.origin}/quote/shared?uid=${userId}&id=${quoteId}`;
+      const url = `https://capturecrm.netlify.app/quote/shared?uid=${userId}&id=${quoteId}`;
       
       navigator.clipboard.writeText(url);
       setCopiedId(quoteId);
