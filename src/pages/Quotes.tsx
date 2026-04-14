@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, Package, StickyNote, ShieldCheck, FileCheck2, ExternalLink, Link as LinkIcon, CheckSquare, Copy } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, Package, StickyNote, ShieldCheck, FileCheck2, ExternalLink, Link as LinkIcon, CheckSquare, Copy, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
@@ -142,6 +142,36 @@ export function Quotes() {
       setPackages([]);
     }
     setIsDialogOpen(true);
+  };
+
+  const handleOpenPreview = (quote: Quote) => {
+    setFormData({
+      quoteNumber: quote.quoteNumber || '',
+      projectId: quote.projectId || '',
+      clientName: quote.clientName || '',
+      clientEmail: quote.clientEmail || '',
+      clientPhone: quote.clientPhone || '',
+      projectTitle: quote.projectTitle || '',
+      issueDate: quote.issueDate || quote.date || format(new Date(), 'yyyy-MM-dd'),
+      eventDate: quote.eventDate || '',
+      moodboardLink: quote.moodboardLink || '',
+      note: quote.note || '',
+      retainerClause: quote.retainerClause || defaultFormData.retainerClause,
+      fulfillmentSchedule: quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
+      usageLicense: quote.usageLicense || defaultFormData.usageLicense,
+      usageRights: quote.usageRights || defaultFormData.usageRights,
+      transportLogistics: quote.transportLogistics || defaultFormData.transportLogistics,
+      cancellationRescheduling: quote.cancellationRescheduling || defaultFormData.cancellationRescheduling,
+      paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
+      status: quote.status,
+      date: quote.date,
+      revisionOf: quote.revisionOf,
+      isCollaboration: quote.isCollaboration || false,
+      collaborationCut: quote.collaborationCut || 0,
+      collaborationType: quote.collaborationType || 'percentage',
+    });
+    setPackages(quote.packages || []);
+    setIsPreviewOpen(true);
   };
 
   const handleDuplicateQuote = (quote: Quote) => {
@@ -1023,6 +1053,9 @@ export function Quotes() {
                       </TableCell>
                       <TableCell>{getStatusBadge(quote.status)}</TableCell>
                       <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenPreview(quote)} title="Preview Quote">
+                          <Eye className="w-4 h-4" />
+                        </Button>
                         {quote.status !== 'approved' && (
                           <Button variant="ghost" size="icon" onClick={() => handleOpenApproveDialog(quote)} title="Approve & Create Invoice">
                             <CheckSquare className="w-4 h-4 text-green-600 hover:text-green-700" />
