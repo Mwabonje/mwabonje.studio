@@ -16,6 +16,16 @@ export function Performance() {
   const calculateNetEarning = () => {
     let totalNet = 0;
 
+    // Collect all project IDs that exist
+    const projectIds = new Set(projects.map(p => p.id));
+
+    // Handle standalone invoices (no project, or project deleted)
+    invoices.forEach(invoice => {
+      if (!invoice.projectId || invoice.projectId === 'none' || !projectIds.has(invoice.projectId)) {
+        totalNet += invoice.amountPaid;
+      }
+    });
+
     projects.forEach((project) => {
       const projectInvoices = invoices.filter((i) => i.projectId === project.id);
       const projectRevenue = projectInvoices.reduce((sum, i) => sum + i.amountPaid, 0);
@@ -46,7 +56,8 @@ export function Performance() {
       if (totalPercentageAllocated > 100) totalPercentageAllocated = 100;
 
       const remainingPercentageForEqual = 100 - totalPercentageAllocated;
-      const equalPercentage = equalSplitCount > 0 ? remainingPercentageForEqual / equalSplitCount : 0;
+      // Divide remaining percentage equally among collaborators PLUS the user (hence + 1)
+      const equalPercentage = equalSplitCount > 0 ? remainingPercentageForEqual / (equalSplitCount + 1) : 0;
 
       let collaboratorTotal = 0;
       project.collaborators.forEach((c) => {
@@ -55,8 +66,7 @@ export function Performance() {
       });
 
       // Personal take is whatever is left after paying collaborators
-      // If 100% is given to collaborators, personal take is 0.
-      totalNet += (projectRevenue - collaboratorTotal);
+      totalNet += Math.max(0, projectRevenue - collaboratorTotal);
     });
 
     return totalNet;

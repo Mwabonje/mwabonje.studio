@@ -116,7 +116,8 @@ export function Projects() {
     if (totalPercentageAllocated > 100) totalPercentageAllocated = 100;
     
     const remainingPercentageForEqual = 100 - totalPercentageAllocated;
-    const equalPercentage = equalSplitCount > 0 ? remainingPercentageForEqual / equalSplitCount : 0;
+    // Divide the remaining percentage equally among the equal split collaborators PLUS the principal user
+    const equalPercentage = equalSplitCount > 0 ? remainingPercentageForEqual / (equalSplitCount + 1) : 0;
 
     return project.collaborators.map(c => {
       const percentage = c.splitType === 'percentage' ? (c.percentage || 0) : equalPercentage;
