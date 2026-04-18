@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useStore, Project } from '@/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, Wallet, Clock, FileText, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
-import { isSameMonth, format, subMonths, addMonths } from 'date-fns';
+import { isSameMonth, isSameYear, format, subMonths, addMonths, addYears, subYears } from 'date-fns';
 import { Button } from '@/components/ui/button';
 
 export function Performance() {
@@ -10,7 +10,9 @@ export function Performance() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
   // 1. Total Earning
-  const totalEarning = payments.reduce((sum, payment) => sum + payment.amount, 0);
+  const totalEarning = payments
+    .filter(p => isSameYear(new Date(p.date), selectedMonth))
+    .reduce((sum, payment) => sum + payment.amount, 0);
 
   // 2. Net Earning (Personal Takes)
   const calculateNetEarning = () => {
@@ -22,13 +24,18 @@ export function Performance() {
     // Handle standalone invoices (no project, or project deleted)
     invoices.forEach(invoice => {
       if (!invoice.projectId || invoice.projectId === 'none' || !projectIds.has(invoice.projectId)) {
-        totalNet += invoice.amountPaid;
+        const invoicePaymentsForMonth = payments
+          .filter(p => p.invoiceId === invoice.id && isSameMonth(new Date(p.date), selectedMonth))
+          .reduce((sum, p) => sum + p.amount, 0);
+        totalNet += invoicePaymentsForMonth;
       }
     });
 
     projects.forEach((project) => {
       const projectInvoices = invoices.filter((i) => i.projectId === project.id);
-      const projectRevenue = projectInvoices.reduce((sum, i) => sum + i.amountPaid, 0);
+      const projectRevenue = payments
+        .filter(p => isSameMonth(new Date(p.date), selectedMonth) && projectInvoices.some(i => i.id === p.invoiceId))
+        .reduce((sum, p) => sum + p.amount, 0);
 
       if (projectRevenue === 0) return;
 
@@ -85,18 +92,44 @@ export function Performance() {
     .filter((p) => isSameMonth(new Date(p.date), selectedMonth))
     .reduce((sum, p) => sum + p.amount, 0);
 
+  const monthPickerAction = (
+    <div className="flex items-center space-x-1 mt-1">
+      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}>
+        <ChevronLeft className="w-3 h-3" />
+      </Button>
+      <span className="text-xs font-semibold w-20 text-center">{format(selectedMonth, 'MMM yyyy')}</span>
+      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))}>
+        <ChevronRight className="w-3 h-3" />
+      </Button>
+    </div>
+  );
+
+  const yearPickerAction = (
+    <div className="flex items-center space-x-1 mt-1">
+      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setSelectedMonth(subYears(selectedMonth, 1))}>
+        <ChevronLeft className="w-3 h-3" />
+      </Button>
+      <span className="text-xs font-semibold w-20 text-center">{format(selectedMonth, 'yyyy')}</span>
+      <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setSelectedMonth(addYears(selectedMonth, 1))}>
+        <ChevronRight className="w-3 h-3" />
+      </Button>
+    </div>
+  );
+
   const stats = [
     {
       title: 'Total Earning',
       value: `Ksh ${totalEarning.toLocaleString()}`,
       icon: DollarSign,
-      description: 'Total revenue across all projects',
+      description: `Total revenue across all projects in ${format(selectedMonth, 'yyyy')}`,
+      action: yearPickerAction
     },
     {
       title: 'Net Earning',
       value: `Ksh ${netEarning.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
       icon: Wallet,
-      description: 'Your personal take after collaborator splits',
+      description: `Your personal take after collaborator splits in ${format(selectedMonth, 'MMM yyyy')}`,
+      action: monthPickerAction
     },
     {
       title: 'Pending Balances',
@@ -115,17 +148,7 @@ export function Performance() {
       value: `Ksh ${monthlyEarning.toLocaleString()}`,
       icon: Calendar,
       description: `Earnings received in ${format(selectedMonth, 'MMMM yyyy')}`,
-      action: (
-        <div className="flex items-center space-x-1 mt-1">
-          <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}>
-            <ChevronLeft className="w-3 h-3" />
-          </Button>
-          <span className="text-xs font-semibold w-20 text-center">{format(selectedMonth, 'MMM yyyy')}</span>
-          <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))}>
-            <ChevronRight className="w-3 h-3" />
-          </Button>
-        </div>
-      )
+      action: monthPickerAction
     },
   ];
 
