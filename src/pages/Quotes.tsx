@@ -26,6 +26,7 @@ export function Quotes() {
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [quoteToDelete, setQuoteToDelete] = useState<string | null>(null);
   
   const defaultFormData = {
@@ -433,6 +434,13 @@ export function Quotes() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Quotes</h2>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Input 
+            type="text" 
+            placeholder="Search clients..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full sm:w-[200px]"
+          />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Filter by status" />
@@ -1000,9 +1008,11 @@ export function Quotes() {
             </TableHeader>
             <TableBody>
               {quotes.filter(quote => {
+                const clientName = quote.clientName.toLowerCase();
+                const matchesSearch = clientName.includes(searchQuery.toLowerCase());
                 const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
                 const matchesDate = !dateFilter || (quote.issueDate === dateFilter || quote.date === dateFilter);
-                return matchesStatus && matchesDate;
+                return matchesSearch && matchesStatus && matchesDate;
               }).length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
@@ -1011,9 +1021,11 @@ export function Quotes() {
                 </TableRow>
               ) : (
                 [...quotes].filter(quote => {
+                  const clientName = quote.clientName.toLowerCase();
+                  const matchesSearch = clientName.includes(searchQuery.toLowerCase());
                   const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
                   const matchesDate = !dateFilter || (quote.issueDate === dateFilter || quote.date === dateFilter);
-                  return matchesStatus && matchesDate;
+                  return matchesSearch && matchesStatus && matchesDate;
                 }).sort((a, b) => {
                   const dateA = new Date(a.date || a.issueDate).getTime();
                   const dateB = new Date(b.date || b.issueDate).getTime();
