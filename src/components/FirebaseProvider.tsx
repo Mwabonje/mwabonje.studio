@@ -49,6 +49,11 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       useStore.setState({ projects });
     });
 
+    const unsubProjectTemplates = onSnapshot(query(collection(db, `users/${userId}/project_templates`)), (snapshot) => {
+      const projectTemplates = snapshot.docs.map((doc) => doc.data() as any);
+      useStore.setState({ projectTemplates });
+    });
+
     const unsubQuotes = onSnapshot(query(collection(db, `users/${userId}/quotes`)), (snapshot) => {
       const quotes = snapshot.docs.map((doc) => doc.data() as Quote);
       useStore.setState({ quotes });
@@ -75,6 +80,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => {
       unsubClients();
       unsubProjects();
+      unsubProjectTemplates();
       unsubQuotes();
       unsubInvoices();
       unsubPayments();

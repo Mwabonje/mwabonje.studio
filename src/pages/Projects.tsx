@@ -10,10 +10,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, Users, PieChart } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Projects() {
-  const { projects, clients, invoices, quotes, addProject, updateProject, deleteProject, updateQuote } = useStore();
+  const { projects, projectTemplates, clients, invoices, quotes, addProject, updateProject, deleteProject, updateQuote, addProjectTemplate, deleteProjectTemplate } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -99,6 +100,45 @@ export function Projects() {
     setCollaborators(collaborators.filter(c => c.id !== id));
   };
 
+  const handleSaveTemplate = async () => {
+    const templateName = prompt("Enter a name for this template:");
+    if (!templateName) return;
+    
+    try {
+      await addProjectTemplate({
+        id: crypto.randomUUID(),
+        name: templateName,
+        title: formData.title,
+        location: formData.location,
+        description: formData.description,
+        collaborators,
+      });
+      toast.success("Template saved successfully.");
+    } catch(error) {
+      console.error("Error saving template:", error);
+      toast.error("Failed to save template.");
+    }
+  };
+
+  const handleApplyTemplate = (templateId: string) => {
+    const template = projectTemplates.find(t => t.id === templateId);
+    if (!template) return;
+    
+    setFormData(prev => ({
+      ...prev,
+      title: template.title || prev.title,
+      location: template.location || prev.location,
+      description: template.description || prev.description,
+    }));
+    
+    if (template.collaborators && template.collaborators.length > 0) {
+      setCollaborators(template.collaborators.map(c => ({
+         ...c,
+         id: crypto.randomUUID()
+      })));
+    }
+  };
+
   const calculateSplit = (project: Project) => {
     const projectInvoices = invoices.filter(i => i.projectId === project.id);
     const totalRevenue = projectInvoices.reduce((sum, i) => sum + i.amountPaid, 0);
@@ -126,20 +166,47 @@ export function Projects() {
     });
   };
 
+  const [isTemplatesDialogOpen, setIsTemplatesDialogOpen] = useState(false);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Projects</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger render={<Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto" />}>
-            <Plus className="w-4 h-4 mr-2" />
-            New Project
-          </DialogTrigger>
-          <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex space-x-2 w-full sm:w-auto">
+          {projectTemplates.length > 0 && (
+            <Button variant="outline" onClick={() => setIsTemplatesDialogOpen(true)}>
+              Manage Templates
+            </Button>
+          )}
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                New Project
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingProject ? 'Edit Project' : 'Create New Project'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {!editingProject && projectTemplates.length > 0 && (
+                <div className="space-y-2 mb-4 p-4 bg-slate-50 border rounded-md">
+                  <Label>Start from a Template (Optional)</Label>
+                  <Select onValueChange={handleApplyTemplate}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a template..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projectTemplates.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Project Title</Label>
@@ -256,17 +323,23 @@ export function Projects() {
                 )}
               </div>
 
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
+              <div className="flex justify-between items-center pt-4">
+                <Button type="button" variant="outline" onClick={handleSaveTemplate}>
+                  Save as Template
                 </Button>
-                <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                  {editingProject ? 'Update Project' : 'Save Project'}
-                </Button>
+                <div className="flex space-x-2">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                    {editingProject ? 'Update Project' : 'Save Project'}
+                  </Button>
+                </div>
               </div>
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Dialog open={isSplitDialogOpen} onOpenChange={setIsSplitDialogOpen}>
@@ -382,6 +455,41 @@ export function Projects() {
         title="Delete Project"
         description="Are you sure you want to delete this project? This action cannot be undone."
       />
+      <Dialog open={isTemplatesDialogOpen} onOpenChange={setIsTemplatesDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Manage Templates</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {projectTemplates.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No templates saved yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {projectTemplates.map(template => (
+                  <div key={template.id} className="flex justify-between items-center p-3 bg-slate-50 border rounded-md">
+                    <div>
+                      <p className="font-medium">{template.name}</p>
+                      <p className="text-xs text-muted-foreground">{template.collaborators?.length || 0} collaborators</p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={async () => {
+                      if (confirm('Are you sure you want to delete this template?')) {
+                        try {
+                          await deleteProjectTemplate(template.id);
+                          toast.success('Template deleted');
+                        } catch (e) {
+                          toast.error('Failed to delete template');
+                        }
+                      }
+                    }}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

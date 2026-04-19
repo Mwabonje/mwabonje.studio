@@ -108,9 +108,20 @@ export type Settings = {
   paymentDetails: string;
 };
 
+export type ProjectTemplate = {
+  id: string;
+  name: string;
+  title: string;
+  location: string;
+  description: string;
+  collaborators: CollaboratorSplit[];
+  uid?: string;
+};
+
 type AppState = {
   clients: Client[];
   projects: Project[];
+  projectTemplates: ProjectTemplate[];
   quotes: Quote[];
   invoices: Invoice[];
   payments: Payment[];
@@ -129,6 +140,10 @@ type AppState = {
   addProject: (project: Project) => Promise<void>;
   updateProject: (id: string, project: Partial<Project>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
+
+  addProjectTemplate: (template: ProjectTemplate) => Promise<void>;
+  updateProjectTemplate: (id: string, template: Partial<ProjectTemplate>) => Promise<void>;
+  deleteProjectTemplate: (id: string) => Promise<void>;
 
   addQuote: (quote: Quote) => Promise<void>;
   updateQuote: (id: string, quote: Partial<Quote>) => Promise<void>;
@@ -173,6 +188,7 @@ const cleanData = (obj: any): any => {
 export const useStore = create<AppState>((set, get) => ({
   clients: [],
   projects: [],
+  projectTemplates: [],
   quotes: [],
   invoices: [],
   payments: [],
@@ -183,6 +199,25 @@ export const useStore = create<AppState>((set, get) => ({
 
   setAuthReady: (ready, userId) => set({ isAuthReady: ready, userId }),
   setSettingsLoaded: (loaded) => set({ isSettingsLoaded: loaded }),
+
+  addProjectTemplate: async (template) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const data = cleanData({ ...template, uid });
+    await setDoc(doc(db, `users/${uid}/project_templates`, template.id), data);
+  },
+  updateProjectTemplate: async (id, template) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const existing = get().projectTemplates.find(t => t.id === id);
+    if (!existing) return;
+    await setDoc(doc(db, `users/${uid}/project_templates`, id), cleanData({ ...existing, ...template, uid }));
+  },
+  deleteProjectTemplate: async (id) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    await deleteDoc(doc(db, `users/${uid}/project_templates`, id));
+  },
 
   addClient: async (client) => {
     const uid = auth.currentUser?.uid;
