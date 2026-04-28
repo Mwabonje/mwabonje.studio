@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, Package, StickyNote, ShieldCheck, FileCheck2, ExternalLink, Link as LinkIcon, CheckSquare, Copy, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, Package, StickyNote, ShieldCheck, FileCheck2, ExternalLink, Link as LinkIcon, CheckSquare, Copy, Eye, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
@@ -28,6 +28,7 @@ export function Quotes() {
   const [dateFilter, setDateFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [quoteToDelete, setQuoteToDelete] = useState<string | null>(null);
+  const [quoteToDecline, setQuoteToDecline] = useState<string | null>(null);
   
   const defaultFormData = {
     quoteNumber: '',
@@ -309,6 +310,7 @@ export function Quotes() {
     switch (status) {
       case 'approved': return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200"><CheckCircle2 className="w-3 h-3 mr-1" /> Approved</Badge>;
       case 'sent': return <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20"><Send className="w-3 h-3 mr-1" /> Sent</Badge>;
+      case 'declined': return <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200"><XCircle className="w-3 h-3 mr-1" /> Declined</Badge>;
       default: return <Badge variant="outline" className="text-slate-500"><FileText className="w-3 h-3 mr-1" /> Draft</Badge>;
     }
   };
@@ -450,6 +452,7 @@ export function Quotes() {
               <SelectItem value="draft">Draft</SelectItem>
               <SelectItem value="sent">Sent</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="declined">Declined</SelectItem>
             </SelectContent>
           </Select>
           <Input 
@@ -498,6 +501,7 @@ export function Quotes() {
                           <SelectItem value="draft">Draft</SelectItem>
                           <SelectItem value="sent">Sent</SelectItem>
                           <SelectItem value="approved">Approved</SelectItem>
+                          <SelectItem value="declined">Declined</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1070,10 +1074,15 @@ export function Quotes() {
                         <Button variant="ghost" size="icon" onClick={() => handleOpenPreview(quote)} title="Preview Quote">
                           <Eye className="w-4 h-4" />
                         </Button>
-                        {quote.status !== 'approved' && (
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenApproveDialog(quote)} title="Approve & Create Invoice">
-                            <CheckSquare className="w-4 h-4 text-green-600 hover:text-green-700" />
-                          </Button>
+                        {quote.status !== 'approved' && quote.status !== 'declined' && (
+                          <>
+                            <Button variant="ghost" size="icon" onClick={() => handleOpenApproveDialog(quote)} title="Approve & Create Invoice">
+                              <CheckSquare className="w-4 h-4 text-green-600 hover:text-green-700" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => setQuoteToDecline(quote.id)} title="Mark as Declined">
+                              <XCircle className="w-4 h-4 text-red-500 hover:text-red-700" />
+                            </Button>
+                          </>
                         )}
                         <Button variant="ghost" size="icon" onClick={() => handleCopyLink(quote.id)} title="Copy Shareable Link" className="relative">
                           {copiedId === quote.id ? (
@@ -1117,6 +1126,25 @@ export function Quotes() {
         }}
         title="Delete Quote"
         description="Are you sure you want to delete this quote? This action cannot be undone."
+      />
+
+      <ConfirmDeleteDialog
+        isOpen={!!quoteToDecline}
+        onOpenChange={(open) => !open && setQuoteToDecline(null)}
+        onConfirm={async () => {
+          if (quoteToDecline) {
+            try {
+              await updateQuote(quoteToDecline, { status: 'declined' });
+              toast.success('Quote declined successfully');
+            } catch (error) {
+              toast.error('Failed to decline quote');
+            }
+            setQuoteToDecline(null);
+          }
+        }}
+        title="Decline Quote"
+        description="Are you sure you want to mark this quote as declined? This action can be undone by editing the quote status later."
+        confirmText="Decline"
       />
     </div>
   );

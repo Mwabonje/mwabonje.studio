@@ -57,12 +57,22 @@ service cloud.firestore {
              data.uid == request.auth.uid;
     }
 
+    function isValidProjectTemplate() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             isValidOptionalString('location', 0, 500) &&
+             isValidOptionalString('description', 0, 5000) &&
+             data.uid == request.auth.uid;
+    }
+
     function isValidQuote() {
       let data = request.resource.data;
       return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
              data.projectId is string && data.projectId.size() >= 0 && data.projectId.size() < 100 &&
              data.totalAmount is number && data.totalAmount >= 0 &&
-             data.status in ['draft', 'sent', 'approved'] &&
+             data.status in ['draft', 'sent', 'approved', 'declined'] &&
              data.uid == request.auth.uid;
     }
 
@@ -118,6 +128,13 @@ service cloud.firestore {
         allow read: if true;
         allow create: if isOwner(userId) && isValidProject();
         allow update: if isOwner(userId) && isValidProject() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isOwner(userId);
+      }
+
+      match /project_templates/{templateId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidProjectTemplate();
+        allow update: if isOwner(userId) && isValidProjectTemplate() && request.resource.data.uid == resource.data.uid;
         allow delete: if isOwner(userId);
       }
 

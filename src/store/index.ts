@@ -63,7 +63,7 @@ export type Quote = {
   cancellationRescheduling: string;
   paymentDetails: string;
   totalAmount: number;
-  status: 'draft' | 'sent' | 'approved';
+  status: 'draft' | 'sent' | 'approved' | 'declined';
   date: string;
   selectedPackages?: string[];
   revisionOf?: string;
