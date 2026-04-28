@@ -281,18 +281,18 @@ export function SharedInvoice() {
 
           {/* Line Items */}
           <div className="mb-16">
-            <div className="grid grid-cols-12 gap-4 pb-4 border-b border-slate-200 mb-6">
-              <div className="col-span-8 sm:col-span-9 text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Description</div>
-              <div className="col-span-4 sm:col-span-3 text-right text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Amount</div>
+            <div className="flex pb-4 border-b border-slate-200 mb-6">
+              <div className="w-2/3 sm:w-3/4 pr-4 text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Description</div>
+              <div className="w-1/3 sm:w-1/4 pl-4 text-right text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Amount</div>
             </div>
             
             <div className="space-y-6">
               {(invoice.lineItems || []).map((item, index) => (
-                <div key={index} className="grid grid-cols-12 gap-4 pb-6 border-b border-slate-100 last:border-0">
-                  <div className="col-span-8 sm:col-span-9">
+                <div key={index} className="flex pb-6 border-b border-slate-100 last:border-0">
+                  <div className="w-2/3 sm:w-3/4 pr-4">
                     {renderDescription(item.description)}
                   </div>
-                  <div className="col-span-4 sm:col-span-3 text-right">
+                  <div className="w-1/3 sm:w-1/4 pl-4 text-right">
                     <p className="text-slate-800">KES {(item.price || 0).toLocaleString()}</p>
                   </div>
                 </div>

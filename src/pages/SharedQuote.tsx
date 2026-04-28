@@ -275,9 +275,9 @@ export function SharedQuote() {
                       </span>
                     </div>
                     {(pkg.inclusions || []).length > 0 && (
-                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8">
+                      <ul className="flex flex-wrap -mx-4">
                         {(pkg.inclusions || []).map((inc, i) => (
-                          <li key={i} className="flex items-start text-sm text-slate-600">
+                          <li key={i} className="w-full sm:w-1/2 px-4 mb-3 flex items-start text-sm text-slate-600">
                             <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mr-3 mt-1.5 shrink-0"></span>
                             <span className="leading-relaxed">{inc || 'Empty inclusion'}</span>
                           </li>
@@ -306,47 +306,49 @@ export function SharedQuote() {
           <div className="print:break-inside-avoid">
             <h3 className="text-sm font-bold text-slate-900 uppercase tracking-[0.15em] mb-8">Terms & Conditions</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-10">
+            <div className="flex flex-wrap -mx-8">
               {quote.retainerClause && (
-                <div>
+                <div className="w-full md:w-1/2 px-8 mb-10">
                   <h5 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Retainer & Booking</h5>
                   <p className="text-slate-500 text-sm whitespace-pre-wrap leading-relaxed">{quote.retainerClause}</p>
                 </div>
               )}
               {quote.fulfillmentSchedule && (
-                <div>
+                <div className="w-full md:w-1/2 px-8 mb-10">
                   <h5 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Fulfillment Schedule</h5>
                   <p className="text-slate-500 text-sm whitespace-pre-wrap leading-relaxed">{quote.fulfillmentSchedule}</p>
                 </div>
               )}
               {quote.usageLicense && (
-                <div>
+                <div className="w-full md:w-1/2 px-8 mb-10">
                   <h5 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Usage License</h5>
                   <p className="text-slate-500 text-sm whitespace-pre-wrap leading-relaxed">{quote.usageLicense}</p>
                 </div>
               )}
               {quote.usageRights && (
-                <div>
+                <div className="w-full md:w-1/2 px-8 mb-10">
                   <h5 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Usage Rights</h5>
                   <p className="text-slate-500 text-sm whitespace-pre-wrap leading-relaxed">{quote.usageRights}</p>
                 </div>
               )}
               {quote.transportLogistics && (
-                <div>
+                <div className="w-full md:w-1/2 px-8 mb-10">
                   <h5 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Transport & Logistics</h5>
                   <p className="text-slate-500 text-sm whitespace-pre-wrap leading-relaxed">{quote.transportLogistics}</p>
                 </div>
               )}
               {quote.cancellationRescheduling && (
-                <div>
+                <div className="w-full md:w-1/2 px-8 mb-10">
                   <h5 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Cancellation</h5>
                   <p className="text-slate-500 text-sm whitespace-pre-wrap leading-relaxed">{quote.cancellationRescheduling}</p>
                 </div>
               )}
               {quote.paymentDetails && (
-                <div className="md:col-span-2 bg-slate-50 p-8 border border-slate-100 print:bg-transparent print:border-slate-200">
-                  <h5 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Payment Details</h5>
-                  <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed">{quote.paymentDetails}</p>
+                <div className="w-full px-8 mb-10">
+                  <div className="bg-slate-50 p-8 border border-slate-100 print:bg-transparent print:border-slate-200">
+                    <h5 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Payment Details</h5>
+                    <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed">{quote.paymentDetails}</p>
+                  </div>
                 </div>
               )}
             </div>

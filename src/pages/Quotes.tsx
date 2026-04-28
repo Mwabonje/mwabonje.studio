@@ -837,9 +837,9 @@ export function Quotes() {
                           </span>
                         </div>
                         {pkg.inclusions.length > 0 && (
-                          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6">
+                          <ul className="flex flex-wrap -mx-3">
                             {pkg.inclusions.map((inc, i) => (
-                              <li key={i} className="flex items-start text-xs text-slate-600">
+                              <li key={i} className="w-full sm:w-1/2 px-3 mb-2 flex items-start text-xs text-slate-600">
                                 <span className="w-1 h-1 rounded-full bg-slate-300 mr-2 mt-1.5 shrink-0"></span>
                                 <span className="leading-relaxed">{inc || 'Empty inclusion'}</span>
                               </li>
@@ -868,47 +868,49 @@ export function Quotes() {
               <div>
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] mb-6">Terms & Conditions</h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                <div className="flex flex-wrap -mx-6">
                   {formData.retainerClause && (
-                    <div>
+                    <div className="w-full md:w-1/2 px-6 mb-8">
                       <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Retainer & Booking</h5>
                       <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.retainerClause}</p>
                     </div>
                   )}
                   {formData.fulfillmentSchedule && (
-                    <div>
+                    <div className="w-full md:w-1/2 px-6 mb-8">
                       <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Fulfillment Schedule</h5>
                       <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.fulfillmentSchedule}</p>
                     </div>
                   )}
                   {formData.usageLicense && (
-                    <div>
+                    <div className="w-full md:w-1/2 px-6 mb-8">
                       <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Usage License</h5>
                       <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.usageLicense}</p>
                     </div>
                   )}
                   {formData.usageRights && (
-                    <div>
+                    <div className="w-full md:w-1/2 px-6 mb-8">
                       <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Usage Rights</h5>
                       <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.usageRights}</p>
                     </div>
                   )}
                   {formData.transportLogistics && (
-                    <div>
+                    <div className="w-full md:w-1/2 px-6 mb-8">
                       <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Transport & Logistics</h5>
                       <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.transportLogistics}</p>
                     </div>
                   )}
                   {formData.cancellationRescheduling && (
-                    <div>
+                    <div className="w-full md:w-1/2 px-6 mb-8">
                       <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Cancellation</h5>
                       <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.cancellationRescheduling}</p>
                     </div>
                   )}
                   {formData.paymentDetails && (
-                    <div className="md:col-span-2 bg-slate-50 p-6 border border-slate-100">
-                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Payment Details</h5>
-                      <p className="text-slate-600 text-xs whitespace-pre-wrap leading-relaxed">{formData.paymentDetails}</p>
+                    <div className="w-full px-6 mb-8">
+                      <div className="bg-slate-50 p-6 border border-slate-100">
+                        <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Payment Details</h5>
+                        <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.paymentDetails}</p>
+                      </div>
                     </div>
                   )}
                 </div>
