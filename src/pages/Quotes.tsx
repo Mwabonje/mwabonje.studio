@@ -841,9 +841,9 @@ export function Quotes() {
                           </span>
                         </div>
                         {pkg.inclusions.length > 0 && (
-                          <ul className="flex flex-wrap -mx-3">
+                          <ul className="columns-1 sm:columns-2 gap-x-6">
                             {pkg.inclusions.map((inc, i) => (
-                              <li key={i} className="w-full sm:w-1/2 px-3 mb-2 flex items-start text-xs text-slate-600">
+                              <li key={i} className="mb-2 flex items-start text-xs text-slate-600 break-inside-avoid">
                                 <span className="w-1 h-1 rounded-full bg-slate-300 mr-2 mt-1.5 shrink-0"></span>
                                 <span className="leading-relaxed">{inc || 'Empty inclusion'}</span>
                               </li>

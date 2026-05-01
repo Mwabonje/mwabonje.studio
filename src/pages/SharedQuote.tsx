@@ -275,9 +275,9 @@ export function SharedQuote() {
                       </span>
                     </div>
                     {(pkg.inclusions || []).length > 0 && (
-                      <ul className="flex flex-wrap -mx-4">
+                      <ul className="columns-1 sm:columns-2 gap-x-8">
                         {(pkg.inclusions || []).map((inc, i) => (
-                          <li key={i} className="w-full sm:w-1/2 px-4 mb-3 flex items-start text-sm text-slate-600">
+                          <li key={i} className="mb-3 flex items-start text-sm text-slate-600 break-inside-avoid">
                             <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mr-3 mt-1.5 shrink-0"></span>
                             <span className="leading-relaxed">{inc || 'Empty inclusion'}</span>
                           </li>
