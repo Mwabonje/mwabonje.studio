@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle, ExternalLink, Download, Copy, Loader2, Printer } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle, ExternalLink, Download, Copy, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 import { auth } from '@/lib/firebase';
@@ -39,8 +39,41 @@ export function Invoices() {
     setIsPreviewOpen(true);
   };
 
-  const handleDownloadPDF = () => {
-    window.print();
+  const handleDownloadPDF = async () => {
+    if (!invoiceRef.current || isGeneratingPDF || !previewInvoice) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      const element = invoiceRef.current;
+      
+      const project = projects.find(p => p.id === previewInvoice.projectId);
+      const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      
+      const opt = {
+        margin: [15, 0, 15, 0] as [number, number, number, number], // top, left, bottom, right in mm
+        filename: `Invoice_${safeTitle}.pdf`,
+        image: { type: 'jpeg' as 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          letterRendering: true,
+          windowWidth: 1200
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+      };
+
+      // @ts-ignore - html2pdf has complex types
+      const html2pdfModule = await import('html2pdf.js');
+      const generatePDF = html2pdfModule.default || html2pdfModule;
+      
+      await generatePDF().set(opt).from(element).save();
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      toast.error(`Failed to generate PDF: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   const handleCopyLink = () => {
@@ -349,8 +382,12 @@ export function Invoices() {
                 <Button variant="outline" size="sm" onClick={handleCopyLink}>
                   <Copy className="w-4 h-4 mr-2" /> Copy Link
                 </Button>
-                <Button onClick={handleDownloadPDF} size="sm">
-                  <Printer className="w-4 h-4 mr-2" /> Print / Save PDF
+                <Button size="sm" onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
+                  {isGeneratingPDF ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
+                  ) : (
+                    <><Download className="w-4 h-4 mr-2" /> Download PDF</>
+                  )}
                 </Button>
               </div>
             </div>
