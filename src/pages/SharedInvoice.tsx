@@ -6,7 +6,6 @@ import { Printer, Download, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import html2pdf from 'html2pdf.js';
 
 export function SharedInvoice() {
   const [searchParams] = useSearchParams();
@@ -144,38 +143,8 @@ export function SharedInvoice() {
     return <p className="text-slate-800">{description}</p>;
   };
 
-  const handleDownloadPDF = async () => {
-    if (!invoiceRef.current || isGeneratingPDF) return;
-    
-    setIsGeneratingPDF(true);
-    try {
-      const element = invoiceRef.current;
-      
-      const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      
-      const opt = {
-        margin: [15, 0, 15, 0] as [number, number, number, number], // top, left, bottom, right in mm
-        filename: `Invoice_${safeTitle}.pdf`,
-        image: { type: 'jpeg' as 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2, 
-          useCORS: true,
-          letterRendering: true,
-          windowWidth: 1200
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] }
-      };
-
-      const generatePDF = typeof html2pdf === 'function' ? html2pdf : (html2pdf as any).default || html2pdf;
-      await generatePDF().set(opt).from(element).save();
-    } catch (error) {
-      console.error("Failed to generate PDF:", error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      alert(`Failed to generate PDF: ${errorMessage}. Please try again or use the Print option.`);
-    } finally {
-      setIsGeneratingPDF(false);
-    }
+  const handleDownloadPDF = () => {
+    window.print();
   };
 
   const handlePrint = () => {
@@ -191,15 +160,8 @@ export function SharedInvoice() {
         {/* Action Bar */}
         <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-8 gap-4 print:hidden">
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
-            <Button onClick={handlePrint} variant="outline" className="text-slate-600 bg-white shadow-sm rounded-none border-slate-300 w-full sm:w-auto">
-              <Printer className="w-4 h-4 mr-2" /> Print
-            </Button>
-            <Button onClick={handleDownloadPDF} disabled={isGeneratingPDF} className="bg-slate-900 hover:bg-slate-800 text-white rounded-none px-6 shadow-sm w-full sm:w-auto">
-              {isGeneratingPDF ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
-              ) : (
-                <><Download className="w-4 h-4 mr-2" /> Download PDF</>
-              )}
+            <Button onClick={handlePrint} className="bg-slate-900 hover:bg-slate-800 text-white rounded-none px-6 shadow-sm w-full sm:w-auto">
+              <Printer className="w-4 h-4 mr-2" /> Print / Save as PDF
             </Button>
           </div>
         </div>
