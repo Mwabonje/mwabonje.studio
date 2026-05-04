@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle, ExternalLink, Download, Copy, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { toPng } from 'html-to-image';
+import { toJpeg } from 'html-to-image';
 import jsPDF from 'jspdf';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
@@ -52,7 +52,8 @@ export function Invoices() {
       element.style.maxWidth = 'none';
       element.style.padding = '40px';
 
-      const imgData = await toPng(element, {
+      const imgData = await toJpeg(element, {
+        quality: 0.95,
         pixelRatio: 2,
         backgroundColor: '#ffffff',
         style: {
@@ -81,13 +82,13 @@ export function Invoices() {
       let heightLeft = totalPdfHeight;
       let position = 0;
 
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalPdfHeight);
       heightLeft -= pdfHeight;
 
       while (heightLeft > 0) {
         position = heightLeft - totalPdfHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalPdfHeight);
         heightLeft -= pdfHeight;
       }
 

@@ -6,7 +6,7 @@ import { CheckCircle2, Printer, ArrowLeft, Download, Loader2 } from 'lucide-reac
 import { format } from 'date-fns';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { toPng } from 'html-to-image';
+import { toJpeg } from 'html-to-image';
 import jsPDF from 'jspdf';
 
 export function SharedQuote() {
@@ -129,7 +129,8 @@ export function SharedQuote() {
       element.style.maxWidth = 'none';
       element.style.padding = '40px';
 
-      const imgData = await toPng(element, {
+      const imgData = await toJpeg(element, {
+        quality: 0.95,
         pixelRatio: 2,
         backgroundColor: '#ffffff',
         style: {
@@ -161,14 +162,14 @@ export function SharedQuote() {
       let position = 0;
 
       // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalPdfHeight);
       heightLeft -= pdfHeight;
 
       // Add subsequent pages if content is taller than one page
       while (heightLeft > 0) {
         position = heightLeft - totalPdfHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalPdfHeight);
         heightLeft -= pdfHeight;
       }
 
