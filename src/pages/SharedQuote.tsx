@@ -257,6 +257,73 @@ export function SharedQuote() {
 
           <div className="w-full h-px bg-slate-200 mb-16"></div>
 
+          {/* Deliverables Preview */}
+          {(quote.deliverablesTitle || quote.deliverablesSubTitle || quote.deliverablesPrice || (quote.deliverableTasks && quote.deliverableTasks.length > 0)) && (
+            <div className="mb-16 bg-[#1a1b1a] text-white p-8 sm:p-12 sm:rounded-xl shadow-lg ring-1 ring-white/10 print:-mx-0 print:p-8 shrink-0 break-inside-avoid">
+              {/* Header Row */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 border-b border-white/10 pb-8 gap-6">
+                <div>
+                  {quote.deliverablesSubTitle && (
+                    <p className="text-[#d88c42] text-[10px] font-bold tracking-[0.2em] uppercase mb-2">
+                      {quote.deliverablesSubTitle}
+                    </p>
+                  )}
+                  {quote.deliverablesTitle && (
+                    <h3 className="text-3xl font-serif text-[#f4ecd8]">
+                      {quote.deliverablesTitle}
+                    </h3>
+                  )}
+                </div>
+                {quote.deliverablesPrice && (
+                  <div className="text-left sm:text-right shrink-0">
+                    <p className="text-white/40 text-[10px] font-bold tracking-[0.15em] uppercase mb-1">
+                      Total Investment
+                    </p>
+                    <p className="text-3xl font-serif text-white">
+                      <span className="text-sm text-white/50 mr-1 select-none">Ksh</span> 
+                      {Number(quote.deliverablesPrice).toLocaleString()}
+                    </p>
+                    {quote.deliverablesNote && (
+                      <p className="text-[#a1a1aa] text-xs mt-1">
+                        {quote.deliverablesNote}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Tasks Section */}
+              <div>
+                <h4 className="text-white/40 text-[10px] font-bold tracking-[0.2em] uppercase mb-8">
+                  Deliverables By Task
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                  {quote.deliverableTasks.map((task, idx) => (
+                    <div key={task.id} className="space-y-4 break-inside-avoid">
+                      <div className="flex items-center space-x-3 border-b border-white/10 pb-3">
+                        <span className="bg-[#3e5e3d] text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-sm shrink-0">
+                          {idx + 1}
+                        </span>
+                        <h5 className="text-[#d88c42] text-xs font-bold tracking-[0.15em] uppercase">
+                          {task.title}
+                        </h5>
+                      </div>
+                      <ul className="space-y-3">
+                        {task.items.map((item, iDx) => (
+                          <li key={iDx} className="text-[#e2e8f0] text-sm flex items-start leading-relaxed">
+                            <span className="text-white/30 mr-3 shrink-0 select-none">·</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Packages */}
           <div className="mb-16">
             <h3 className="text-sm font-bold text-slate-900 uppercase tracking-[0.15em] mb-8">Investment Options</h3>

@@ -54,10 +54,15 @@ export function Quotes() {
     isCollaboration: false,
     collaborationCut: 0,
     collaborationType: 'percentage' as 'percentage' | 'fixed',
+    deliverablesSubTitle: '',
+    deliverablesTitle: '',
+    deliverablesPrice: '',
+    deliverablesNote: '',
   };
 
   const [formData, setFormData] = useState(defaultFormData);
   const [packages, setPackages] = useState<QuotePackage[]>([]);
+  const [deliverableTasks, setDeliverableTasks] = useState<QuoteDeliverableTask[]>([]);
 
   const generateQuoteNumber = () => {
     let maxNum = 0;
@@ -133,8 +138,13 @@ export function Quotes() {
         isCollaboration: quote.isCollaboration || false,
         collaborationCut: quote.collaborationCut || 0,
         collaborationType: quote.collaborationType || 'percentage',
+        deliverablesSubTitle: quote.deliverablesSubTitle || '',
+        deliverablesTitle: quote.deliverablesTitle || '',
+        deliverablesPrice: quote.deliverablesPrice?.toString() || '',
+        deliverablesNote: quote.deliverablesNote || '',
       });
       setPackages(quote.packages || []);
+      setDeliverableTasks(quote.deliverableTasks || []);
     } else {
       setEditingQuote(null);
       setFormData({
@@ -142,6 +152,7 @@ export function Quotes() {
         quoteNumber: generateQuoteNumber(),
       });
       setPackages([]);
+      setDeliverableTasks([]);
     }
     setIsDialogOpen(true);
   };
@@ -171,8 +182,13 @@ export function Quotes() {
       isCollaboration: quote.isCollaboration || false,
       collaborationCut: quote.collaborationCut || 0,
       collaborationType: quote.collaborationType || 'percentage',
+      deliverablesSubTitle: quote.deliverablesSubTitle || '',
+      deliverablesTitle: quote.deliverablesTitle || '',
+      deliverablesPrice: quote.deliverablesPrice?.toString() || '',
+      deliverablesNote: quote.deliverablesNote || '',
     });
     setPackages(quote.packages || []);
+    setDeliverableTasks(quote.deliverableTasks || []);
     setIsPreviewOpen(true);
   };
 
@@ -199,8 +215,13 @@ export function Quotes() {
       status: 'draft',
       date: format(new Date(), 'yyyy-MM-dd'),
       revisionOf: quote.id,
+      deliverablesSubTitle: quote.deliverablesSubTitle || '',
+      deliverablesTitle: quote.deliverablesTitle || '',
+      deliverablesPrice: quote.deliverablesPrice?.toString() || '',
+      deliverablesNote: quote.deliverablesNote || '',
     });
     setPackages(quote.packages?.map(p => ({ ...p, id: crypto.randomUUID() })) || []);
+    setDeliverableTasks(quote.deliverableTasks?.map(t => ({ ...t, id: crypto.randomUUID() })) || []);
     setIsDialogOpen(true);
   };
 
@@ -211,8 +232,16 @@ export function Quotes() {
     const totalAmount = calculateTotal();
     
     try {
+      const quoteData = {
+        ...formData,
+        deliverablesPrice: formData.deliverablesPrice ? Number(formData.deliverablesPrice) : undefined,
+        packages,
+        deliverableTasks,
+        totalAmount
+      };
+
       if (editingQuote) {
-        await updateQuote(editingQuote.id, { ...formData, packages, totalAmount });
+        await updateQuote(editingQuote.id, quoteData);
         
         // Update associated project if it exists
         if (formData.projectId) {
@@ -234,9 +263,7 @@ export function Quotes() {
         const newQuoteId = crypto.randomUUID();
         await addQuote({
           id: newQuoteId,
-          ...formData,
-          packages,
-          totalAmount,
+          ...quoteData,
         });
         
         // Update associated project if it exists
@@ -261,6 +288,49 @@ export function Quotes() {
       console.error("Error saving quote:", error);
       alert("Failed to save quote. Please check your connection and try again.");
     }
+  };
+
+  const addDeliverableTask = () => {
+    setDeliverableTasks([...deliverableTasks, { id: crypto.randomUUID(), title: `Task ${deliverableTasks.length + 1}`, items: [''] }]);
+  };
+
+  const updateDeliverableTask = (id: string, field: keyof QuoteDeliverableTask, value: any) => {
+    setDeliverableTasks(deliverableTasks.map(task => task.id === id ? { ...task, [field]: value } : task));
+  };
+
+  const removeDeliverableTask = (id: string) => {
+    setDeliverableTasks(deliverableTasks.filter(task => task.id !== id));
+  };
+
+  const addDeliverableItem = (taskId: string) => {
+    setDeliverableTasks(deliverableTasks.map(task => {
+      if (task.id === taskId) {
+        return { ...task, items: [...task.items, ''] };
+      }
+      return task;
+    }));
+  };
+
+  const updateDeliverableItem = (taskId: string, index: number, value: string) => {
+    setDeliverableTasks(deliverableTasks.map(task => {
+      if (task.id === taskId) {
+        const newItems = [...task.items];
+        newItems[index] = value;
+        return { ...task, items: newItems };
+      }
+      return task;
+    }));
+  };
+
+  const removeDeliverableItem = (taskId: string, index: number) => {
+    setDeliverableTasks(deliverableTasks.map(task => {
+      if (task.id === taskId) {
+        const newItems = [...task.items];
+        newItems.splice(index, 1);
+        return { ...task, items: newItems };
+      }
+      return task;
+    }));
   };
 
   const addPackage = () => {
@@ -608,6 +678,76 @@ export function Quotes() {
                 </div>
               </div>
 
+              {/* Deliverables By Task (Optional) */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                    <CheckSquare className="w-4 h-4 mr-2" />
+                    Deliverables by Task (Optional)
+                  </div>
+                </div>
+
+                <div className="p-4 border rounded-lg bg-slate-50 space-y-4">
+                  <p className="text-xs text-slate-500 mb-2">Leave the title blank if you do not want to include this section in the quote.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                       <Label className="text-xs font-bold text-slate-700 uppercase">Sub Title (e.g. FULL FARM DOCUMENTATION)</Label>
+                       <Input value={formData.deliverablesSubTitle || ''} onChange={e => setFormData({ ...formData, deliverablesSubTitle: e.target.value })} placeholder="Enter sub title" />
+                    </div>
+                    <div className="space-y-2">
+                       <Label className="text-xs font-bold text-slate-700 uppercase">Main Title (e.g. Complete Visual Package)</Label>
+                       <Input value={formData.deliverablesTitle || ''} onChange={e => setFormData({ ...formData, deliverablesTitle: e.target.value })} placeholder="Enter main title" />
+                    </div>
+                    <div className="space-y-2">
+                       <Label className="text-xs font-bold text-slate-700 uppercase">Total Investment (Ksh)</Label>
+                       <Input type="number" value={formData.deliverablesPrice || ''} onChange={e => setFormData({ ...formData, deliverablesPrice: e.target.value })} placeholder="e.g. 40000" />
+                    </div>
+                    <div className="space-y-2">
+                       <Label className="text-xs font-bold text-slate-700 uppercase">Additional Note (e.g. + Transport at cost)</Label>
+                       <Input value={formData.deliverablesNote || ''} onChange={e => setFormData({ ...formData, deliverablesNote: e.target.value })} placeholder="Enter note" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 mt-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-sm font-bold text-slate-700 uppercase">Tasks</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={addDeliverableTask} className="text-primary border-primary/20 hover:bg-primary/5 rounded-full">
+                        <Plus className="w-4 h-4 mr-1" /> Add Task
+                      </Button>
+                    </div>
+
+                    {deliverableTasks.map((task, tIndex) => (
+                      <div key={task.id} className="p-4 border rounded relative bg-white">
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 text-slate-400 hover:text-red-500" onClick={() => removeDeliverableTask(task.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                        <div className="space-y-3">
+                          <div className="space-y-2 pr-10">
+                            <Label className="text-xs font-bold text-slate-700 uppercase">Task Title</Label>
+                            <Input value={task.title} onChange={(e) => updateDeliverableTask(task.id, 'title', e.target.value)} placeholder="e.g. FARM PROGRESS COVERAGE" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold text-slate-700 uppercase">Deliverables</Label>
+                            {task.items.map((item, iIndex) => (
+                              <div key={iIndex} className="flex items-center space-x-2">
+                                <span className="text-slate-400 font-mono text-xs">{iIndex + 1}.</span>
+                                <Input value={item} onChange={(e) => updateDeliverableItem(task.id, iIndex, e.target.value)} placeholder="e.g. Drone video of seedlings" className="flex-1" />
+                                <Button type="button" variant="ghost" size="icon" onClick={() => removeDeliverableItem(task.id, iIndex)} className="text-slate-400 hover:text-red-500">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ))}
+                            <Button type="button" variant="ghost" size="sm" onClick={() => addDeliverableItem(task.id)} className="text-primary mt-1">
+                              <Plus className="w-3 h-3 mr-1" /> Add Expected Deliverable
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* Investment Packages */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -822,6 +962,73 @@ export function Quotes() {
               </div>
 
               <div className="w-full h-px bg-slate-200 mb-12"></div>
+
+              {/* Deliverables Preview */}
+              {(formData.deliverablesTitle || formData.deliverablesSubTitle || formData.deliverablesPrice || deliverableTasks.length > 0) && (
+                <div className="mb-12 bg-[#1a1b1a] text-white p-8 sm:p-12 -mx-6 sm:-mx-12 rounded-none sm:rounded-xl shadow-lg ring-1 ring-white/10 break-inside-avoid">
+                  {/* Header Row */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 border-b border-white/10 pb-8 gap-6">
+                    <div>
+                      {formData.deliverablesSubTitle && (
+                        <p className="text-[#d88c42] text-[10px] font-bold tracking-[0.2em] uppercase mb-2">
+                          {formData.deliverablesSubTitle}
+                        </p>
+                      )}
+                      {formData.deliverablesTitle && (
+                        <h3 className="text-3xl font-serif text-[#f4ecd8]">
+                          {formData.deliverablesTitle}
+                        </h3>
+                      )}
+                    </div>
+                    {formData.deliverablesPrice && (
+                      <div className="text-left sm:text-right shrink-0">
+                        <p className="text-white/40 text-[10px] font-bold tracking-[0.15em] uppercase mb-1">
+                          Total Investment
+                        </p>
+                        <p className="text-3xl font-serif text-white">
+                          <span className="text-sm text-white/50 mr-1 select-none">Ksh</span> 
+                          {Number(formData.deliverablesPrice).toLocaleString()}
+                        </p>
+                        {formData.deliverablesNote && (
+                          <p className="text-[#a1a1aa] text-xs mt-1">
+                            {formData.deliverablesNote}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tasks Section */}
+                  <div>
+                    <h4 className="text-white/40 text-[10px] font-bold tracking-[0.2em] uppercase mb-8">
+                      Deliverables By Task
+                    </h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                      {deliverableTasks.map((task, idx) => (
+                        <div key={task.id} className="space-y-4">
+                          <div className="flex items-center space-x-3 border-b border-white/10 pb-3">
+                            <span className="bg-[#3e5e3d] text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-sm shrink-0">
+                              {idx + 1}
+                            </span>
+                            <h5 className="text-[#d88c42] text-xs font-bold tracking-[0.15em] uppercase">
+                              {task.title}
+                            </h5>
+                          </div>
+                          <ul className="space-y-3">
+                            {task.items.map((item, iDx) => (
+                              <li key={iDx} className="text-[#e2e8f0] text-sm flex items-start leading-relaxed">
+                                <span className="text-white/30 mr-3 shrink-0 select-none">·</span>
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Packages */}
               <div className="mb-12">

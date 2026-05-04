@@ -42,6 +42,12 @@ export type QuotePackage = {
   settlement: number;
 };
 
+export type QuoteDeliverableTask = {
+  id: string;
+  title: string;
+  items: string[];
+};
+
 export type Quote = {
   id: string;
   quoteNumber?: string;
@@ -70,6 +76,11 @@ export type Quote = {
   isCollaboration?: boolean;
   collaborationCut?: number;
   collaborationType?: 'percentage' | 'fixed';
+  deliverablesSubTitle?: string;
+  deliverablesTitle?: string;
+  deliverablesPrice?: number;
+  deliverablesNote?: string;
+  deliverableTasks?: QuoteDeliverableTask[];
   uid?: string;
 };
 
