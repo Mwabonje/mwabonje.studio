@@ -259,7 +259,7 @@ export function SharedQuote() {
 
           {/* Deliverables Preview */}
           {(quote.deliverablesTitle || quote.deliverablesSubTitle || quote.deliverablesPrice || (quote.deliverableTasks && quote.deliverableTasks.length > 0)) && (
-            <div className="mb-16 bg-[#1a1b1a] text-white p-8 sm:p-12 shadow-lg ring-1 ring-white/10 print:-mx-0 print:p-8 shrink-0 break-inside-avoid">
+            <div className="mb-16 bg-[#1a1b1a] text-white py-8 px-6 sm:py-12 sm:px-12 md:px-20 -mx-6 sm:-mx-12 md:-mx-20 shadow-lg ring-1 ring-white/10 print:-mx-0 print:p-8 shrink-0 break-inside-avoid">
               {/* Header Row */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 border-b border-white/10 pb-8 gap-6">
                 <div>

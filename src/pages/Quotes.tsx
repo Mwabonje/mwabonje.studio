@@ -965,7 +965,7 @@ export function Quotes() {
 
               {/* Deliverables Preview */}
               {(formData.deliverablesTitle || formData.deliverablesSubTitle || formData.deliverablesPrice || deliverableTasks.length > 0) && (
-                <div className="mb-12 bg-[#1a1b1a] text-white p-8 sm:p-12 -mx-6 sm:-mx-12 shadow-lg ring-1 ring-white/10 break-inside-avoid">
+                <div className="mb-12 bg-[#1a1b1a] text-white py-8 px-6 sm:p-12 -mx-6 sm:-mx-12 shadow-lg ring-1 ring-white/10 break-inside-avoid">
                   {/* Header Row */}
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 border-b border-white/10 pb-8 gap-6">
                     <div>
