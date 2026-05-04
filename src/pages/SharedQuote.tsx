@@ -259,7 +259,7 @@ export function SharedQuote() {
 
           {/* Deliverables Preview */}
           {(quote.deliverablesTitle || quote.deliverablesSubTitle || quote.deliverablesPrice || (quote.deliverableTasks && quote.deliverableTasks.length > 0)) && (
-            <div className="mb-16 bg-[#1a1b1a] text-white p-8 sm:p-12 sm:rounded-xl shadow-lg ring-1 ring-white/10 print:-mx-0 print:p-8 shrink-0 break-inside-avoid">
+            <div className="mb-16 bg-[#1a1b1a] text-white p-8 sm:p-12 shadow-lg ring-1 ring-white/10 print:-mx-0 print:p-8 shrink-0 break-inside-avoid">
               {/* Header Row */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 border-b border-white/10 pb-8 gap-6">
                 <div>
@@ -311,9 +311,9 @@ export function SharedQuote() {
                       </div>
                       <ul className="space-y-3">
                         {task.items.map((item, iDx) => (
-                          <li key={iDx} className="text-[#e2e8f0] text-sm flex items-start leading-relaxed">
-                            <span className="text-white/30 mr-3 shrink-0 select-none">·</span>
-                            <span>{item}</span>
+                          <li key={iDx} className="text-[#e2e8f0] text-sm flex items-start leading-relaxed font-normal">
+                            <span className="text-white/30 mr-3 shrink-0 select-none font-normal">·</span>
+                            <span className="font-normal">{item}</span>
                           </li>
                         ))}
                       </ul>
