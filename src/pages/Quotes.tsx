@@ -28,7 +28,7 @@ export function Quotes() {
   const [dateFilter, setDateFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [quoteToDelete, setQuoteToDelete] = useState<string | null>(null);
-  const [quoteToDecline, setQuoteToDecline] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ type: 'approve' | 'decline' | 'link' | 'duplicate' | 'edit', quote: Quote } | null>(null);
   
   const defaultFormData = {
     quoteNumber: '',
@@ -1283,15 +1283,15 @@ export function Quotes() {
                         </Button>
                         {quote.status !== 'approved' && quote.status !== 'declined' && (
                           <>
-                            <Button variant="ghost" size="icon" onClick={() => handleOpenApproveDialog(quote)} title="Approve & Create Invoice">
+                            <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'approve', quote })} title="Approve & Create Invoice">
                               <CheckSquare className="w-4 h-4 text-green-600 hover:text-green-700" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => setQuoteToDecline(quote.id)} title="Mark as Declined">
+                            <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'decline', quote })} title="Mark as Declined">
                               <XCircle className="w-4 h-4 text-red-500 hover:text-red-700" />
                             </Button>
                           </>
                         )}
-                        <Button variant="ghost" size="icon" onClick={() => handleCopyLink(quote.id)} title="Copy Shareable Link" className="relative">
+                        <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'link', quote })} title="Copy Shareable Link" className="relative">
                           {copiedId === quote.id ? (
                             <span className="absolute -top-8 bg-slate-800 text-white text-[10px] px-2 py-1 rounded shadow-sm whitespace-nowrap animate-in fade-in slide-in-from-bottom-2">
                               Copied!
@@ -1303,10 +1303,10 @@ export function Quotes() {
                             <LinkIcon className="w-4 h-4 text-slate-500 hover:text-primary" />
                           )}
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDuplicateQuote(quote)} title="Create Revision">
+                        <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'duplicate', quote })} title="Create Revision">
                           <Copy className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(quote)} title="Edit Quote">
+                        <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'edit', quote })} title="Edit Quote">
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => setQuoteToDelete(quote.id)} title="Delete Quote">
@@ -1336,22 +1336,45 @@ export function Quotes() {
       />
 
       <ConfirmDeleteDialog
-        isOpen={!!quoteToDecline}
-        onOpenChange={(open) => !open && setQuoteToDecline(null)}
+        isOpen={!!pendingAction}
+        onOpenChange={(open) => !open && setPendingAction(null)}
         onConfirm={async () => {
-          if (quoteToDecline) {
+          if (!pendingAction) return;
+          const { type, quote } = pendingAction;
+          setPendingAction(null);
+          
+          if (type === 'approve') {
+            handleOpenApproveDialog(quote);
+          } else if (type === 'decline') {
             try {
-              await updateQuote(quoteToDecline, { status: 'declined' });
+              await updateQuote(quote.id, { status: 'declined' });
               toast.success('Quote declined successfully');
             } catch (error) {
               toast.error('Failed to decline quote');
             }
-            setQuoteToDecline(null);
+          } else if (type === 'link') {
+            handleCopyLink(quote.id);
+          } else if (type === 'duplicate') {
+            handleDuplicateQuote(quote);
+          } else if (type === 'edit') {
+            handleOpenDialog(quote);
           }
         }}
-        title="Decline Quote"
-        description="Are you sure you want to mark this quote as declined? This action can be undone by editing the quote status later."
-        confirmText="Decline"
+        title={
+          pendingAction?.type === 'approve' ? 'Approve Quote' :
+          pendingAction?.type === 'decline' ? 'Decline Quote' :
+          pendingAction?.type === 'link' ? 'Copy Link' :
+          pendingAction?.type === 'duplicate' ? 'Create Revision' :
+          'Edit Quote'
+        }
+        description={
+          pendingAction?.type === 'approve' ? 'Are you sure you want to approve this quote? This will proceed to generate an invoice.' :
+          pendingAction?.type === 'decline' ? 'Are you sure you want to mark this quote as declined?' :
+          pendingAction?.type === 'link' ? 'Are you sure you want to copy the shareable link to your clipboard?' :
+          pendingAction?.type === 'duplicate' ? 'Are you sure you want to create a revision/duplicate of this quote?' :
+          'Are you sure you want to edit this quote?'
+        }
+        confirmText="Proceed"
       />
     </div>
   );
