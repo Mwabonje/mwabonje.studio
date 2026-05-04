@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useStore, Quote, QuotePackage } from '@/store';
+import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle, ExternalLink, Download, Copy, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { toJpeg } from 'html-to-image';
-import jsPDF from 'jspdf';
+import html2pdf from 'html2pdf.js';
+
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
@@ -47,54 +47,29 @@ export function Invoices() {
     try {
       const element = invoiceRef.current;
       const originalStyle = element.style.cssText;
-      
       element.style.width = '800px';
       element.style.maxWidth = 'none';
       element.style.padding = '40px';
 
-      const imgData = await toJpeg(element, {
-        quality: 0.95,
-        pixelRatio: 2,
-        backgroundColor: '#ffffff',
-        style: {
-          transform: 'scale(1)',
-          transformOrigin: 'top left',
-          width: '800px'
-        }
-      });
-      
-      element.style.cssText = originalStyle;
-      
-      const JSPDF = typeof jsPDF === 'function' ? jsPDF : (jsPDF as any).jsPDF || (jsPDF as any).default;
-      const pdf = new JSPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgProps = pdf.getImageProperties(imgData);
-      const ratio = pdfWidth / imgProps.width;
-      const totalPdfHeight = imgProps.height * ratio;
-      
-      let heightLeft = totalPdfHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalPdfHeight);
-      heightLeft -= pdfHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - totalPdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalPdfHeight);
-        heightLeft -= pdfHeight;
-      }
-
       const project = projects.find(p => p.id === previewInvoice.projectId);
       const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      pdf.save(`Invoice_${safeTitle}.pdf`);
+      
+      const opt = {
+        margin: [15, 0, 15, 0] as [number, number, number, number], // top, left, bottom, right in mm
+        filename: `Invoice_${safeTitle}.pdf`,
+        image: { type: 'jpeg' as 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          letterRendering: true,
+          windowWidth: 800
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+      element.style.cssText = originalStyle;
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       toast.error("Failed to generate PDF. Please try again.");

@@ -6,8 +6,7 @@ import { Printer, Download, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { toJpeg } from 'html-to-image';
-import jsPDF from 'jspdf';
+import html2pdf from 'html2pdf.js';
 
 export function SharedInvoice() {
   const [searchParams] = useSearchParams();
@@ -151,61 +150,29 @@ export function SharedInvoice() {
     setIsGeneratingPDF(true);
     try {
       const element = invoiceRef.current;
-      
-      // Store original styles that might affect rendering
       const originalStyle = element.style.cssText;
-      
-      // Force a specific width for consistent rendering before capturing
       element.style.width = '800px';
       element.style.maxWidth = 'none';
       element.style.padding = '40px';
-
-      const imgData = await toJpeg(element, {
-        quality: 0.95,
-        pixelRatio: 2,
-        backgroundColor: '#ffffff',
-        style: {
-          transform: 'scale(1)',
-          transformOrigin: 'top left',
-          width: '800px'
-        }
-      });
       
-      // Restore original styles
-      element.style.cssText = originalStyle;
-      
-      const JSPDF = typeof jsPDF === 'function' ? jsPDF : (jsPDF as any).jsPDF || (jsPDF as any).default;
-      const pdf = new JSPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      // Calculate image dimensions to fit PDF width
-      const imgProps = pdf.getImageProperties(imgData);
-      const ratio = pdfWidth / imgProps.width;
-      const totalPdfHeight = imgProps.height * ratio;
-      
-      let heightLeft = totalPdfHeight;
-      let position = 0;
-
-      // Add first page
-      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalPdfHeight);
-      heightLeft -= pdfHeight;
-
-      // Add subsequent pages if content is taller than one page
-      while (heightLeft > 0) {
-        position = heightLeft - totalPdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalPdfHeight);
-        heightLeft -= pdfHeight;
-      }
-
       const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      pdf.save(`Invoice_${safeTitle}.pdf`);
+      
+      const opt = {
+        margin: [15, 0, 15, 0] as [number, number, number, number], // top, left, bottom, right in mm
+        filename: `Invoice_${safeTitle}.pdf`,
+        image: { type: 'jpeg' as 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          letterRendering: true,
+          windowWidth: 800
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+      element.style.cssText = originalStyle;
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       const errorMessage = error instanceof Error ? error.message : String(error);
