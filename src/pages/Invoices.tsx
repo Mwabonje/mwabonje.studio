@@ -46,11 +46,7 @@ export function Invoices() {
     setIsGeneratingPDF(true);
     try {
       const element = invoiceRef.current;
-      const originalStyle = element.style.cssText;
-      element.style.width = '800px';
-      element.style.maxWidth = 'none';
-      element.style.padding = '40px';
-
+      
       const project = projects.find(p => p.id === previewInvoice.projectId);
       const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
       
@@ -62,14 +58,14 @@ export function Invoices() {
           scale: 2, 
           useCORS: true,
           letterRendering: true,
-          windowWidth: 800
+          windowWidth: 1200
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['css', 'legacy'] }
       };
 
-      await html2pdf().set(opt).from(element).save();
-      element.style.cssText = originalStyle;
+      const generatePDF = typeof html2pdf === 'function' ? html2pdf : (html2pdf as any).default || html2pdf;
+      await generatePDF().set(opt).from(element).save();
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       toast.error("Failed to generate PDF. Please try again.");
