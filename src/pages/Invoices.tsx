@@ -841,7 +841,7 @@ export function Invoices() {
                         </div>
                         <div className="header-right">
                           <div className="invoice-label">In<em>voice</em></div>
-                          <div className="invoice-number">INV · {previewInvoice.date ? format(new Date(previewInvoice.date), 'yyyy') : new Date().getFullYear()} · {previewInvoice.id.slice(0, 3).toUpperCase()}</div>
+                          <div className="invoice-number">INV · {previewInvoice.date ? format(new Date(previewInvoice.date), 'yyyy') : new Date().getFullYear()} · {previewInvoice.quoteId ? (quotes.find(q => q.id === previewInvoice.quoteId)?.quoteNumber?.replace('QT-', '') || previewInvoice.quoteId.slice(0, 3).toUpperCase()) : previewInvoice.id.slice(0, 3).toUpperCase()}</div>
                           <div className={`status-badge ${previewInvoice.amountPaid === 0 ? 'status-unpaid' : previewInvoice.amountPaid < previewInvoice.totalAmount ? 'status-partial' : 'status-paid'}`}>
                             {previewInvoice.amountPaid === 0 ? 'Awaiting Payment' : previewInvoice.amountPaid < previewInvoice.totalAmount ? 'Partially Paid' : 'Paid in Full'}
                           </div>
@@ -861,7 +861,7 @@ export function Invoices() {
 
                         <div className="meta-block">
                           <div className="meta-block-title">Invoice Details</div>
-                          <div className="meta-line"><strong>Invoice No.</strong> &nbsp;{previewInvoice.id.slice(0, 8).toUpperCase()}</div>
+                          <div className="meta-line"><strong>Invoice No.</strong> &nbsp;{previewInvoice.quoteId ? (quotes.find(q => q.id === previewInvoice.quoteId)?.quoteNumber || previewInvoice.quoteId.slice(0, 8).toUpperCase()) : previewInvoice.id.slice(0, 8).toUpperCase()}</div>
                           <div className="meta-line"><strong>Issue Date</strong> &nbsp;&nbsp;{previewInvoice.date ? format(new Date(previewInvoice.date), 'dd · MM · yyyy') : 'N/A'}</div>
                           {previewInvoice.dueDate && <div className="meta-line"><strong>Due Date</strong> &nbsp;&nbsp;{format(new Date(previewInvoice.dueDate), 'dd · MM · yyyy')}</div>}
                           {project?.title && <div className="meta-line"><strong>Project</strong> &nbsp;&nbsp;&nbsp;&nbsp;{project.title}</div>}
@@ -1001,7 +1001,7 @@ export function Invoices() {
                   return (
                     <TableRow key={invoice.id}>
                       <TableCell className="font-mono text-xs text-muted-foreground">
-                        {invoice.id.substring(0, 8).toUpperCase()}
+                        {invoice.quoteId ? (quotes.find(q => q.id === invoice.quoteId)?.quoteNumber || invoice.quoteId.substring(0, 8).toUpperCase()) : invoice.id.substring(0, 8).toUpperCase()}
                       </TableCell>
                       <TableCell className="font-medium">{client?.name || 'Unknown Client'}</TableCell>
                       <TableCell>{project?.title || 'Unknown Project'}</TableCell>
