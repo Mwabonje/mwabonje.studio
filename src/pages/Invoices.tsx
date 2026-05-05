@@ -55,7 +55,7 @@ export function Invoices() {
       
       const htmlToImage = await import('html-to-image');
       const jsPDFModule = await import('jspdf');
-      const jsPDF = jsPDFModule.default || jsPDFModule;
+      const jsPDF = ('default' in jsPDFModule ? jsPDFModule.default : jsPDFModule) as any;
 
       const dataUrl = await htmlToImage.toPng(element, { quality: 0.98, pixelRatio: 2 });
       
@@ -407,97 +407,556 @@ export function Invoices() {
 
               return (
                 <div className="m-4 sm:m-6">
-                  <div ref={invoiceRef} className="p-6 sm:p-12 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
-                    {/* Decorative Top Line */}
-                    <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(settings.colorScheme)}`}></div>
+                  <style dangerouslySetInnerHTML={{ __html: `
+                    .invoice-root {
+                      --cream: #FAF8F4;
+                      --warm-white: #F5F2EC;
+                      --gold: #B8965A;
+                      --gold-light: #D4AC6E;
+                      --ink: #1C1C1C;
+                      --ink-mid: #3A3A3A;
+                      --ink-soft: #888880;
+                      --rule: #DDD8CE;
+                      --red: #C0392B;
+                      --green: #2E7D52;
+                      background: var(--cream);
+                      color: var(--ink);
+                      font-family: 'Jost', sans-serif;
+                      font-weight: 300;
+                      line-height: 1.6;
+                      text-align: left;
+                      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                    }
 
-                  {/* Header */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start mb-12">
-                    <div className="mb-6 sm:mb-0">
-                      {settings.logoUrl && (
-                        <img src={settings.logoUrl} alt="Company Logo" className="h-12 object-contain mb-6" />
-                      )}
-                      <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Billed To</h2>
-                      <h1 className="text-3xl sm:text-4xl font-serif text-slate-900 leading-tight">{client?.name || 'Client Name'}</h1>
-                      <p className="text-sm text-slate-500 mt-1">{client?.email}</p>
-                      <p className="text-sm text-slate-500">{client?.phone}</p>
-                      <p className="text-base text-slate-500 mt-4 font-serif italic">{project?.title || 'Project Title'}</p>
-                    </div>
-                    <div className="text-left sm:text-right">
-                      <h2 className="text-2xl sm:text-3xl font-serif text-slate-200 tracking-widest uppercase mb-4">Invoice</h2>
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Invoice No.</p>
-                        <p className="text-xs text-slate-800 mb-3 font-mono">{previewInvoice.id.substring(0, 8).toUpperCase()}</p>
-                        
-                        <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Issue Date</p>
-                        <p className="text-xs text-slate-800 mb-3">{format(new Date(previewInvoice.date), 'MMMM d, yyyy')}</p>
-                        
-                        <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Due Date</p>
-                        <p className="text-xs text-slate-800">{format(new Date(previewInvoice.dueDate), 'MMMM d, yyyy')}</p>
+                    .invoice-root * { box-sizing: border-box; }
+
+                    .invoice-root .page {
+                      max-width: 760px;
+                      margin: 0 auto;
+                      padding: 64px 48px 80px;
+                    }
+
+                    /* ── HEADER ── */
+                    .invoice-root .header {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: flex-start;
+                      padding-bottom: 40px;
+                      border-bottom: 1px solid var(--rule);
+                      margin-bottom: 40px;
+                      margin-top: 0;
+                    }
+
+                    .invoice-root .header-left .studio-name {
+                      font-family: 'Cormorant Garamond', serif;
+                      font-size: 22px;
+                      font-weight: 400;
+                      letter-spacing: 3px;
+                      text-transform: uppercase;
+                      color: var(--ink);
+                      margin-bottom: 4px;
+                      margin-top: 0;
+                    }
+
+                    .invoice-root .header-left .studio-tagline {
+                      font-size: 11px;
+                      font-weight: 400;
+                      letter-spacing: 2px;
+                      text-transform: uppercase;
+                      color: var(--gold);
+                      margin: 0;
+                    }
+
+                    .invoice-root .header-right {
+                      text-align: right;
+                    }
+
+                    .invoice-root .invoice-label {
+                      font-family: 'Cormorant Garamond', serif;
+                      font-size: 42px;
+                      font-weight: 300;
+                      color: var(--ink);
+                      line-height: 1;
+                      letter-spacing: -1px;
+                      margin: 0;
+                    }
+
+                    .invoice-root .invoice-label em {
+                      font-style: italic;
+                      color: var(--gold);
+                    }
+
+                    .invoice-root .invoice-number {
+                      font-size: 11px;
+                      font-weight: 500;
+                      letter-spacing: 2px;
+                      color: var(--ink-soft);
+                      margin-top: 6px;
+                      margin-bottom: 0;
+                    }
+
+                    /* ── STATUS BADGE ── */
+                    .invoice-root .status-badge {
+                      display: inline-block;
+                      margin-top: 10px;
+                      padding: 4px 14px;
+                      font-size: 9px;
+                      font-weight: 600;
+                      letter-spacing: 2.5px;
+                      text-transform: uppercase;
+                    }
+
+                    .invoice-root .status-unpaid   { background: #FEF3CD; color: #7A5700; border: 1px solid #F0D070; }
+                    .invoice-root .status-partial  { background: #EAF4FE; color: #0C5FA8; border: 1px solid #B0D4FA; }
+                    .invoice-root .status-paid     { background: #E8F4EC; color: var(--green); border: 1px solid #A8D8B4; }
+
+                    /* ── META GRID ── */
+                    .invoice-root .meta-wrap {
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 24px;
+                      margin-bottom: 48px;
+                    }
+
+                    .invoice-root .meta-block {
+                      padding: 22px 26px;
+                      background: var(--warm-white);
+                      border-left: 3px solid var(--rule);
+                    }
+
+                    .invoice-root .meta-block.accent { border-left-color: var(--gold); }
+
+                    .invoice-root .meta-block-title {
+                      font-size: 9px;
+                      font-weight: 600;
+                      letter-spacing: 3px;
+                      text-transform: uppercase;
+                      color: var(--ink-soft);
+                      margin-bottom: 12px;
+                      margin-top: 0;
+                    }
+
+                    .invoice-root .meta-line {
+                      font-size: 13px;
+                      color: var(--ink-mid);
+                      font-weight: 300;
+                      line-height: 1.8;
+                      margin: 0;
+                    }
+
+                    .invoice-root .meta-line strong {
+                      font-weight: 500;
+                      color: var(--ink);
+                    }
+
+                    /* ── SECTION LABEL ── */
+                    .invoice-root .section-label {
+                      font-size: 10px;
+                      font-weight: 600;
+                      letter-spacing: 3.5px;
+                      text-transform: uppercase;
+                      color: var(--ink-soft);
+                      display: flex;
+                      align-items: center;
+                      gap: 14px;
+                      margin-bottom: 16px;
+                      margin-top: 0;
+                    }
+
+                    .invoice-root .section-label::after {
+                      content: '';
+                      flex: 1;
+                      height: 1px;
+                      background: var(--rule);
+                    }
+
+                    /* ── LINE ITEMS TABLE ── */
+                    .invoice-root .items-table {
+                      width: 100%;
+                      border-collapse: collapse;
+                      margin-bottom: 0;
+                      text-indent: 0;
+                    }
+
+                    .invoice-root .items-table thead tr {
+                      border-bottom: 1px solid var(--ink);
+                    }
+
+                    .invoice-root .items-table thead th {
+                      font-size: 9px;
+                      font-weight: 600;
+                      letter-spacing: 2.5px;
+                      text-transform: uppercase;
+                      color: var(--ink-soft);
+                      padding: 0 0 12px;
+                      text-align: left;
+                    }
+
+                    .invoice-root .items-table thead th:last-child { text-align: right; }
+                    .invoice-root .items-table thead th.center { text-align: center; }
+
+                    .invoice-root .items-table tbody tr {
+                      border-bottom: 1px solid var(--rule);
+                    }
+
+                    .invoice-root .items-table tbody tr:last-child {
+                      border-bottom: none;
+                    }
+
+                    .invoice-root .items-table tbody td {
+                      padding: 14px 0;
+                      font-size: 13.5px;
+                      color: var(--ink-mid);
+                      font-weight: 300;
+                      vertical-align: top;
+                    }
+
+                    .invoice-root .items-table tbody td:last-child {
+                      text-align: right;
+                      font-weight: 400;
+                      color: var(--ink);
+                    }
+
+                    .invoice-root .items-table tbody td.center { text-align: center; }
+
+                    .invoice-root .item-name {
+                      font-weight: 500;
+                      color: var(--ink);
+                      margin-bottom: 2px;
+                      margin-top: 0;
+                    }
+
+                    .invoice-root .item-desc {
+                      font-size: 12px;
+                      color: var(--ink-soft);
+                      font-weight: 300;
+                      line-height: 1.5;
+                      margin: 0;
+                    }
+
+                    /* ── TOTALS ── */
+                    .invoice-root .totals-wrap {
+                      margin-top: 4px;
+                      display: flex;
+                      justify-content: flex-end;
+                    }
+
+                    .invoice-root .totals-block {
+                      width: 300px;
+                      border-top: 1px solid var(--rule);
+                      padding-top: 16px;
+                    }
+
+                    .invoice-root .totals-row {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                      font-size: 13px;
+                      color: var(--ink-soft);
+                      font-weight: 300;
+                      padding: 5px 0;
+                    }
+
+                    .invoice-root .totals-row.discount { color: var(--green); }
+
+                    .invoice-root .totals-row.grand {
+                      border-top: 2px solid var(--ink);
+                      margin-top: 10px;
+                      padding-top: 14px;
+                      font-size: 15px;
+                      font-weight: 500;
+                      color: var(--ink);
+                    }
+
+                    .invoice-root .totals-row.grand .amount {
+                      font-family: 'Cormorant Garamond', serif;
+                      font-size: 28px;
+                      font-weight: 400;
+                      color: var(--ink);
+                      line-height: 1;
+                    }
+
+                    .invoice-root .totals-row.deposit-due {
+                      margin-top: 6px;
+                      padding: 10px 12px;
+                      background: var(--warm-white);
+                      border-left: 3px solid var(--gold);
+                      font-weight: 400;
+                      color: var(--ink-mid);
+                    }
+
+                    .invoice-root .totals-row.deposit-due .amount {
+                      font-family: 'Cormorant Garamond', serif;
+                      font-size: 20px;
+                      font-weight: 400;
+                      color: var(--gold);
+                      line-height: 1;
+                    }
+
+                    .invoice-root .totals-row.balance-due {
+                      padding: 8px 0;
+                      font-weight: 400;
+                      color: var(--ink-mid);
+                    }
+
+                    /* ── PAYMENT SECTION ── */
+                    .invoice-root .payment {
+                      margin-top: 48px;
+                      padding: 28px 32px;
+                      background: var(--warm-white);
+                      border-top: 2px solid var(--ink);
+                    }
+
+                    .invoice-root .payment-title {
+                      font-size: 10px;
+                      font-weight: 600;
+                      letter-spacing: 3px;
+                      text-transform: uppercase;
+                      color: var(--ink);
+                      margin-bottom: 16px;
+                      margin-top: 0;
+                    }
+
+                    .invoice-root .payment-grid {
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 4px 40px;
+                      font-size: 13px;
+                      color: var(--ink-soft);
+                      font-weight: 300;
+                    }
+
+                    .invoice-root .payment-grid > div {
+                      margin: 0;
+                      word-break: break-word;
+                    }
+
+                    /* ── NOTE ── */
+                    .invoice-root .note {
+                      margin-top: 28px;
+                      padding: 18px 24px;
+                      border-left: 3px solid var(--gold);
+                      background: #fff;
+                    }
+
+                    .invoice-root .note-label {
+                      font-size: 9px;
+                      font-weight: 600;
+                      letter-spacing: 2.5px;
+                      text-transform: uppercase;
+                      color: var(--gold);
+                      margin-bottom: 8px;
+                      display: flex;
+                      align-items: center;
+                      gap: 6px;
+                      margin-top: 0;
+                    }
+
+                    .invoice-root .note-label::before { content: '✦'; font-size: 8px; }
+
+                    .invoice-root .note-body {
+                      font-size: 13px;
+                      color: var(--ink-mid);
+                      font-weight: 400;
+                      line-height: 1.7;
+                      margin: 0;
+                    }
+
+                    /* ── SIGNATURE ── */
+                    .invoice-root .signature {
+                      margin-top: 48px;
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 40px;
+                    }
+
+                    .invoice-root .sig-block {
+                      padding-top: 16px;
+                      border-top: 1px solid var(--rule);
+                    }
+
+                    .invoice-root .sig-label {
+                      font-size: 9px;
+                      font-weight: 600;
+                      letter-spacing: 2.5px;
+                      text-transform: uppercase;
+                      color: var(--ink-soft);
+                      margin-bottom: 32px;
+                      margin-top: 0;
+                    }
+
+                    .invoice-root .sig-line {
+                      border-bottom: 1px solid var(--ink-soft);
+                      margin-bottom: 6px;
+                    }
+
+                    .invoice-root .sig-name {
+                      font-size: 12px;
+                      color: var(--ink-soft);
+                      font-weight: 300;
+                      margin: 0;
+                    }
+
+                    /* ── FOOTER ── */
+                    .invoice-root .footer {
+                      margin-top: 52px;
+                      padding-top: 24px;
+                      border-top: 1px solid var(--rule);
+                      text-align: center;
+                    }
+
+                    .invoice-root .footer-name {
+                      font-family: 'Cormorant Garamond', serif;
+                      font-size: 16px;
+                      font-weight: 400;
+                      letter-spacing: 3px;
+                      text-transform: uppercase;
+                      color: var(--ink);
+                      margin-bottom: 5px;
+                      margin-top: 0;
+                    }
+
+                    .invoice-root .footer-contact {
+                      font-size: 12px;
+                      font-weight: 300;
+                      color: var(--ink-soft);
+                      letter-spacing: 0.5px;
+                      line-height: 1.9;
+                      margin: 0;
+                    }
+
+                    @media print {
+                      .invoice-root { background: white; box-shadow: none; font-size: 90% }
+                      .invoice-root .page { padding: 0 32px; max-width: 100%; }
+                    }
+                  ` }} />
+                  <div ref={invoiceRef} className="invoice-root max-w-[760px] mx-auto">
+                    <div className="page">
+                      
+                      {/* HEADER */}
+                      <header className="header">
+                        <div className="header-left">
+                          <div className="studio-name">{settings.companyName || 'Mwabonje Photography'}</div>
+                          <div className="studio-tagline">{settings.companyAddress || 'Malindi, Kenya'}</div>
+                        </div>
+                        <div className="header-right">
+                          <div className="invoice-label">In<em>voice</em></div>
+                          <div className="invoice-number">INV · {previewInvoice.date ? format(new Date(previewInvoice.date), 'yyyy') : new Date().getFullYear()} · {previewInvoice.id.slice(0, 3).toUpperCase()}</div>
+                          <div className={`status-badge ${previewInvoice.amountPaid === 0 ? 'status-unpaid' : previewInvoice.amountPaid < previewInvoice.totalAmount ? 'status-partial' : 'status-paid'}`}>
+                            {previewInvoice.amountPaid === 0 ? 'Awaiting Payment' : previewInvoice.amountPaid < previewInvoice.totalAmount ? 'Partially Paid' : 'Paid in Full'}
+                          </div>
+                        </div>
+                      </header>
+
+                      {/* META */}
+                      <div className="meta-wrap">
+
+                        <div className="meta-block accent">
+                          <div className="meta-block-title">Billed To</div>
+                          <div className="meta-line"><strong>{client?.name || 'Client Name'}</strong></div>
+                          {client?.email && <div className="meta-line">{client.email}</div>}
+                          {client?.phone && <div className="meta-line">{client.phone}</div>}
+                          <div className="meta-line">—</div>
+                        </div>
+
+                        <div className="meta-block">
+                          <div className="meta-block-title">Invoice Details</div>
+                          <div className="meta-line"><strong>Invoice No.</strong> &nbsp;{previewInvoice.id.slice(0, 8).toUpperCase()}</div>
+                          <div className="meta-line"><strong>Issue Date</strong> &nbsp;&nbsp;{previewInvoice.date ? format(new Date(previewInvoice.date), 'dd · MM · yyyy') : 'N/A'}</div>
+                          {previewInvoice.dueDate && <div className="meta-line"><strong>Due Date</strong> &nbsp;&nbsp;{format(new Date(previewInvoice.dueDate), 'dd · MM · yyyy')}</div>}
+                          {project?.title && <div className="meta-line"><strong>Project</strong> &nbsp;&nbsp;&nbsp;&nbsp;{project.title}</div>}
+                        </div>
+
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="w-full h-px bg-slate-200 mb-8"></div>
+                      {/* LINE ITEMS */}
+                      <div className="section-label">Services</div>
 
-                  {/* Line Items */}
-                  <div className="mb-12 overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[400px]">
-                      <thead>
-                        <tr className="border-b border-slate-200">
-                          <th className="py-3 text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Description</th>
-                          <th className="py-3 text-xs font-bold text-slate-900 uppercase tracking-[0.15em] text-right">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {previewInvoice.lineItems.map((item, index) => (
-                          <tr key={item.id || index} className="border-b border-slate-100">
-                            <td className="py-4 text-sm text-slate-700">{renderDescription(item.description)}</td>
-                            <td className="py-4 text-sm text-slate-900 font-medium text-right">KES {item.price.toLocaleString()}</td>
+                      <table className="items-table mb-12">
+                        <thead>
+                          <tr>
+                            <th style={{ width: '55%' }}>Description</th>
+                            <th className="center" style={{ width: '15%' }}>Qty</th>
+                            <th style={{ width: '15%', textAlign: 'right' }}>Unit Price</th>
+                            <th style={{ width: '15%', textAlign: 'right' }}>Amount</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody>
+                          {(previewInvoice.lineItems || []).map((item, index) => (
+                            <tr key={index}>
+                              <td>
+                                <div className="item-name">{item.description}</div>
+                              </td>
+                              <td className="center">1</td>
+                              <td style={{ textAlign: 'right' }}>KES {(item.price || 0).toLocaleString()}</td>
+                              <td>KES {(item.price || 0).toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
 
-                  {/* Totals */}
-                  <div className="flex justify-end mb-12">
-                    <div className="w-full sm:w-1/2 md:w-5/12 lg:w-1/3 min-w-[300px] space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">Subtotal</span>
-                        <span className="text-slate-900 font-medium">KES {previewInvoice.totalAmount.toLocaleString()}</span>
+                      {/* TOTALS */}
+                      <div className="totals-wrap">
+                        <div className="totals-block">
+                          <div className="totals-row">
+                            <span>Subtotal</span>
+                            <span>KES {previewInvoice.totalAmount.toLocaleString()}</span>
+                          </div>
+                          {previewInvoice.amountPaid > 0 && (
+                            <div className="totals-row discount">
+                              <span>Amount Paid</span>
+                              <span>-KES {previewInvoice.amountPaid.toLocaleString()}</span>
+                            </div>
+                          )}
+                          <div className="totals-row grand">
+                            <span>Total</span>
+                            <span className="amount">KES {previewInvoice.totalAmount.toLocaleString()}</span>
+                          </div>
+                          {balance > 0 && (
+                            <div className="totals-row deposit-due">
+                              <span>Balance Due</span>
+                              <span className="amount">KES {balance.toLocaleString()}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">Amount Paid</span>
-                        <span className="text-slate-900 font-medium">KES {previewInvoice.amountPaid.toLocaleString()}</span>
-                      </div>
-                      <div className="w-full h-px bg-slate-200 my-2"></div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] shrink-0 mr-4">Balance Due</span>
-                        <span className="text-2xl font-serif text-slate-900 font-bold whitespace-nowrap">KES {balance.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="w-full h-px bg-slate-200 mb-8"></div>
+                      {/* PAYMENT DETAILS */}
+                      {settings.paymentDetails && (
+                        <div className="payment">
+                          <div className="payment-title">Payment Details</div>
+                          <div className="payment-grid">
+                            {settings.paymentDetails.split('\n').filter(line => line.trim()).map((line, i) => (
+                              <div key={i}>{line}</div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
-                  {/* Payment Details & Footer */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start gap-8">
-                    <div className="flex-1 w-full sm:w-auto">
-                      <h3 className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] mb-4">Payment Details</h3>
-                      <div className="bg-slate-50 p-4 border border-slate-100 rounded text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">
-                        {settings.paymentDetails}
+                      {/* SIGNATURE */}
+                      <div className="signature">
+                        <div className="sig-block">
+                          <div className="sig-label">Authorised — {settings.companyName || 'Photography Studio'}</div>
+                          <div className="sig-line"></div>
+                          <div className="sig-name">{settings.companyEmail || ''}</div>
+                        </div>
+                        <div className="sig-block">
+                          <div className="sig-label">Client Acknowledgement</div>
+                          <div className="sig-line"></div>
+                          <div className="sig-name">{client?.name || 'Client'}</div>
+                        </div>
                       </div>
+
+                      {/* FOOTER */}
+                      <footer className="footer">
+                        <div className="footer-name">{settings.companyName || 'Photography Studio'}</div>
+                        <div className="footer-contact">
+                          {settings.companyEmail} {settings.companyAddress ? `· ${settings.companyAddress}` : ''}<br/>
+                          {settings.companyWebsite} {settings.companyPhone ? `· ${settings.companyPhone}` : ''}
+                        </div>
+                      </footer>
+
                     </div>
-                    <div className="text-left sm:text-right mt-auto w-full sm:w-auto">
-                      <p className="font-bold text-slate-900 text-sm">{settings.companyName}</p>
-                      {settings.companyEmail && <p className="text-xs text-slate-500 break-all">{settings.companyEmail}</p>}
-                      {settings.companyPhone && <p className="text-xs text-slate-500">{settings.companyPhone}</p>}
-                      {settings.companyWebsite && <p className="text-xs text-slate-500 break-all">{settings.companyWebsite}</p>}
-                      {settings.companyAddress && <p className="text-xs text-slate-500 whitespace-pre-wrap mt-1">{settings.companyAddress}</p>}
-                      <p className="text-xs text-slate-500 mt-2 italic">Thank you for your business.</p>
-                    </div>
-                  </div>
                   </div>
                 </div>
               );

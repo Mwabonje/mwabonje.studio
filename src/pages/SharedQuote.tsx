@@ -127,7 +127,7 @@ export function SharedQuote() {
       
       const htmlToImage = await import('html-to-image');
       const jsPDFModule = await import('jspdf');
-      const jsPDF = jsPDFModule.default || jsPDFModule;
+      const jsPDF = ('default' in jsPDFModule ? jsPDFModule.default : jsPDFModule) as any;
 
       const dataUrl = await htmlToImage.toPng(element, { quality: 0.98, pixelRatio: 2 });
       
