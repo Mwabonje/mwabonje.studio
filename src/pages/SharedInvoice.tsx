@@ -158,7 +158,8 @@ export function SharedInvoice() {
       const originalStyle = element.style.cssText;
       element.style.width = '800px';
       element.style.maxWidth = 'none';
-      element.style.padding = '40px';
+      element.style.margin = '0';
+      element.style.boxShadow = 'none';
       
       const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
       
@@ -166,7 +167,14 @@ export function SharedInvoice() {
       const jsPDFModule = await import('jspdf');
       const jsPDF = ('default' in jsPDFModule ? jsPDFModule.default : jsPDFModule) as any;
 
-      const dataUrl = await htmlToImage.toPng(element, { quality: 0.98, pixelRatio: 2 });
+      const dataUrl = await htmlToImage.toPng(element, { 
+        quality: 1, 
+        pixelRatio: 2,
+        backgroundColor: '#FAF8F4',
+        style: {
+          margin: '0'
+        }
+      });
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -655,7 +663,7 @@ export function SharedInvoice() {
               </div>
               <div className="header-right">
                 <div className="invoice-label">In<em>voice</em></div>
-                <div className="invoice-number">INV · {invoice.date ? format(new Date(invoice.date), 'yyyy') : new Date().getFullYear()} · {invoice.quoteId ? (quote?.quoteNumber?.replace('QT-', '') || invoice.quoteId.slice(0, 3).toUpperCase()) : invoice.id.slice(0, 3).toUpperCase()}</div>
+                <div className="invoice-number">{invoice.quoteId && invoice.quoteId !== 'none' ? 'QUOTE' : 'INV'} · {invoice.date ? format(new Date(invoice.date), 'yyyy') : new Date().getFullYear()} · {invoice.quoteId ? (quote?.quoteNumber?.replace('QT-', '') || invoice.quoteId.slice(0, 3).toUpperCase()) : invoice.id.slice(0, 3).toUpperCase()}</div>
                 <div className={`status-badge ${invoice.amountPaid === 0 ? 'status-unpaid' : invoice.amountPaid < invoice.totalAmount ? 'status-partial' : 'status-paid'}`}>
                   {invoice.amountPaid === 0 ? 'Awaiting Payment' : invoice.amountPaid < invoice.totalAmount ? 'Partially Paid' : 'Paid in Full'}
                 </div>

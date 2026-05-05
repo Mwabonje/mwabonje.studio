@@ -48,7 +48,8 @@ export function Invoices() {
       const originalStyle = element.style.cssText;
       element.style.width = '800px';
       element.style.maxWidth = 'none';
-      element.style.padding = '40px';
+      element.style.margin = '0';
+      element.style.boxShadow = 'none';
       
       const project = projects.find(p => p.id === previewInvoice.projectId);
       const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
@@ -57,7 +58,14 @@ export function Invoices() {
       const jsPDFModule = await import('jspdf');
       const jsPDF = ('default' in jsPDFModule ? jsPDFModule.default : jsPDFModule) as any;
 
-      const dataUrl = await htmlToImage.toPng(element, { quality: 0.98, pixelRatio: 2 });
+      const dataUrl = await htmlToImage.toPng(element, { 
+        quality: 1, 
+        pixelRatio: 2,
+        backgroundColor: '#FAF8F4',
+        style: {
+          margin: '0',
+        }
+      });
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -838,7 +846,7 @@ export function Invoices() {
                         </div>
                         <div className="header-right">
                           <div className="invoice-label">In<em>voice</em></div>
-                          <div className="invoice-number">INV · {previewInvoice.date ? format(new Date(previewInvoice.date), 'yyyy') : new Date().getFullYear()} · {previewInvoice.quoteId ? (quotes.find(q => q.id === previewInvoice.quoteId)?.quoteNumber?.replace('QT-', '') || previewInvoice.quoteId.slice(0, 3).toUpperCase()) : previewInvoice.id.slice(0, 3).toUpperCase()}</div>
+                          <div className="invoice-number">{previewInvoice.quoteId ? 'QUOTE' : 'INV'} · {previewInvoice.date ? format(new Date(previewInvoice.date), 'yyyy') : new Date().getFullYear()} · {previewInvoice.quoteId ? (quotes.find(q => q.id === previewInvoice.quoteId)?.quoteNumber?.replace('QT-', '') || previewInvoice.quoteId.slice(0, 3).toUpperCase()) : previewInvoice.id.slice(0, 3).toUpperCase()}</div>
                           <div className={`status-badge ${previewInvoice.amountPaid === 0 ? 'status-unpaid' : previewInvoice.amountPaid < previewInvoice.totalAmount ? 'status-partial' : 'status-paid'}`}>
                             {previewInvoice.amountPaid === 0 ? 'Awaiting Payment' : previewInvoice.amountPaid < previewInvoice.totalAmount ? 'Partially Paid' : 'Paid in Full'}
                           </div>
