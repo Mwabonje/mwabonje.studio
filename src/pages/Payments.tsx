@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useStore, Payment, CollaboratorSplit } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Download, Edit, Eye, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Trash2, Download, Edit, Eye, ArrowUpDown, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -151,102 +151,67 @@ export function Payments() {
     }
   };
 
-  const generateReceipt = (payment: Payment, mode: 'download' | 'preview' = 'download') => {
-    // Get the latest invoice state if possible, or calculate based on the current payment
-    const invoice = useStore.getState().invoices.find(i => i.id === payment.invoiceId);
-    if (!invoice) return;
-    
-    const project = useStore.getState().projects.find(p => p.id === invoice.projectId);
-    const client = useStore.getState().clients.find(c => c.id === invoice.clientId);
-    const settings = useStore.getState().settings;
-    
-    const doc = new jsPDF();
-    
-    // Header
-    const companyName = settings?.companyName?.toUpperCase() || 'MWABONJE STUDIO';
-    doc.setFontSize(22);
-    let fontSize = 22;
-    while (doc.getTextWidth(companyName) > 110 && fontSize > 10) {
-      fontSize--;
-      doc.setFontSize(fontSize);
-    }
-    doc.setTextColor(0, 50, 35); // Primary Dark
-    doc.text(companyName, 14, 20);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    if (settings?.companyAddress) doc.text(settings.companyAddress, 14, 28);
-    if (settings?.companyEmail) doc.text(`Email: ${settings.companyEmail}`, 14, 33);
-    
-    // Receipt Title
-    doc.setFontSize(16);
-    doc.setTextColor(0);
-    doc.text('PAYMENT RECEIPT', 196, 20, { align: 'right' });
-    
-    doc.setFontSize(10);
-    doc.text(`Receipt No: RCT-${payment.id.substring(0, 6).toUpperCase()}`, 196, 28, { align: 'right' });
-    doc.text(`Date: ${format(new Date(payment.date), 'MMM d, yyyy')}`, 196, 33, { align: 'right' });
-    
-    // Client Info
-    doc.setFontSize(12);
-    doc.setTextColor(0, 50, 35);
-    doc.text('Received From:', 14, 50);
-    doc.setFontSize(10);
-    doc.setTextColor(0);
-    doc.text(client?.name || 'Unknown Client', 14, 57);
-    if (client?.email) doc.text(client.email, 14, 62);
-    if (client?.phone) doc.text(client.phone, 14, 67);
-    
-    // Payment Details
-    doc.setFontSize(12);
-    doc.setTextColor(0, 50, 35);
-    doc.text('Payment Details:', 14, 85);
-    
-    // Calculate balance based on the latest invoice state
-    const balance = invoice.totalAmount - invoice.amountPaid;
-    
-    const bodyData = [
-      ['Project', project?.title || 'Unknown Project'],
-      ['Invoice No.', invoice.id.substring(0, 8).toUpperCase()],
-      ['Payment Method', payment.method.toUpperCase()],
-    ];
+  const receiptRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-    if (payment.reference) {
-      bodyData.push(['Reference / M-Pesa Code', payment.reference]);
-    }
-
-    bodyData.push(
-      ['Amount Paid', `KES ${payment.amount.toLocaleString()}`],
-      ['Remaining Balance', `KES ${balance.toLocaleString()}`]
-    );
-
-    autoTable(doc, {
-      startY: 90,
-      headStyles: { fillColor: [0, 50, 35] },
-      head: [['Description', 'Details']],
-      body: bodyData,
-    });
-    
-    // Fully Paid Stamp
-    if (balance <= 0) {
-      doc.setFontSize(40);
-      doc.setTextColor(0, 150, 0); // Green
-      doc.setGState(new (doc.GState as any)({ opacity: 0.2 }));
-      // Rotate and center the stamp
-      doc.text('FULLY PAID', 105, 150, { align: 'center', angle: 45 });
-      doc.setGState(new (doc.GState as any)({ opacity: 1 })); // Reset opacity
-    }
-
-    // Footer
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text('Thank you for your business!', 105, 280, { align: 'center' });
-    
+  const generateReceipt = async (payment: Payment, mode: 'download' | 'preview' = 'download') => {
     if (mode === 'preview') {
       setPreviewPayment(payment);
       setIsPreviewOpen(true);
-    } else {
-      doc.save(`Receipt_${payment.id.substring(0, 6)}.pdf`);
+      return;
+    }
+
+    // PDF Download mode
+    if (!receiptRef.current || isGeneratingPDF) {
+       // If the receipt component isn't mounted yet, we mount it via preview first, 
+       // but here we just preview and then the user can download. OR we can just open preview and let them download.
+       setPreviewPayment(payment);
+       setIsPreviewOpen(true);
+       return;
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!receiptRef.current || isGeneratingPDF || !previewPayment) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      const element = receiptRef.current;
+      const originalStyle = element.style.cssText;
+      element.style.width = '680px';
+      element.style.maxWidth = 'none';
+      element.style.margin = '0';
+      element.style.boxShadow = 'none';
+      
+      const invoice = invoices.find(i => i.id === previewPayment.invoiceId);
+      const project = projects.find(p => p.id === invoice?.projectId);
+      const safeTitle = (project?.title || 'Receipt').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      
+      const htmlToImage = await import('html-to-image');
+      const jsPDFModule = await import('jspdf');
+      const jsPDF = ('default' in jsPDFModule ? jsPDFModule.default : jsPDFModule) as any;
+
+      const dataUrl = await htmlToImage.toPng(element, { 
+        quality: 1, 
+        pixelRatio: 2,
+        backgroundColor: '#FAF8F4',
+        style: {
+          margin: '0',
+        }
+      });
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Receipt_${previewPayment.id.substring(0, 6)}.pdf`);
+      
+      element.style.cssText = originalStyle;
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -433,110 +398,584 @@ export function Payments() {
               <DialogTitle>Receipt Preview</DialogTitle>
             </DialogHeader>
             {previewPayment && (
-              <div className="mt-4 p-4 sm:p-8 bg-white border rounded-lg shadow-sm font-sans text-slate-800 overflow-x-auto">
-                <div className="flex flex-col sm:flex-row justify-between items-start mb-8 gap-4 sm:gap-0">
-                  <div>
-                    <h1 className="text-xl sm:text-2xl font-bold text-primary tracking-tight">{settings?.companyName?.toUpperCase() || 'MWABONJE STUDIO'}</h1>
-                    {settings?.companyAddress && <p className="text-sm text-slate-500 mt-1">{settings.companyAddress}</p>}
-                    {settings?.companyEmail && <p className="text-sm text-slate-500">Email: {settings.companyEmail}</p>}
-                  </div>
-                  <div className="text-left sm:text-right">
-                    <h2 className="text-lg sm:text-xl font-semibold text-slate-800 uppercase tracking-wider">Payment Receipt</h2>
-                    <p className="text-sm text-slate-500 mt-2">Receipt No: <span className="font-mono text-slate-800">RCT-{previewPayment.id.substring(0, 6).toUpperCase()}</span></p>
-                    <p className="text-sm text-slate-500">Date: <span className="text-slate-800">{format(new Date(previewPayment.date), 'MMM d, yyyy')}</span></p>
-                  </div>
-                </div>
+              <div className="w-full bg-[#FAF8F4] overflow-x-auto">
+                <style dangerouslySetInnerHTML={{ __html: `
+                  .receipt-root {
+                    --cream: #FAF8F4;
+                    --warm-white: #F5F2EC;
+                    --gold: #B8965A;
+                    --gold-light: #D4AC6E;
+                    --ink: #1C1C1C;
+                    --ink-mid: #3A3A3A;
+                    --ink-soft: #888880;
+                    --rule: #DDD8CE;
+                    --green: #2E7D52;
+                    --green-bg: #E8F4EC;
+                    --green-border: #A8D8B4;
+                    background: var(--cream);
+                    color: var(--ink);
+                    font-family: 'Jost', sans-serif;
+                    font-weight: 300;
+                    line-height: 1.6;
+                    text-align: left;
+                  }
 
-                <div className="mb-8">
-                  <h3 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">Received From</h3>
-                  {(() => {
-                    const invoice = invoices.find(i => i.id === previewPayment.invoiceId);
-                    const client = clients.find(c => c.id === invoice?.clientId);
-                    return (
-                      <div>
-                        <p className="font-medium text-slate-800">{client?.name || 'Unknown Client'}</p>
-                        {client?.email && <p className="text-sm text-slate-500">{client.email}</p>}
-                        {client?.phone && <p className="text-sm text-slate-500">{client.phone}</p>}
-                      </div>
-                    );
-                  })()}
-                </div>
+                  .receipt-root * { box-sizing: border-box; }
 
-                <div className="mb-8 relative">
-                  <h3 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">Payment Details</h3>
-                  <div className="bg-slate-50 rounded-lg border overflow-x-auto">
-                    <Table className="min-w-[400px]">
-                      <TableHeader className="bg-primary/5">
-                        <TableRow>
-                          <TableHead className="text-primary font-semibold">Description</TableHead>
-                          <TableHead className="text-primary font-semibold text-right">Details</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {(() => {
-                          const invoice = invoices.find(i => i.id === previewPayment.invoiceId);
-                          const project = projects.find(p => p.id === invoice?.projectId);
-                          const balance = invoice ? invoice.totalAmount - invoice.amountPaid : 0;
-                          
-                          return (
-                            <>
-                              <TableRow>
-                                <TableCell className="font-medium">Project</TableCell>
-                                <TableCell className="text-right">{project?.title || 'Unknown Project'}</TableCell>
-                              </TableRow>
-                              <TableRow>
-                                <TableCell className="font-medium">Invoice No.</TableCell>
-                                <TableCell className="text-right font-mono text-xs">{invoice?.id.substring(0, 8).toUpperCase()}</TableCell>
-                              </TableRow>
-                              <TableRow>
-                                <TableCell className="font-medium">Payment Method</TableCell>
-                                <TableCell className="text-right capitalize">{previewPayment.method}</TableCell>
-                              </TableRow>
-                              {previewPayment.reference && (
-                                <TableRow>
-                                  <TableCell className="font-medium">Reference / M-Pesa Code</TableCell>
-                                  <TableCell className="text-right font-mono text-xs">{previewPayment.reference}</TableCell>
-                                </TableRow>
-                              )}
-                              <TableRow className="bg-primary/5">
-                                <TableCell className="font-bold text-primary">Amount Paid</TableCell>
-                                <TableCell className="text-right font-bold text-primary">KES {previewPayment.amount.toLocaleString()}</TableCell>
-                              </TableRow>
-                              <TableRow>
-                                <TableCell className="font-medium text-slate-500">Remaining Balance</TableCell>
-                                <TableCell className="text-right text-slate-500">KES {balance.toLocaleString()}</TableCell>
-                              </TableRow>
-                            </>
-                          );
-                        })()}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {(() => {
-                    const invoice = invoices.find(i => i.id === previewPayment.invoiceId);
-                    const balance = invoice ? invoice.totalAmount - invoice.amountPaid : 0;
-                    if (balance <= 0) {
+                  .receipt-root .page {
+                    max-width: 680px;
+                    margin: 0 auto;
+                    padding: 64px 48px 80px;
+                  }
+
+                  /* ── HEADER ── */
+                  .receipt-root .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    padding-bottom: 36px;
+                    border-bottom: 1px solid var(--rule);
+                    margin-bottom: 36px;
+                    margin-top: 0;
+                  }
+
+                  .receipt-root .studio-name {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-size: 20px;
+                    font-weight: 400;
+                    letter-spacing: 3px;
+                    text-transform: uppercase;
+                    color: var(--ink);
+                    margin-bottom: 4px;
+                  }
+
+                  .receipt-root .studio-tagline {
+                    font-size: 10px;
+                    font-weight: 400;
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                    color: var(--gold);
+                  }
+
+                  .receipt-root .header-right { text-align: right; }
+
+                  .receipt-root .receipt-label {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-size: 40px;
+                    font-weight: 300;
+                    color: var(--ink);
+                    line-height: 1;
+                    letter-spacing: -1px;
+                  }
+
+                  .receipt-root .receipt-label em {
+                    font-style: italic;
+                    color: var(--gold);
+                  }
+
+                  .receipt-root .receipt-number {
+                    font-size: 11px;
+                    font-weight: 500;
+                    letter-spacing: 2px;
+                    color: var(--ink-soft);
+                    margin-top: 6px;
+                  }
+
+                  /* ── PAID STAMP ── */
+                  .receipt-root .paid-stamp {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-top: 10px;
+                    padding: 5px 16px;
+                    background: var(--green-bg);
+                    border: 1px solid var(--green-border);
+                    font-size: 10px;
+                    font-weight: 600;
+                    letter-spacing: 3px;
+                    text-transform: uppercase;
+                    color: var(--green);
+                  }
+
+                  .receipt-root .paid-stamp::before {
+                    content: '✓';
+                    font-size: 12px;
+                    font-weight: 700;
+                  }
+
+                  /* ── META ── */
+                  .receipt-root .meta-wrap {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 20px;
+                    margin-bottom: 44px;
+                  }
+
+                  .receipt-root .meta-block {
+                    padding: 20px 24px;
+                    background: var(--warm-white);
+                    border-left: 3px solid var(--rule);
+                  }
+
+                  .receipt-root .meta-block.accent { border-left-color: var(--gold); }
+
+                  .receipt-root .meta-block-title {
+                    font-size: 9px;
+                    font-weight: 600;
+                    letter-spacing: 3px;
+                    text-transform: uppercase;
+                    color: var(--ink-soft);
+                    margin-bottom: 10px;
+                  }
+
+                  .receipt-root .meta-line {
+                    font-size: 13px;
+                    color: var(--ink-mid);
+                    font-weight: 300;
+                    line-height: 1.85;
+                  }
+
+                  .receipt-root .meta-line strong {
+                    font-weight: 500;
+                    color: var(--ink);
+                  }
+
+                  /* ── SECTION LABEL ── */
+                  .receipt-root .section-label {
+                    font-size: 10px;
+                    font-weight: 600;
+                    letter-spacing: 3.5px;
+                    text-transform: uppercase;
+                    color: var(--ink-soft);
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    margin-bottom: 16px;
+                  }
+
+                  .receipt-root .section-label::after {
+                    content: '';
+                    flex: 1;
+                    height: 1px;
+                    background: var(--rule);
+                  }
+
+                  /* ── LINE ITEMS ── */
+                  .receipt-root .items-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 0;
+                  }
+
+                  .receipt-root .items-table thead tr {
+                    border-bottom: 1px solid var(--ink);
+                  }
+
+                  .receipt-root .items-table thead th {
+                    font-size: 9px;
+                    font-weight: 600;
+                    letter-spacing: 2.5px;
+                    text-transform: uppercase;
+                    color: var(--ink-soft);
+                    padding: 0 0 10px;
+                    text-align: left;
+                  }
+
+                  .receipt-root .items-table thead th:last-child { text-align: right; }
+
+                  .receipt-root .items-table tbody tr {
+                    border-bottom: 1px solid var(--rule);
+                  }
+
+                  .receipt-root .items-table tbody tr:last-child { border-bottom: none; }
+
+                  .receipt-root .items-table tbody td {
+                    padding: 13px 0;
+                    font-size: 13.5px;
+                    color: var(--ink-mid);
+                    font-weight: 300;
+                    vertical-align: top;
+                  }
+
+                  .receipt-root .items-table tbody td:last-child {
+                    text-align: right;
+                    font-weight: 400;
+                    color: var(--ink);
+                  }
+
+                  .receipt-root .item-name {
+                    font-weight: 500;
+                    color: var(--ink);
+                    margin-bottom: 2px;
+                  }
+
+                  .receipt-root .item-desc {
+                    font-size: 12px;
+                    color: var(--ink-soft);
+                    line-height: 1.5;
+                  }
+
+                  /* ── TOTALS ── */
+                  .receipt-root .totals-wrap {
+                    margin-top: 6px;
+                    display: flex;
+                    justify-content: flex-end;
+                  }
+
+                  .receipt-root .totals-block {
+                    width: 280px;
+                    border-top: 1px solid var(--rule);
+                    padding-top: 14px;
+                  }
+
+                  .receipt-root .totals-row {
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 13px;
+                    color: var(--ink-soft);
+                    font-weight: 300;
+                    padding: 4px 0;
+                  }
+
+                  .receipt-root .totals-row.grand {
+                    border-top: 2px solid var(--ink);
+                    margin-top: 10px;
+                    padding-top: 14px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: var(--ink);
+                  }
+
+                  .receipt-root .totals-row.grand .amount {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-size: 28px;
+                    font-weight: 400;
+                    line-height: 1;
+                    color: var(--ink);
+                  }
+
+                  .receipt-root .totals-row.amount-paid {
+                    margin-top: 8px;
+                    padding: 10px 14px;
+                    background: var(--green-bg);
+                    border-left: 3px solid var(--green);
+                    font-weight: 500;
+                    color: var(--green);
+                  }
+
+                  .receipt-root .totals-row.amount-paid .amount {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-size: 20px;
+                    font-weight: 400;
+                    line-height: 1;
+                    color: var(--green);
+                  }
+
+                  .receipt-root .totals-row.balance {
+                    padding: 6px 0;
+                    font-weight: 400;
+                    color: var(--ink-mid);
+                    border-top: 1px dashed var(--rule);
+                    margin-top: 6px;
+                  }
+
+                  /* ── PAYMENT METHOD ── */
+                  .receipt-root .payment-method {
+                    margin-top: 44px;
+                    padding: 24px 28px;
+                    background: var(--warm-white);
+                    border-top: 2px solid var(--ink);
+                  }
+
+                  .receipt-root .payment-method-title {
+                    font-size: 10px;
+                    font-weight: 600;
+                    letter-spacing: 3px;
+                    text-transform: uppercase;
+                    color: var(--ink);
+                    margin-bottom: 14px;
+                  }
+
+                  .receipt-root .payment-method-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 4px 40px;
+                    font-size: 13px;
+                    color: var(--ink-soft);
+                    font-weight: 300;
+                  }
+
+                  .receipt-root .payment-method-grid strong {
+                    font-weight: 500;
+                    color: var(--ink-mid);
+                  }
+
+                  /* ── THANK YOU ── */
+                  .receipt-root .thankyou {
+                    margin-top: 44px;
+                    text-align: center;
+                    padding: 32px 24px;
+                    border: 1px solid var(--rule);
+                    background: #fff;
+                  }
+
+                  .receipt-root .thankyou-heading {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-size: 28px;
+                    font-weight: 300;
+                    font-style: italic;
+                    color: var(--gold);
+                    margin-bottom: 6px;
+                  }
+
+                  .receipt-root .thankyou-body {
+                    font-size: 13px;
+                    color: var(--ink-soft);
+                    font-weight: 300;
+                    line-height: 1.7;
+                  }
+
+                  /* ── SIGNATURE ── */
+                  .receipt-root .signature {
+                    margin-top: 44px;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 40px;
+                  }
+
+                  .receipt-root .sig-block { padding-top: 14px; border-top: 1px solid var(--rule); }
+
+                  .receipt-root .sig-label {
+                    font-size: 9px;
+                    font-weight: 600;
+                    letter-spacing: 2.5px;
+                    text-transform: uppercase;
+                    color: var(--ink-soft);
+                    margin-bottom: 30px;
+                  }
+
+                  .receipt-root .sig-line {
+                    border-bottom: 1px solid var(--ink-soft);
+                    margin-bottom: 6px;
+                  }
+
+                  .receipt-root .sig-name {
+                    font-size: 12px;
+                    color: var(--ink-soft);
+                    font-weight: 300;
+                  }
+
+                  /* ── FOOTER ── */
+                  .receipt-root .footer {
+                    margin-top: 48px;
+                    padding-top: 22px;
+                    border-top: 1px solid var(--rule);
+                    text-align: center;
+                  }
+
+                  .receipt-root .footer-name {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-size: 15px;
+                    font-weight: 400;
+                    letter-spacing: 3px;
+                    text-transform: uppercase;
+                    color: var(--ink);
+                    margin-bottom: 5px;
+                  }
+
+                  .receipt-root .footer-contact {
+                    font-size: 12px;
+                    font-weight: 300;
+                    color: var(--ink-soft);
+                    letter-spacing: 0.5px;
+                    line-height: 1.9;
+                  }
+
+                  @media print {
+                    .receipt-root { background: white; }
+                    .receipt-root .page { padding: 32px; }
+                  }
+                ` }} />
+                
+                {(() => {
+                  const invoice = invoices.find(i => i.id === previewPayment.invoiceId);
+                  const project = projects.find(p => p.id === invoice?.projectId);
+                  const client = clients.find(c => c.id === invoice?.clientId);
+                  const balance = invoice ? invoice.totalAmount - invoice.amountPaid : 0;
+                  
+                  const renderDescription = (description: string) => {
+                    if (!description) return <div className="item-name">Item description</div>;
+                    const match = description.match(/^(.*?)\s*\((.*)\)$/);
+                    if (match) {
+                      const [_, title, inclusionsStr] = match;
+                      const inclusions = inclusionsStr.split(',').map((s: string) => s.trim()).filter(Boolean);
                       return (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
-                          <div className="text-green-600/20 font-bold text-6xl sm:text-8xl -rotate-12 select-none border-8 border-green-600/20 rounded-xl p-4 sm:p-8">
-                            FULLY PAID
-                          </div>
-                        </div>
+                        <>
+                          <div className="item-name">{title}</div>
+                          {inclusions.length > 0 && (
+                            <div className="item-desc">
+                              {inclusions.join(' · ')}
+                            </div>
+                          )}
+                        </>
                       );
                     }
-                    return null;
-                  })()}
-                </div>
+                    return <div className="item-name">{description}</div>;
+                  };
 
-                <div className="text-center mt-12 pt-8 border-t text-sm text-slate-500 italic">
-                  Thank you for your business!
-                </div>
+                  return (
+                    <div ref={receiptRef} className="receipt-root w-full mx-auto max-w-[760px] pb-10">
+                      <div className="page">
+                        
+                        {/* HEADER */}
+                        <header className="header">
+                          <div className="header-left">
+                            <div className="studio-name">{settings?.companyName || 'Mwabonje Photography'}</div>
+                            <div className="studio-tagline">{settings?.companyAddress || 'Malindi, Kenya'}</div>
+                          </div>
+                          <div className="header-right">
+                            <div className="receipt-label">Re<em>ceipt</em></div>
+                            <div className="paid-stamp">Payment Received</div>
+                          </div>
+                        </header>
+
+                        {/* META */}
+                        <div className="meta-wrap">
+                          <div className="meta-block accent">
+                            <div className="meta-block-title">Received From</div>
+                            <div className="meta-line"><strong>{client?.name || 'Client'}</strong></div>
+                            {(client?.address || client?.email) && <div className="meta-line">{client.address || client.email}</div>}
+                          </div>
+
+                          <div className="meta-block">
+                            <div className="meta-block-title">Receipt Details</div>
+                            <div className="meta-line"><strong>Receipt No.</strong> &nbsp;RCT-{previewPayment.id.substring(0, 6).toUpperCase()}</div>
+                            <div className="meta-line"><strong>Date Paid</strong> &nbsp;&nbsp;&nbsp;{format(new Date(previewPayment.date), 'dd · MM · yyyy')}</div>
+                            {project?.title && <div className="meta-line"><strong>Project</strong> &nbsp;&nbsp;&nbsp;&nbsp;{project.title}</div>}
+                            <div className="meta-line"><strong>Ref. Invoice</strong> &nbsp;{invoice?.id.substring(0, 8).toUpperCase()}</div>
+                          </div>
+                        </div>
+
+                        {/* LINE ITEMS */}
+                        <div className="section-label">Payment For</div>
+
+                        <table className="items-table">
+                          <thead>
+                            <tr>
+                              <th style={{width: '60%'}}>Description</th>
+                              <th style={{width: '20%', textAlign: 'right'}}>Package Total</th>
+                              <th style={{width: '20%', textAlign: 'right'}}>Amount Paid</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {invoice?.lineItems.map((item: any, idx: number) => {
+                              // Distribute amount paid over line items sequentially for display
+                              let accumulatedOriginalAmount = 0;
+                              if (idx > 0) {
+                                for (let i = 0; i < idx; i++) accumulatedOriginalAmount += invoice.lineItems[i].price || 0;
+                              }
+                              let amountForThisItem = 0;
+                              const itemPrice = item.price || 0;
+                              const remainingPaymentAmount = previewPayment.amount - accumulatedOriginalAmount;
+                              
+                              if (remainingPaymentAmount > 0) {
+                                amountForThisItem = Math.min(itemPrice, remainingPaymentAmount);
+                              }
+
+                              return (
+                                <tr key={idx}>
+                                  <td>
+                                    {renderDescription(item.description)}
+                                  </td>
+                                  <td style={{textAlign: 'right'}}>KES {itemPrice.toLocaleString()}</td>
+                                  <td style={{textAlign: 'right'}}>{amountForThisItem > 0 ? `KES ${amountForThisItem.toLocaleString()}` : 'KES —'}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+
+                        {/* TOTALS */}
+                        <div className="totals-wrap">
+                          <div className="totals-block">
+                            <div className="totals-row">
+                              <span>Package Total</span>
+                              <span>KES {invoice?.totalAmount.toLocaleString()}</span>
+                            </div>
+
+                            <div className="totals-row grand">
+                              <span>Total Due</span>
+                              <span className="amount">KES {invoice?.totalAmount.toLocaleString()}</span>
+                            </div>
+
+                            <div className="totals-row amount-paid">
+                              <span>Amount Received</span>
+                              <span className="amount">KES {previewPayment.amount.toLocaleString()}</span>
+                            </div>
+
+                            <div className="totals-row balance">
+                              <span>Balance Remaining</span>
+                              <span>KES {balance.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* PAYMENT METHOD */}
+                        <div className="payment-method">
+                          <div className="payment-method-title">Payment Method</div>
+                          <div className="payment-method-grid">
+                            <div><strong>Method</strong> &nbsp; {previewPayment.method.toUpperCase()}</div>
+                            <div><strong>Transaction Ref.</strong> &nbsp; {previewPayment.reference || '——————'}</div>
+                            <div><strong>Received By</strong> &nbsp; {settings?.companyName || 'Mwabonje Photography'}</div>
+                            {settings?.paymentDetails && <div><strong>Details</strong> &nbsp; {settings.paymentDetails.split('\\n')[0]}</div>}
+                          </div>
+                        </div>
+
+                        {/* THANK YOU */}
+                        <div className="thankyou">
+                          <div className="thankyou-heading">Thank you, {client?.name ? client.name.split(' ')[0] : 'Client'}.</div>
+                          <div className="thankyou-body">
+                            Your payment is confirmed. We look forward to capturing beautiful memories.<br/>
+                            {balance > 0 && <span>The remaining balance of <strong>KES {balance.toLocaleString()}</strong> is due on the shoot day before the session begins.</span>}
+                          </div>
+                        </div>
+
+                        {/* SIGNATURE */}
+                        <div className="signature">
+                          <div className="sig-block">
+                            <div className="sig-label">Issued By — {settings?.companyName || 'Mwabonje Photography'}</div>
+                            <div className="sig-line"></div>
+                            <div className="sig-name">{settings?.companyEmail || 'Admin'}</div>
+                          </div>
+                          <div className="sig-block">
+                            <div className="sig-label">Client Acknowledgement</div>
+                            <div className="sig-line"></div>
+                            <div className="sig-name">{client?.name || 'Client'}</div>
+                          </div>
+                        </div>
+
+                        {/* FOOTER */}
+                        <footer className="footer">
+                          <div className="footer-name">{settings?.companyName || 'Mwabonje Photography'}</div>
+                          <div className="footer-contact">
+                            {settings?.companyEmail} · {settings?.companyAddress || 'Malindi, Kenya'}<br/>
+                            {settings?.companyWebsite} · {settings?.companyPhone}
+                          </div>
+                        </footer>
+
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
             <div className="flex justify-end mt-4">
-              <Button onClick={() => previewPayment && generateReceipt(previewPayment, 'download')} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Download className="w-4 h-4 mr-2" />
-                Download PDF
+              <Button onClick={handleDownloadPDF} disabled={isGeneratingPDF} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                {isGeneratingPDF ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
+                ) : (
+                  <><Download className="w-4 h-4 mr-2" /> Download PDF</>
+                )}
               </Button>
             </div>
           </DialogContent>
