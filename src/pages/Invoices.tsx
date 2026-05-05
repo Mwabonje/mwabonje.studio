@@ -45,29 +45,37 @@ export function Invoices() {
     setIsGeneratingPDF(true);
     try {
       const element = invoiceRef.current;
+      const originalStyle = element.style.cssText;
+      element.style.width = '800px';
+      element.style.maxWidth = 'none';
+      element.style.padding = '40px';
       
       const project = projects.find(p => p.id === previewInvoice.projectId);
       const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
       
-      const opt = {
-        margin: [15, 0, 15, 0] as [number, number, number, number], // top, left, bottom, right in mm
-        filename: `Invoice_${safeTitle}.pdf`,
-        image: { type: 'jpeg' as 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2, 
-          useCORS: true,
-          letterRendering: true,
-          windowWidth: 1200
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] }
-      };
+      const htmlToImage = await import('html-to-image');
+      const jsPDFModule = await import('jspdf');
+      const jsPDF = jsPDFModule.default || jsPDFModule;
 
-      // @ts-ignore - html2pdf has complex types
-      const html2pdfModule = await import('html2pdf.js');
-      const generatePDF = html2pdfModule.default || html2pdfModule;
+      const dataUrl = await htmlToImage.toPng(element, { quality: 0.98, pixelRatio: 2 });
       
-      await generatePDF().set(opt).from(element).save();
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      let position = 0;
+      while (position < pdfHeightOriginal) {
+        pdf.addImage(dataUrl, 'PNG', 0, position * -1, pdfWidth, pdfHeightOriginal);
+        position += pageHeight;
+        if (position < pdfHeightOriginal) {
+          pdf.addPage();
+        }
+      }
+      
+      pdf.save(`Invoice_${safeTitle}.pdf`);
+      
+      element.style.cssText = originalStyle;
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       toast.error(`Failed to generate PDF: ${error instanceof Error ? error.message : String(error)}`);
