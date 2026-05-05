@@ -125,23 +125,20 @@ export function SharedInvoice() {
   };
 
   const renderDescription = (description: string) => {
-    if (!description) return 'Item description';
+    if (!description) return <div className="item-name">Item description</div>;
     
     // Check if description matches "Title (Item 1, Item 2)" format
-    const match = description.match(/^(.*?)\s*\((.*?)\)$/);
+    const match = description.match(/^(.*?)\s*\((.*)\)$/);
     if (match) {
       const [_, title, inclusionsStr] = match;
       const inclusions = inclusionsStr.split(',').map(s => s.trim()).filter(Boolean);
       return (
         <div>
-          <p className="font-medium text-slate-900">{title}</p>
+          <div className="item-name">{title}</div>
           {inclusions.length > 0 && (
-            <ul className="mt-1 space-y-1">
+            <ul className="item-desc" style={{ listStyleType: 'square', paddingLeft: '1.25rem', marginTop: '0.25rem', marginBottom: '0' }}>
               {inclusions.map((inc, i) => (
-                <li key={i} className="text-xs text-slate-500 flex items-start">
-                  <span className="w-1 h-1 rounded-full bg-slate-300 mr-2 mt-1.5 shrink-0"></span>
-                  {inc}
-                </li>
+                <li key={i} style={{ paddingLeft: '0.25rem', marginBottom: '0.25rem' }}>{inc}</li>
               ))}
             </ul>
           )}
@@ -149,7 +146,7 @@ export function SharedInvoice() {
       );
     }
     
-    return <p className="text-slate-800">{description}</p>;
+    return <div className="item-name">{description}</div>;
   };
 
   const handleDownloadPDF = async () => {
@@ -702,7 +699,7 @@ export function SharedInvoice() {
                 {(invoice.lineItems || []).map((item, index) => (
                   <tr key={index}>
                     <td>
-                      <div className="item-name">{item.description}</div>
+                      {renderDescription(item.description)}
                     </td>
                     <td className="center">1</td>
                     <td style={{ textAlign: 'right' }}>KES {(item.price || 0).toLocaleString()}</td>
