@@ -1,22 +1,73 @@
-import React, { useState } from 'react';
-import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from '@/store';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, FileText, CheckCircle2, Send, User, FileSignature, Package, StickyNote, ShieldCheck, FileCheck2, ExternalLink, Link as LinkIcon, CheckSquare, Copy, Eye, XCircle } from 'lucide-react';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import React, { useState, useRef } from "react";
+import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from "@/store";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  FileText,
+  CheckCircle2,
+  Send,
+  User,
+  FileSignature,
+  Package,
+  StickyNote,
+  ShieldCheck,
+  FileCheck2,
+  ExternalLink,
+  Link as LinkIcon,
+  CheckSquare,
+  Copy,
+  Eye,
+  XCircle,
+} from "lucide-react";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 
 export function Quotes() {
-  const { quotes, clients, projects, settings, addQuote, updateQuote, deleteQuote, addClient, addProject, updateProject, addInvoice } = useStore();
+  const quoteRef = useRef<HTMLDivElement>(null);
+  const {
+    quotes,
+    clients,
+    projects,
+    settings,
+    addQuote,
+    updateQuote,
+    deleteQuote,
+    addClient,
+    addProject,
+    updateProject,
+    addInvoice,
+  } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
@@ -24,51 +75,61 @@ export function Quotes() {
   const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
   const [depositPercentage, setDepositPercentage] = useState<number>(50);
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [dateFilter, setDateFilter] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [quoteToDelete, setQuoteToDelete] = useState<string | null>(null);
-  const [pendingAction, setPendingAction] = useState<{ type: 'approve' | 'decline' | 'link' | 'duplicate' | 'edit', quote: Quote } | null>(null);
-  
+  const [pendingAction, setPendingAction] = useState<{
+    type: "approve" | "decline" | "link" | "duplicate" | "edit";
+    quote: Quote;
+  } | null>(null);
+
   const defaultFormData = {
-    quoteNumber: '',
-    projectId: '',
-    clientName: '',
-    clientEmail: '',
-    clientPhone: '',
-    projectTitle: '',
-    issueDate: format(new Date(), 'yyyy-MM-dd'),
-    eventDate: '',
-    moodboardLink: '',
-    note: '',
-    retainerClause: 'A 50% retainer fee is required to secure your date. Dates are not held without a deposit.',
-    fulfillmentSchedule: 'High-resolution digital files will be delivered via online gallery within 14 business days.',
-    usageLicense: 'Social Media & Web Use only.',
-    usageRights: 'Client receives specific usage rights as detailed. Copyright remains with the photographer.',
-    transportLogistics: 'Transport within Nairobi is included. Transport outside Nairobi will be billed at cost.',
-    cancellationRescheduling: 'Cancellations made less than 7 days before the shoot forfeit the retainer.',
+    quoteNumber: "",
+    projectId: "",
+    clientName: "",
+    clientEmail: "",
+    clientPhone: "",
+    projectTitle: "",
+    issueDate: format(new Date(), "yyyy-MM-dd"),
+    eventDate: "",
+    moodboardLink: "",
+    note: "",
+    retainerClause:
+      "A 50% retainer fee is required to secure your date. Dates are not held without a deposit.",
+    fulfillmentSchedule:
+      "High-resolution digital files will be delivered via online gallery within 14 business days.",
+    usageLicense: "Social Media & Web Use only.",
+    usageRights:
+      "Client receives specific usage rights as detailed. Copyright remains with the photographer.",
+    transportLogistics:
+      "Transport within Nairobi is included. Transport outside Nairobi will be billed at cost.",
+    cancellationRescheduling:
+      "Cancellations made less than 7 days before the shoot forfeit the retainer.",
     paymentDetails: settings.paymentDetails,
-    status: 'draft' as Quote['status'],
-    date: format(new Date(), 'yyyy-MM-dd'),
+    status: "draft" as Quote["status"],
+    date: format(new Date(), "yyyy-MM-dd"),
     revisionOf: undefined as string | undefined,
     isCollaboration: false,
     collaborationCut: 0,
-    collaborationType: 'percentage' as 'percentage' | 'fixed',
-    deliverablesSubTitle: '',
-    deliverablesTitle: '',
-    deliverablesPrice: '',
-    deliverablesNote: '',
+    collaborationType: "percentage" as "percentage" | "fixed",
+    deliverablesSubTitle: "",
+    deliverablesTitle: "",
+    deliverablesPrice: "",
+    deliverablesNote: "",
   };
 
   const [formData, setFormData] = useState(defaultFormData);
   const [packages, setPackages] = useState<QuotePackage[]>([]);
-  const [deliverableTasks, setDeliverableTasks] = useState<QuoteDeliverableTask[]>([]);
+  const [deliverableTasks, setDeliverableTasks] = useState<
+    QuoteDeliverableTask[]
+  >([]);
 
   const generateQuoteNumber = () => {
     let maxNum = 0;
-    quotes.forEach(q => {
-      if (q.quoteNumber && q.quoteNumber.startsWith('QT-')) {
-        const parts = q.quoteNumber.split('-');
+    quotes.forEach((q) => {
+      if (q.quoteNumber && q.quoteNumber.startsWith("QT-")) {
+        const parts = q.quoteNumber.split("-");
         if (parts.length >= 2) {
           const num = parseInt(parts[1], 10);
           if (!isNaN(num) && num > maxNum) {
@@ -77,17 +138,19 @@ export function Quotes() {
         }
       }
     });
-    return `QT-${String(maxNum + 1).padStart(4, '0')}`;
+    return `QT-${String(maxNum + 1).padStart(4, "0")}`;
   };
 
   const generateRevisionNumber = (originalQuote: Quote) => {
-    const baseNumber = originalQuote.quoteNumber || `QT-${originalQuote.id.substring(0, 8).toUpperCase()}`;
-    const baseWithoutRev = baseNumber.replace(/-R\d+$/, '');
-    
+    const baseNumber =
+      originalQuote.quoteNumber ||
+      `QT-${originalQuote.id.substring(0, 8).toUpperCase()}`;
+    const baseWithoutRev = baseNumber.replace(/-R\d+$/, "");
+
     let maxRev = 0;
-    quotes.forEach(q => {
+    quotes.forEach((q) => {
       if (q.quoteNumber && q.quoteNumber.startsWith(`${baseWithoutRev}-R`)) {
-        const revPart = q.quoteNumber.split('-R')[1];
+        const revPart = q.quoteNumber.split("-R")[1];
         if (revPart) {
           const num = parseInt(revPart, 10);
           if (!isNaN(num) && num > maxRev) {
@@ -101,47 +164,52 @@ export function Quotes() {
 
   const getColorClass = (color: string) => {
     const colors: Record<string, string> = {
-      slate: 'bg-slate-900',
-      blue: 'bg-blue-900',
-      green: 'bg-green-900',
-      rose: 'bg-rose-900',
-      amber: 'bg-amber-900',
-      violet: 'bg-violet-900',
+      slate: "bg-slate-900",
+      blue: "bg-blue-900",
+      green: "bg-green-900",
+      rose: "bg-rose-900",
+      amber: "bg-amber-900",
+      violet: "bg-violet-900",
     };
-    return colors[color] || 'bg-slate-900';
+    return colors[color] || "bg-slate-900";
   };
 
   const handleOpenDialog = (quote?: Quote) => {
     if (quote) {
       setEditingQuote(quote);
       setFormData({
-        quoteNumber: quote.quoteNumber || '',
-        projectId: quote.projectId || '',
-        clientName: quote.clientName || '',
-        clientEmail: quote.clientEmail || '',
-        clientPhone: quote.clientPhone || '',
-        projectTitle: quote.projectTitle || '',
-        issueDate: quote.issueDate || quote.date || format(new Date(), 'yyyy-MM-dd'),
-        eventDate: quote.eventDate || '',
-        moodboardLink: quote.moodboardLink || '',
-        note: quote.note || '',
+        quoteNumber: quote.quoteNumber || "",
+        projectId: quote.projectId || "",
+        clientName: quote.clientName || "",
+        clientEmail: quote.clientEmail || "",
+        clientPhone: quote.clientPhone || "",
+        projectTitle: quote.projectTitle || "",
+        issueDate:
+          quote.issueDate || quote.date || format(new Date(), "yyyy-MM-dd"),
+        eventDate: quote.eventDate || "",
+        moodboardLink: quote.moodboardLink || "",
+        note: quote.note || "",
         retainerClause: quote.retainerClause || defaultFormData.retainerClause,
-        fulfillmentSchedule: quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
+        fulfillmentSchedule:
+          quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
         usageLicense: quote.usageLicense || defaultFormData.usageLicense,
         usageRights: quote.usageRights || defaultFormData.usageRights,
-        transportLogistics: quote.transportLogistics || defaultFormData.transportLogistics,
-        cancellationRescheduling: quote.cancellationRescheduling || defaultFormData.cancellationRescheduling,
+        transportLogistics:
+          quote.transportLogistics || defaultFormData.transportLogistics,
+        cancellationRescheduling:
+          quote.cancellationRescheduling ||
+          defaultFormData.cancellationRescheduling,
         paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
         status: quote.status,
         date: quote.date,
         revisionOf: quote.revisionOf,
         isCollaboration: quote.isCollaboration || false,
         collaborationCut: quote.collaborationCut || 0,
-        collaborationType: quote.collaborationType || 'percentage',
-        deliverablesSubTitle: quote.deliverablesSubTitle || '',
-        deliverablesTitle: quote.deliverablesTitle || '',
-        deliverablesPrice: quote.deliverablesPrice?.toString() || '',
-        deliverablesNote: quote.deliverablesNote || '',
+        collaborationType: quote.collaborationType || "percentage",
+        deliverablesSubTitle: quote.deliverablesSubTitle || "",
+        deliverablesTitle: quote.deliverablesTitle || "",
+        deliverablesPrice: quote.deliverablesPrice?.toString() || "",
+        deliverablesNote: quote.deliverablesNote || "",
       });
       setPackages(quote.packages || []);
       setDeliverableTasks(quote.deliverableTasks || []);
@@ -159,33 +227,38 @@ export function Quotes() {
 
   const handleOpenPreview = (quote: Quote) => {
     setFormData({
-      quoteNumber: quote.quoteNumber || '',
-      projectId: quote.projectId || '',
-      clientName: quote.clientName || '',
-      clientEmail: quote.clientEmail || '',
-      clientPhone: quote.clientPhone || '',
-      projectTitle: quote.projectTitle || '',
-      issueDate: quote.issueDate || quote.date || format(new Date(), 'yyyy-MM-dd'),
-      eventDate: quote.eventDate || '',
-      moodboardLink: quote.moodboardLink || '',
-      note: quote.note || '',
+      quoteNumber: quote.quoteNumber || "",
+      projectId: quote.projectId || "",
+      clientName: quote.clientName || "",
+      clientEmail: quote.clientEmail || "",
+      clientPhone: quote.clientPhone || "",
+      projectTitle: quote.projectTitle || "",
+      issueDate:
+        quote.issueDate || quote.date || format(new Date(), "yyyy-MM-dd"),
+      eventDate: quote.eventDate || "",
+      moodboardLink: quote.moodboardLink || "",
+      note: quote.note || "",
       retainerClause: quote.retainerClause || defaultFormData.retainerClause,
-      fulfillmentSchedule: quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
+      fulfillmentSchedule:
+        quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
       usageLicense: quote.usageLicense || defaultFormData.usageLicense,
       usageRights: quote.usageRights || defaultFormData.usageRights,
-      transportLogistics: quote.transportLogistics || defaultFormData.transportLogistics,
-      cancellationRescheduling: quote.cancellationRescheduling || defaultFormData.cancellationRescheduling,
+      transportLogistics:
+        quote.transportLogistics || defaultFormData.transportLogistics,
+      cancellationRescheduling:
+        quote.cancellationRescheduling ||
+        defaultFormData.cancellationRescheduling,
       paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
       status: quote.status,
       date: quote.date,
       revisionOf: quote.revisionOf,
       isCollaboration: quote.isCollaboration || false,
       collaborationCut: quote.collaborationCut || 0,
-      collaborationType: quote.collaborationType || 'percentage',
-      deliverablesSubTitle: quote.deliverablesSubTitle || '',
-      deliverablesTitle: quote.deliverablesTitle || '',
-      deliverablesPrice: quote.deliverablesPrice?.toString() || '',
-      deliverablesNote: quote.deliverablesNote || '',
+      collaborationType: quote.collaborationType || "percentage",
+      deliverablesSubTitle: quote.deliverablesSubTitle || "",
+      deliverablesTitle: quote.deliverablesTitle || "",
+      deliverablesPrice: quote.deliverablesPrice?.toString() || "",
+      deliverablesNote: quote.deliverablesNote || "",
     });
     setPackages(quote.packages || []);
     setDeliverableTasks(quote.deliverableTasks || []);
@@ -196,62 +269,77 @@ export function Quotes() {
     setEditingQuote(null);
     setFormData({
       quoteNumber: generateRevisionNumber(quote),
-      projectId: quote.projectId || '',
-      clientName: quote.clientName || '',
-      clientEmail: quote.clientEmail || '',
-      clientPhone: quote.clientPhone || '',
-      projectTitle: `${quote.projectTitle || ''} (Revision)`,
-      issueDate: format(new Date(), 'yyyy-MM-dd'),
-      eventDate: quote.eventDate || '',
-      moodboardLink: quote.moodboardLink || '',
-      note: quote.note || '',
+      projectId: quote.projectId || "",
+      clientName: quote.clientName || "",
+      clientEmail: quote.clientEmail || "",
+      clientPhone: quote.clientPhone || "",
+      projectTitle: `${quote.projectTitle || ""} (Revision)`,
+      issueDate: format(new Date(), "yyyy-MM-dd"),
+      eventDate: quote.eventDate || "",
+      moodboardLink: quote.moodboardLink || "",
+      note: quote.note || "",
       retainerClause: quote.retainerClause || defaultFormData.retainerClause,
-      fulfillmentSchedule: quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
+      fulfillmentSchedule:
+        quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
       usageLicense: quote.usageLicense || defaultFormData.usageLicense,
       usageRights: quote.usageRights || defaultFormData.usageRights,
-      transportLogistics: quote.transportLogistics || defaultFormData.transportLogistics,
-      cancellationRescheduling: quote.cancellationRescheduling || defaultFormData.cancellationRescheduling,
+      transportLogistics:
+        quote.transportLogistics || defaultFormData.transportLogistics,
+      cancellationRescheduling:
+        quote.cancellationRescheduling ||
+        defaultFormData.cancellationRescheduling,
       paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
-      status: 'draft',
-      date: format(new Date(), 'yyyy-MM-dd'),
+      status: "draft",
+      date: format(new Date(), "yyyy-MM-dd"),
       revisionOf: quote.id,
-      deliverablesSubTitle: quote.deliverablesSubTitle || '',
-      deliverablesTitle: quote.deliverablesTitle || '',
-      deliverablesPrice: quote.deliverablesPrice?.toString() || '',
-      deliverablesNote: quote.deliverablesNote || '',
+      deliverablesSubTitle: quote.deliverablesSubTitle || "",
+      deliverablesTitle: quote.deliverablesTitle || "",
+      deliverablesPrice: quote.deliverablesPrice?.toString() || "",
+      deliverablesNote: quote.deliverablesNote || "",
     });
-    setPackages(quote.packages?.map(p => ({ ...p, id: crypto.randomUUID() })) || []);
-    setDeliverableTasks(quote.deliverableTasks?.map(t => ({ ...t, id: crypto.randomUUID() })) || []);
+    setPackages(
+      quote.packages?.map((p) => ({ ...p, id: crypto.randomUUID() })) || [],
+    );
+    setDeliverableTasks(
+      quote.deliverableTasks?.map((t) => ({ ...t, id: crypto.randomUUID() })) ||
+        [],
+    );
     setIsDialogOpen(true);
   };
 
-  const calculateTotal = () => packages.reduce((sum, pkg) => sum + (Number(pkg.settlement) || 0), 0);
+  const calculateTotal = () =>
+    packages.reduce((sum, pkg) => sum + (Number(pkg.settlement) || 0), 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const totalAmount = calculateTotal();
-    
+
     try {
       const quoteData = {
         ...formData,
-        deliverablesPrice: formData.deliverablesPrice ? Number(formData.deliverablesPrice) : undefined,
+        deliverablesPrice: formData.deliverablesPrice
+          ? Number(formData.deliverablesPrice)
+          : undefined,
         packages,
         deliverableTasks,
-        totalAmount
+        totalAmount,
       };
 
       if (editingQuote) {
         await updateQuote(editingQuote.id, quoteData);
-        
+
         // Update associated project if it exists
         if (formData.projectId) {
-          const project = projects.find(p => p.id === formData.projectId);
+          const project = projects.find((p) => p.id === formData.projectId);
           if (project) {
             const updates: any = {};
             if (formData.eventDate && project.date !== formData.eventDate) {
               updates.date = formData.eventDate;
             }
-            if (formData.projectTitle && project.title !== formData.projectTitle) {
+            if (
+              formData.projectTitle &&
+              project.title !== formData.projectTitle
+            ) {
               updates.title = formData.projectTitle;
             }
             if (Object.keys(updates).length > 0) {
@@ -265,16 +353,19 @@ export function Quotes() {
           id: newQuoteId,
           ...quoteData,
         });
-        
+
         // Update associated project if it exists
         if (formData.projectId) {
-          const project = projects.find(p => p.id === formData.projectId);
+          const project = projects.find((p) => p.id === formData.projectId);
           if (project) {
             const updates: any = {};
             if (formData.eventDate && project.date !== formData.eventDate) {
               updates.date = formData.eventDate;
             }
-            if (formData.projectTitle && project.title !== formData.projectTitle) {
+            if (
+              formData.projectTitle &&
+              project.title !== formData.projectTitle
+            ) {
               updates.title = formData.projectTitle;
             }
             if (Object.keys(updates).length > 0) {
@@ -286,102 +377,165 @@ export function Quotes() {
       setIsDialogOpen(false);
     } catch (error) {
       console.error("Error saving quote:", error);
-      alert("Failed to save quote. Please check your connection and try again.");
+      alert(
+        "Failed to save quote. Please check your connection and try again.",
+      );
     }
   };
 
   const addDeliverableTask = () => {
-    setDeliverableTasks([...deliverableTasks, { id: crypto.randomUUID(), title: `Task ${deliverableTasks.length + 1}`, items: [''] }]);
+    setDeliverableTasks([
+      ...deliverableTasks,
+      {
+        id: crypto.randomUUID(),
+        title: `Task ${deliverableTasks.length + 1}`,
+        items: [""],
+      },
+    ]);
   };
 
-  const updateDeliverableTask = (id: string, field: keyof QuoteDeliverableTask, value: any) => {
-    setDeliverableTasks(deliverableTasks.map(task => task.id === id ? { ...task, [field]: value } : task));
+  const updateDeliverableTask = (
+    id: string,
+    field: keyof QuoteDeliverableTask,
+    value: any,
+  ) => {
+    setDeliverableTasks(
+      deliverableTasks.map((task) =>
+        task.id === id ? { ...task, [field]: value } : task,
+      ),
+    );
   };
 
   const removeDeliverableTask = (id: string) => {
-    setDeliverableTasks(deliverableTasks.filter(task => task.id !== id));
+    setDeliverableTasks(deliverableTasks.filter((task) => task.id !== id));
   };
 
   const addDeliverableItem = (taskId: string) => {
-    setDeliverableTasks(deliverableTasks.map(task => {
-      if (task.id === taskId) {
-        return { ...task, items: [...task.items, ''] };
-      }
-      return task;
-    }));
+    setDeliverableTasks(
+      deliverableTasks.map((task) => {
+        if (task.id === taskId) {
+          return { ...task, items: [...task.items, ""] };
+        }
+        return task;
+      }),
+    );
   };
 
-  const updateDeliverableItem = (taskId: string, index: number, value: string) => {
-    setDeliverableTasks(deliverableTasks.map(task => {
-      if (task.id === taskId) {
-        const newItems = [...task.items];
-        newItems[index] = value;
-        return { ...task, items: newItems };
-      }
-      return task;
-    }));
+  const updateDeliverableItem = (
+    taskId: string,
+    index: number,
+    value: string,
+  ) => {
+    setDeliverableTasks(
+      deliverableTasks.map((task) => {
+        if (task.id === taskId) {
+          const newItems = [...task.items];
+          newItems[index] = value;
+          return { ...task, items: newItems };
+        }
+        return task;
+      }),
+    );
   };
 
   const removeDeliverableItem = (taskId: string, index: number) => {
-    setDeliverableTasks(deliverableTasks.map(task => {
-      if (task.id === taskId) {
-        const newItems = [...task.items];
-        newItems.splice(index, 1);
-        return { ...task, items: newItems };
-      }
-      return task;
-    }));
+    setDeliverableTasks(
+      deliverableTasks.map((task) => {
+        if (task.id === taskId) {
+          const newItems = [...task.items];
+          newItems.splice(index, 1);
+          return { ...task, items: newItems };
+        }
+        return task;
+      }),
+    );
   };
 
   const addPackage = () => {
-    setPackages([...packages, { id: crypto.randomUUID(), name: `Package ${packages.length + 1}`, inclusions: [''], settlement: 0 }]);
+    setPackages([
+      ...packages,
+      {
+        id: crypto.randomUUID(),
+        name: `Package ${packages.length + 1}`,
+        inclusions: [""],
+        settlement: 0,
+      },
+    ]);
   };
 
   const updatePackage = (id: string, field: keyof QuotePackage, value: any) => {
-    setPackages(packages.map(pkg => pkg.id === id ? { ...pkg, [field]: value } : pkg));
+    setPackages(
+      packages.map((pkg) => (pkg.id === id ? { ...pkg, [field]: value } : pkg)),
+    );
   };
 
   const removePackage = (id: string) => {
-    setPackages(packages.filter(pkg => pkg.id !== id));
+    setPackages(packages.filter((pkg) => pkg.id !== id));
   };
 
   const addInclusion = (packageId: string) => {
-    setPackages(packages.map(pkg => {
-      if (pkg.id === packageId) {
-        return { ...pkg, inclusions: [...pkg.inclusions, ''] };
-      }
-      return pkg;
-    }));
+    setPackages(
+      packages.map((pkg) => {
+        if (pkg.id === packageId) {
+          return { ...pkg, inclusions: [...pkg.inclusions, ""] };
+        }
+        return pkg;
+      }),
+    );
   };
 
   const updateInclusion = (packageId: string, index: number, value: string) => {
-    setPackages(packages.map(pkg => {
-      if (pkg.id === packageId) {
-        const newInclusions = [...pkg.inclusions];
-        newInclusions[index] = value;
-        return { ...pkg, inclusions: newInclusions };
-      }
-      return pkg;
-    }));
+    setPackages(
+      packages.map((pkg) => {
+        if (pkg.id === packageId) {
+          const newInclusions = [...pkg.inclusions];
+          newInclusions[index] = value;
+          return { ...pkg, inclusions: newInclusions };
+        }
+        return pkg;
+      }),
+    );
   };
 
   const removeInclusion = (packageId: string, index: number) => {
-    setPackages(packages.map(pkg => {
-      if (pkg.id === packageId) {
-        const newInclusions = [...pkg.inclusions];
-        newInclusions.splice(index, 1);
-        return { ...pkg, inclusions: newInclusions };
-      }
-      return pkg;
-    }));
+    setPackages(
+      packages.map((pkg) => {
+        if (pkg.id === packageId) {
+          const newInclusions = [...pkg.inclusions];
+          newInclusions.splice(index, 1);
+          return { ...pkg, inclusions: newInclusions };
+        }
+        return pkg;
+      }),
+    );
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'approved': return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200"><CheckCircle2 className="w-3 h-3 mr-1" /> Approved</Badge>;
-      case 'sent': return <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20"><Send className="w-3 h-3 mr-1" /> Sent</Badge>;
-      case 'declined': return <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200"><XCircle className="w-3 h-3 mr-1" /> Declined</Badge>;
-      default: return <Badge variant="outline" className="text-slate-500"><FileText className="w-3 h-3 mr-1" /> Draft</Badge>;
+      case "approved":
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
+            <CheckCircle2 className="w-3 h-3 mr-1" /> Approved
+          </Badge>
+        );
+      case "sent":
+        return (
+          <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20">
+            <Send className="w-3 h-3 mr-1" /> Sent
+          </Badge>
+        );
+      case "declined":
+        return (
+          <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200">
+            <XCircle className="w-3 h-3 mr-1" /> Declined
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="text-slate-500">
+            <FileText className="w-3 h-3 mr-1" /> Draft
+          </Badge>
+        );
     }
   };
 
@@ -394,32 +548,42 @@ export function Quotes() {
 
   const handleApproveAndInvoice = async () => {
     if (!quoteToApprove) return;
-    
+
     try {
-      const selectedPkgs = quoteToApprove.packages.filter(p => selectedPackageIds.includes(p.id));
-      const totalSelectedAmount = selectedPkgs.reduce((sum, p) => sum + p.settlement, 0);
-      
-      let clientId = '';
+      const selectedPkgs = quoteToApprove.packages.filter((p) =>
+        selectedPackageIds.includes(p.id),
+      );
+      const totalSelectedAmount = selectedPkgs.reduce(
+        (sum, p) => sum + p.settlement,
+        0,
+      );
+
+      let clientId = "";
       let projectId = quoteToApprove.projectId;
 
       if (totalSelectedAmount > 0) {
-        const lineItems = selectedPkgs.map(p => ({
+        const lineItems = selectedPkgs.map((p) => ({
           id: crypto.randomUUID(),
-          description: p.name + (p.inclusions.length > 0 ? ` (${p.inclusions.join(', ')})` : ''),
-          price: p.settlement
+          description:
+            p.name +
+            (p.inclusions.length > 0 ? ` (${p.inclusions.join(", ")})` : ""),
+          price: p.settlement,
         }));
 
         // Add deposit note if applicable
         if (depositPercentage > 0 && depositPercentage < 100) {
           lineItems.push({
             id: crypto.randomUUID(),
-            description: `Note: A ${depositPercentage}% deposit (KES ${(totalSelectedAmount * depositPercentage / 100).toLocaleString()}) is required to secure the booking.`,
-            price: 0
+            description: `Note: A ${depositPercentage}% deposit (KES ${((totalSelectedAmount * depositPercentage) / 100).toLocaleString()}) is required to secure the booking.`,
+            price: 0,
           });
         }
 
         // Find or create client
-        const existingClient = clients.find(c => c.name.toLowerCase() === quoteToApprove.clientName.toLowerCase());
+        const existingClient = clients.find(
+          (c) =>
+            c.name.toLowerCase() === quoteToApprove.clientName.toLowerCase(),
+        );
         if (existingClient) {
           clientId = existingClient.id;
         } else {
@@ -429,21 +593,24 @@ export function Quotes() {
             name: quoteToApprove.clientName,
             email: quoteToApprove.clientEmail,
             phone: quoteToApprove.clientPhone,
-            notes: 'Auto-created from quote'
+            notes: "Auto-created from quote",
           });
         }
 
         // Find or create project
-        if (!projectId || !projects.find(p => p.id === projectId)) {
+        if (!projectId || !projects.find((p) => p.id === projectId)) {
           projectId = crypto.randomUUID();
           await addProject({
             id: projectId,
             clientId,
             title: quoteToApprove.projectTitle,
-            location: '',
-            date: quoteToApprove.eventDate || quoteToApprove.issueDate || format(new Date(), 'yyyy-MM-dd'),
-            description: quoteToApprove.note || 'Auto-created from quote',
-            collaborators: []
+            location: "",
+            date:
+              quoteToApprove.eventDate ||
+              quoteToApprove.issueDate ||
+              format(new Date(), "yyyy-MM-dd"),
+            description: quoteToApprove.note || "Auto-created from quote",
+            collaborators: [],
           });
         }
 
@@ -455,17 +622,20 @@ export function Quotes() {
           lineItems,
           totalAmount: totalSelectedAmount,
           amountPaid: 0,
-          status: 'unpaid',
-          date: format(new Date(), 'yyyy-MM-dd'),
-          dueDate: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+          status: "unpaid",
+          date: format(new Date(), "yyyy-MM-dd"),
+          dueDate: format(
+            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            "yyyy-MM-dd",
+          ),
         });
       }
 
       // Update quote status, selected packages, and projectId in a single call
       await updateQuote(quoteToApprove.id, {
-        status: 'approved',
+        status: "approved",
         selectedPackages: selectedPackageIds,
-        ...(projectId ? { projectId } : {})
+        ...(projectId ? { projectId } : {}),
       });
 
       setIsApproveDialogOpen(false);
@@ -474,30 +644,32 @@ export function Quotes() {
       alert("Quote approved and invoice generated successfully!");
     } catch (error) {
       console.error("Error approving quote:", error);
-      alert("Failed to approve quote. Please check your connection and try again.");
+      alert(
+        "Failed to approve quote. Please check your connection and try again.",
+      );
     }
   };
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopyLink = (quoteId: string) => {
-    const quote = quotes.find(q => q.id === quoteId);
+    const quote = quotes.find((q) => q.id === quoteId);
     if (!quote) return;
-    
+
     try {
       const userId = useStore.getState().userId;
       if (!userId) {
-        toast.error('You must be logged in to share quotes.');
+        toast.error("You must be logged in to share quotes.");
         return;
       }
       const url = `https://capturecrm.netlify.app/quote/shared?uid=${userId}&id=${quoteId}`;
-      
+
       navigator.clipboard.writeText(url);
       setCopiedId(quoteId);
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
       console.error("Failed to generate link:", err);
-      alert('Failed to generate shareable link.');
+      alert("Failed to generate shareable link.");
     }
   };
 
@@ -506,9 +678,9 @@ export function Quotes() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Quotes</h2>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Input 
-            type="text" 
-            placeholder="Search clients..." 
+          <Input
+            type="text"
+            placeholder="Search clients..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full sm:w-[200px]"
@@ -525,385 +697,879 @@ export function Quotes() {
               <SelectItem value="declined">Declined</SelectItem>
             </SelectContent>
           </Select>
-          <Input 
-            type="date" 
-            value={dateFilter} 
+          <Input
+            type="date"
+            value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
             className="w-full sm:w-[150px]"
             placeholder="Filter by date"
           />
           {dateFilter && (
-            <Button variant="ghost" size="icon" onClick={() => setDateFilter('')} className="shrink-0" title="Clear date filter">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDateFilter("")}
+              className="shrink-0"
+              title="Clear date filter"
+            >
               <Trash2 className="h-4 w-4 text-muted-foreground" />
             </Button>
           )}
-          <Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto">
+          <Button
+            onClick={() => handleOpenDialog()}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Create Quote
           </Button>
         </div>
-        
+
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-slate-50 flex flex-col">
             <div className="sticky top-0 z-10 bg-white border-b px-4 sm:px-6 py-4 flex justify-between items-center shrink-0">
-              <DialogTitle className="text-xl font-bold">{editingQuote ? 'Edit Quote' : 'Create New Quote'}</DialogTitle>
+              <DialogTitle className="text-xl font-bold">
+                {editingQuote ? "Edit Quote" : "Create New Quote"}
+              </DialogTitle>
             </div>
-            
+
             <div className="overflow-y-auto flex-1">
-              <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6 sm:space-y-8">
-                
+              <form
+                onSubmit={handleSubmit}
+                className="p-4 sm:p-6 space-y-6 sm:space-y-8"
+              >
                 {/* Client Information & Quote Details Card */}
                 <div className="bg-white p-4 sm:p-6 rounded-xl border shadow-sm space-y-6 sm:space-y-8">
-                
-                {/* Client Information */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
-                      <User className="w-4 h-4 mr-2 text-primary" />
-                      Client Information
-                    </div>
-                    <div className="w-48">
-                      <Select value={formData.status} onValueChange={(value: any) => setFormData({...formData, status: value})}>
-                        <SelectTrigger className="h-8 text-xs font-bold uppercase tracking-wider">
-                          <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="draft">Draft</SelectItem>
-                          <SelectItem value="sent">Sent</SelectItem>
-                          <SelectItem value="approved">Approved</SelectItem>
-                          <SelectItem value="declined">Declined</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="clientName" className="text-xs font-bold text-slate-500 uppercase">Full Name</Label>
-                      <Input id="clientName" placeholder="e.g. John Doe" value={formData.clientName} onChange={(e) => setFormData({...formData, clientName: e.target.value})} required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="clientEmail" className="text-xs font-bold text-slate-500 uppercase">Email Address</Label>
-                      <Input id="clientEmail" type="email" placeholder="john@example.com" value={formData.clientEmail} onChange={(e) => setFormData({...formData, clientEmail: e.target.value})} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="clientPhone" className="text-xs font-bold text-slate-500 uppercase">Phone Number</Label>
-                      <Input id="clientPhone" placeholder="e.g. 0712..." value={formData.clientPhone} onChange={(e) => setFormData({...formData, clientPhone: e.target.value})} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quote Details */}
-                <div className="space-y-4">
-                  <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
-                    <FileSignature className="w-4 h-4 mr-2 text-primary" />
-                    Quote Details
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="projectTitle" className="text-xs font-bold text-slate-500 uppercase">Project/Service Title</Label>
-                      <Input id="projectTitle" placeholder="e.g. Wedding Photography / Portrait Session" value={formData.projectTitle} onChange={(e) => setFormData({...formData, projectTitle: e.target.value})} required className="font-semibold" />
-                      <p className="text-xs text-slate-400">This appears as the main heading of the quote.</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="quoteNumber" className="text-xs font-bold text-slate-500 uppercase">Quote Number</Label>
-                      <Input id="quoteNumber" value={formData.quoteNumber} onChange={(e) => setFormData({...formData, quoteNumber: e.target.value})} required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="issueDate" className="text-xs font-bold text-slate-500 uppercase">Issue Date</Label>
-                      <Input id="issueDate" type="date" value={formData.issueDate} onChange={(e) => setFormData({...formData, issueDate: e.target.value})} required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="eventDate" className="text-xs font-bold text-slate-500 uppercase">Proposed Event Date</Label>
-                      <Input id="eventDate" type="date" value={formData.eventDate} onChange={(e) => setFormData({...formData, eventDate: e.target.value})} />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="moodboardLink" className="text-xs font-bold text-slate-500 uppercase">Moodboard Link (Optional)</Label>
-                      <div className="relative">
-                        <ExternalLink className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                        <Input id="moodboardLink" placeholder="https://pinterest.com/..." className="pl-9" value={formData.moodboardLink} onChange={(e) => setFormData({...formData, moodboardLink: e.target.value})} />
+                  {/* Client Information */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                        <User className="w-4 h-4 mr-2 text-primary" />
+                        Client Information
                       </div>
-                    </div>
-                  </div>
-                </div>
-                {/* Collaboration Settings */}
-                <div className="space-y-4 pt-4 border-t">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
-                      <User className="w-4 h-4 mr-2 text-primary" />
-                      Collaboration & Commission
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="isCollaboration" 
-                        checked={!!formData.isCollaboration}
-                        onCheckedChange={(checked) => setFormData({...formData, isCollaboration: checked as boolean})}
-                      />
-                      <Label htmlFor="isCollaboration" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        Enable My Cut
-                      </Label>
-                    </div>
-                  </div>
-                  
-                  {formData.isCollaboration && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border">
-                      <div className="space-y-2">
-                        <Label htmlFor="collaborationType" className="text-xs font-bold text-slate-500 uppercase">Cut Type</Label>
-                        <Select value={formData.collaborationType || 'percentage'} onValueChange={(value: any) => setFormData({...formData, collaborationType: value})}>
-                          <SelectTrigger id="collaborationType" className="bg-white">
-                            <SelectValue placeholder="Type" />
+                      <div className="w-48">
+                        <Select
+                          value={formData.status}
+                          onValueChange={(value: any) =>
+                            setFormData({ ...formData, status: value })
+                          }
+                        >
+                          <SelectTrigger className="h-8 text-xs font-bold uppercase tracking-wider">
+                            <SelectValue placeholder="Status" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="percentage">Percentage (%)</SelectItem>
-                            <SelectItem value="fixed">Fixed Amount</SelectItem>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="sent">Sent</SelectItem>
+                            <SelectItem value="approved">Approved</SelectItem>
+                            <SelectItem value="declined">Declined</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="collaborationCut" className="text-xs font-bold text-slate-500 uppercase">My Cut Value</Label>
-                        <Input 
-                          id="collaborationCut" 
-                          type="number" 
-                          min="0"
-                          step={formData.collaborationType === 'percentage' ? "0.1" : "1"}
-                          className="bg-white"
-                          value={formData.collaborationCut || ''} 
-                          onChange={(e) => setFormData({...formData, collaborationCut: parseFloat(e.target.value) || 0})} 
+                        <Label
+                          htmlFor="clientName"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Full Name
+                        </Label>
+                        <Input
+                          id="clientName"
+                          placeholder="e.g. John Doe"
+                          value={formData.clientName}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              clientName: e.target.value,
+                            })
+                          }
+                          required
                         />
                       </div>
-                      <p className="text-xs text-slate-500 md:col-span-2">
-                        This is an internal metric and will not be visible to the client on the shared quote.
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="clientEmail"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Email Address
+                        </Label>
+                        <Input
+                          id="clientEmail"
+                          type="email"
+                          placeholder="john@example.com"
+                          value={formData.clientEmail}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              clientEmail: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="clientPhone"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Phone Number
+                        </Label>
+                        <Input
+                          id="clientPhone"
+                          placeholder="e.g. 0712..."
+                          value={formData.clientPhone}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              clientPhone: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quote Details */}
+                  <div className="space-y-4">
+                    <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                      <FileSignature className="w-4 h-4 mr-2 text-primary" />
+                      Quote Details
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2 md:col-span-2">
+                        <Label
+                          htmlFor="projectTitle"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Project/Service Title
+                        </Label>
+                        <Input
+                          id="projectTitle"
+                          placeholder="e.g. Wedding Photography / Portrait Session"
+                          value={formData.projectTitle}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              projectTitle: e.target.value,
+                            })
+                          }
+                          required
+                          className="font-semibold"
+                        />
+                        <p className="text-xs text-slate-400">
+                          This appears as the main heading of the quote.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="quoteNumber"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Quote Number
+                        </Label>
+                        <Input
+                          id="quoteNumber"
+                          value={formData.quoteNumber}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              quoteNumber: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="issueDate"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Issue Date
+                        </Label>
+                        <Input
+                          id="issueDate"
+                          type="date"
+                          value={formData.issueDate}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              issueDate: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="eventDate"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Proposed Event Date
+                        </Label>
+                        <Input
+                          id="eventDate"
+                          type="date"
+                          value={formData.eventDate}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              eventDate: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label
+                          htmlFor="moodboardLink"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Moodboard Link (Optional)
+                        </Label>
+                        <div className="relative">
+                          <ExternalLink className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                          <Input
+                            id="moodboardLink"
+                            placeholder="https://pinterest.com/..."
+                            className="pl-9"
+                            value={formData.moodboardLink}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                moodboardLink: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Collaboration Settings */}
+                  <div className="space-y-4 pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                        <User className="w-4 h-4 mr-2 text-primary" />
+                        Collaboration & Commission
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="isCollaboration"
+                          checked={!!formData.isCollaboration}
+                          onCheckedChange={(checked) =>
+                            setFormData({
+                              ...formData,
+                              isCollaboration: checked as boolean,
+                            })
+                          }
+                        />
+                        <Label
+                          htmlFor="isCollaboration"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          Enable My Cut
+                        </Label>
+                      </div>
+                    </div>
+
+                    {formData.isCollaboration && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border">
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="collaborationType"
+                            className="text-xs font-bold text-slate-500 uppercase"
+                          >
+                            Cut Type
+                          </Label>
+                          <Select
+                            value={formData.collaborationType || "percentage"}
+                            onValueChange={(value: any) =>
+                              setFormData({
+                                ...formData,
+                                collaborationType: value,
+                              })
+                            }
+                          >
+                            <SelectTrigger
+                              id="collaborationType"
+                              className="bg-white"
+                            >
+                              <SelectValue placeholder="Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="percentage">
+                                Percentage (%)
+                              </SelectItem>
+                              <SelectItem value="fixed">
+                                Fixed Amount
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="collaborationCut"
+                            className="text-xs font-bold text-slate-500 uppercase"
+                          >
+                            My Cut Value
+                          </Label>
+                          <Input
+                            id="collaborationCut"
+                            type="number"
+                            min="0"
+                            step={
+                              formData.collaborationType === "percentage"
+                                ? "0.1"
+                                : "1"
+                            }
+                            className="bg-white"
+                            value={formData.collaborationCut || ""}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                collaborationCut:
+                                  parseFloat(e.target.value) || 0,
+                              })
+                            }
+                          />
+                        </div>
+                        <p className="text-xs text-slate-500 md:col-span-2">
+                          This is an internal metric and will not be visible to
+                          the client on the shared quote.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Deliverables By Task (Optional) */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                      <CheckSquare className="w-4 h-4 mr-2" />
+                      Deliverables by Task (Optional)
+                    </div>
+                  </div>
+
+                  <div className="p-4 border rounded-lg bg-slate-50 space-y-4">
+                    <p className="text-xs text-slate-500 mb-2">
+                      Leave the title blank if you do not want to include this
+                      section in the quote.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-slate-700 uppercase">
+                          Sub Title (e.g. FULL FARM DOCUMENTATION)
+                        </Label>
+                        <Input
+                          value={formData.deliverablesSubTitle || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              deliverablesSubTitle: e.target.value,
+                            })
+                          }
+                          placeholder="Enter sub title"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-slate-700 uppercase">
+                          Main Title (e.g. Complete Visual Package)
+                        </Label>
+                        <Input
+                          value={formData.deliverablesTitle || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              deliverablesTitle: e.target.value,
+                            })
+                          }
+                          placeholder="Enter main title"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-slate-700 uppercase">
+                          Total Investment (Ksh)
+                        </Label>
+                        <Input
+                          type="number"
+                          value={formData.deliverablesPrice || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              deliverablesPrice: e.target.value,
+                            })
+                          }
+                          placeholder="e.g. 40000"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-slate-700 uppercase">
+                          Additional Note (e.g. + Transport at cost)
+                        </Label>
+                        <Input
+                          value={formData.deliverablesNote || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              deliverablesNote: e.target.value,
+                            })
+                          }
+                          placeholder="Enter note"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 mt-4">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-sm font-bold text-slate-700 uppercase">
+                          Tasks
+                        </Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={addDeliverableTask}
+                          className="text-primary border-primary/20 hover:bg-primary/5 rounded-full"
+                        >
+                          <Plus className="w-4 h-4 mr-1" /> Add Task
+                        </Button>
+                      </div>
+
+                      {deliverableTasks.map((task, tIndex) => (
+                        <div
+                          key={task.id}
+                          className="p-4 border rounded relative bg-white"
+                        >
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2 text-slate-400 hover:text-red-500"
+                            onClick={() => removeDeliverableTask(task.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                          <div className="space-y-3">
+                            <div className="space-y-2 pr-10">
+                              <Label className="text-xs font-bold text-slate-700 uppercase">
+                                Task Title
+                              </Label>
+                              <Input
+                                value={task.title}
+                                onChange={(e) =>
+                                  updateDeliverableTask(
+                                    task.id,
+                                    "title",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="e.g. FARM PROGRESS COVERAGE"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs font-bold text-slate-700 uppercase">
+                                Deliverables
+                              </Label>
+                              {task.items.map((item, iIndex) => (
+                                <div
+                                  key={iIndex}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <span className="text-slate-400 font-mono text-xs">
+                                    {iIndex + 1}.
+                                  </span>
+                                  <Input
+                                    value={item}
+                                    onChange={(e) =>
+                                      updateDeliverableItem(
+                                        task.id,
+                                        iIndex,
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="e.g. Drone video of seedlings"
+                                    className="flex-1"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                      removeDeliverableItem(task.id, iIndex)
+                                    }
+                                    className="text-slate-400 hover:text-red-500"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => addDeliverableItem(task.id)}
+                                className="text-primary mt-1"
+                              >
+                                <Plus className="w-3 h-3 mr-1" /> Add Expected
+                                Deliverable
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Investment Packages */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                      <Package className="w-4 h-4 mr-2" />
+                      Investment Packages
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addPackage}
+                      className="text-primary border-primary/20 hover:bg-primary/5 rounded-full"
+                    >
+                      <Plus className="w-4 h-4 mr-1" /> Add New Package
+                    </Button>
+                  </div>
+
+                  {packages.map((pkg, pIndex) => (
+                    <div
+                      key={pkg.id}
+                      className="bg-white rounded-xl border shadow-sm overflow-hidden"
+                    >
+                      <div className="bg-slate-50 px-6 py-4 flex items-center justify-between border-b">
+                        <div className="flex items-center space-x-3 flex-1">
+                          <span className="text-primary font-bold">
+                            #{pIndex + 1}
+                          </span>
+                          <Input
+                            value={pkg.name}
+                            onChange={(e) =>
+                              updatePackage(pkg.id, "name", e.target.value)
+                            }
+                            className="font-bold text-lg border-transparent bg-transparent hover:border-slate-200 focus:bg-white h-8 px-2 w-1/2"
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removePackage(pkg.id)}
+                          className="text-slate-400 hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+
+                      <div className="p-6 space-y-6">
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-xs font-bold text-slate-500 uppercase">
+                              Inclusions & Scope
+                            </Label>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addInclusion(pkg.id)}
+                              className="h-7 text-xs rounded-full"
+                            >
+                              <Plus className="w-3 h-3 mr-1" /> Add Inclusion
+                            </Button>
+                          </div>
+                          {pkg.inclusions.map((inc, iIndex) => (
+                            <div
+                              key={iIndex}
+                              className="flex items-center gap-2"
+                            >
+                              <Input
+                                placeholder="Description of service inclusion..."
+                                value={inc}
+                                onChange={(e) =>
+                                  updateInclusion(
+                                    pkg.id,
+                                    iIndex,
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeInclusion(pkg.id, iIndex)}
+                                className="text-slate-400 hover:text-destructive shrink-0"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="flex justify-between items-end pt-4 border-t">
+                          <div className="flex items-center space-x-3">
+                            <Label className="text-xs font-bold text-slate-500 uppercase">
+                              Settlement:
+                            </Label>
+                            <div className="relative w-32">
+                              <span className="absolute left-3 top-2.5 text-slate-500 text-sm">
+                                Ksh
+                              </span>
+                              <Input
+                                type="number"
+                                className="pl-10 bg-slate-50"
+                                value={pkg.settlement || ""}
+                                onChange={(e) =>
+                                  updatePackage(
+                                    pkg.id,
+                                    "settlement",
+                                    Number(e.target.value),
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-bold text-slate-500 uppercase mb-1">
+                              Total Valuation
+                            </p>
+                            <p className="text-2xl font-bold">
+                              Ksh {pkg.settlement.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {packages.length === 0 && (
+                    <div className="bg-white p-8 rounded-xl border shadow-sm text-center border-dashed">
+                      <p className="text-slate-500 mb-4">
+                        No packages added yet.
                       </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addPackage}
+                      >
+                        Add First Package
+                      </Button>
                     </div>
                   )}
                 </div>
-              </div>
 
-              {/* Deliverables By Task (Optional) */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
+                {/* Note */}
+                <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
                   <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
-                    <CheckSquare className="w-4 h-4 mr-2" />
-                    Deliverables by Task (Optional)
+                    <StickyNote className="w-4 h-4 mr-2 text-primary" />
+                    Note
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="note"
+                      className="text-xs font-bold text-slate-500 uppercase"
+                    >
+                      Note (Optional)
+                    </Label>
+                    <Textarea
+                      id="note"
+                      placeholder="Add a note to the client..."
+                      value={formData.note}
+                      onChange={(e) =>
+                        setFormData({ ...formData, note: e.target.value })
+                      }
+                      className="min-h-[100px]"
+                    />
                   </div>
                 </div>
 
-                <div className="p-4 border rounded-lg bg-slate-50 space-y-4">
-                  <p className="text-xs text-slate-500 mb-2">Leave the title blank if you do not want to include this section in the quote.</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                       <Label className="text-xs font-bold text-slate-700 uppercase">Sub Title (e.g. FULL FARM DOCUMENTATION)</Label>
-                       <Input value={formData.deliverablesSubTitle || ''} onChange={e => setFormData({ ...formData, deliverablesSubTitle: e.target.value })} placeholder="Enter sub title" />
-                    </div>
-                    <div className="space-y-2">
-                       <Label className="text-xs font-bold text-slate-700 uppercase">Main Title (e.g. Complete Visual Package)</Label>
-                       <Input value={formData.deliverablesTitle || ''} onChange={e => setFormData({ ...formData, deliverablesTitle: e.target.value })} placeholder="Enter main title" />
-                    </div>
-                    <div className="space-y-2">
-                       <Label className="text-xs font-bold text-slate-700 uppercase">Total Investment (Ksh)</Label>
-                       <Input type="number" value={formData.deliverablesPrice || ''} onChange={e => setFormData({ ...formData, deliverablesPrice: e.target.value })} placeholder="e.g. 40000" />
-                    </div>
-                    <div className="space-y-2">
-                       <Label className="text-xs font-bold text-slate-700 uppercase">Additional Note (e.g. + Transport at cost)</Label>
-                       <Input value={formData.deliverablesNote || ''} onChange={e => setFormData({ ...formData, deliverablesNote: e.target.value })} placeholder="Enter note" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 mt-4">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-sm font-bold text-slate-700 uppercase">Tasks</Label>
-                      <Button type="button" variant="outline" size="sm" onClick={addDeliverableTask} className="text-primary border-primary/20 hover:bg-primary/5 rounded-full">
-                        <Plus className="w-4 h-4 mr-1" /> Add Task
-                      </Button>
-                    </div>
-
-                    {deliverableTasks.map((task, tIndex) => (
-                      <div key={task.id} className="p-4 border rounded relative bg-white">
-                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 text-slate-400 hover:text-red-500" onClick={() => removeDeliverableTask(task.id)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                        <div className="space-y-3">
-                          <div className="space-y-2 pr-10">
-                            <Label className="text-xs font-bold text-slate-700 uppercase">Task Title</Label>
-                            <Input value={task.title} onChange={(e) => updateDeliverableTask(task.id, 'title', e.target.value)} placeholder="e.g. FARM PROGRESS COVERAGE" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs font-bold text-slate-700 uppercase">Deliverables</Label>
-                            {task.items.map((item, iIndex) => (
-                              <div key={iIndex} className="flex items-center space-x-2">
-                                <span className="text-slate-400 font-mono text-xs">{iIndex + 1}.</span>
-                                <Input value={item} onChange={(e) => updateDeliverableItem(task.id, iIndex, e.target.value)} placeholder="e.g. Drone video of seedlings" className="flex-1" />
-                                <Button type="button" variant="ghost" size="icon" onClick={() => removeDeliverableItem(task.id, iIndex)} className="text-slate-400 hover:text-red-500">
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ))}
-                            <Button type="button" variant="ghost" size="sm" onClick={() => addDeliverableItem(task.id)} className="text-primary mt-1">
-                              <Plus className="w-3 h-3 mr-1" /> Add Expected Deliverable
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Investment Packages */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
+                {/* Legal & Delivery Terms */}
+                <div className="bg-white p-6 rounded-xl border shadow-sm space-y-6">
                   <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
-                    <Package className="w-4 h-4 mr-2" />
-                    Investment Packages
+                    <ShieldCheck className="w-4 h-4 mr-2 text-primary" />
+                    Legal & Delivery Terms
                   </div>
-                  <Button type="button" variant="outline" size="sm" onClick={addPackage} className="text-primary border-primary/20 hover:bg-primary/5 rounded-full">
-                    <Plus className="w-4 h-4 mr-1" /> Add New Package
-                  </Button>
-                </div>
-
-                {packages.map((pkg, pIndex) => (
-                  <div key={pkg.id} className="bg-white rounded-xl border shadow-sm overflow-hidden">
-                    <div className="bg-slate-50 px-6 py-4 flex items-center justify-between border-b">
-                      <div className="flex items-center space-x-3 flex-1">
-                        <span className="text-primary font-bold">#{pIndex + 1}</span>
-                        <Input 
-                          value={pkg.name} 
-                          onChange={(e) => updatePackage(pkg.id, 'name', e.target.value)} 
-                          className="font-bold text-lg border-transparent bg-transparent hover:border-slate-200 focus:bg-white h-8 px-2 w-1/2"
-                        />
-                      </div>
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removePackage(pkg.id)} className="text-slate-400 hover:text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="retainerClause"
+                        className="text-xs font-bold text-slate-500 uppercase"
+                      >
+                        Retainer & Booking Clause
+                      </Label>
+                      <Textarea
+                        id="retainerClause"
+                        value={formData.retainerClause}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            retainerClause: e.target.value,
+                          })
+                        }
+                      />
+                      <p className="text-xs text-slate-400">
+                        Appears in the "Financial Terms" section of the
+                        document.
+                      </p>
                     </div>
-                    
-                    <div className="p-6 space-y-6">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <Label className="text-xs font-bold text-slate-500 uppercase">Inclusions & Scope</Label>
-                          <Button type="button" variant="outline" size="sm" onClick={() => addInclusion(pkg.id)} className="h-7 text-xs rounded-full">
-                            <Plus className="w-3 h-3 mr-1" /> Add Inclusion
-                          </Button>
-                        </div>
-                        {pkg.inclusions.map((inc, iIndex) => (
-                          <div key={iIndex} className="flex items-center gap-2">
-                            <Input 
-                              placeholder="Description of service inclusion..." 
-                              value={inc} 
-                              onChange={(e) => updateInclusion(pkg.id, iIndex, e.target.value)} 
-                            />
-                            <Button type="button" variant="ghost" size="icon" onClick={() => removeInclusion(pkg.id, iIndex)} className="text-slate-400 hover:text-destructive shrink-0">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex justify-between items-end pt-4 border-t">
-                        <div className="flex items-center space-x-3">
-                          <Label className="text-xs font-bold text-slate-500 uppercase">Settlement:</Label>
-                          <div className="relative w-32">
-                            <span className="absolute left-3 top-2.5 text-slate-500 text-sm">Ksh</span>
-                            <Input 
-                              type="number" 
-                              className="pl-10 bg-slate-50" 
-                              value={pkg.settlement || ''} 
-                              onChange={(e) => updatePackage(pkg.id, 'settlement', Number(e.target.value))} 
-                            />
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs font-bold text-slate-500 uppercase mb-1">Total Valuation</p>
-                          <p className="text-2xl font-bold">Ksh {pkg.settlement.toLocaleString()}</p>
-                        </div>
-                      </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="fulfillmentSchedule"
+                        className="text-xs font-bold text-slate-500 uppercase"
+                      >
+                        Fulfillment Schedule
+                      </Label>
+                      <Textarea
+                        id="fulfillmentSchedule"
+                        value={formData.fulfillmentSchedule}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            fulfillmentSchedule: e.target.value,
+                          })
+                        }
+                      />
+                      <p className="text-xs text-slate-400">
+                        Appears in the "Deliverables" section of the document.
+                      </p>
                     </div>
                   </div>
-                ))}
-                {packages.length === 0 && (
-                  <div className="bg-white p-8 rounded-xl border shadow-sm text-center border-dashed">
-                    <p className="text-slate-500 mb-4">No packages added yet.</p>
-                    <Button type="button" variant="outline" onClick={addPackage}>Add First Package</Button>
-                  </div>
-                )}
-              </div>
+                </div>
 
-              {/* Note */}
-              <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
-                <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
-                  <StickyNote className="w-4 h-4 mr-2 text-primary" />
-                  Note
+                {/* Detailed Terms & Logistics */}
+                <div className="bg-white p-6 rounded-xl border shadow-sm space-y-6">
+                  <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
+                    <FileCheck2 className="w-4 h-4 mr-2 text-primary" />
+                    Detailed Terms & Logistics
+                  </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="usageLicense"
+                        className="text-xs font-bold text-slate-500 uppercase"
+                      >
+                        Usage License
+                      </Label>
+                      <Textarea
+                        id="usageLicense"
+                        placeholder="e.g. Social Media & Web Use only..."
+                        value={formData.usageLicense}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            usageLicense: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="usageRights"
+                        className="text-xs font-bold text-slate-500 uppercase"
+                      >
+                        Usage Rights (Copyright)
+                      </Label>
+                      <Textarea
+                        id="usageRights"
+                        value={formData.usageRights}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            usageRights: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="transportLogistics"
+                        className="text-xs font-bold text-slate-500 uppercase"
+                      >
+                        Transport & Logistics
+                      </Label>
+                      <Textarea
+                        id="transportLogistics"
+                        value={formData.transportLogistics}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            transportLogistics: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="cancellationRescheduling"
+                        className="text-xs font-bold text-slate-500 uppercase"
+                      >
+                        Cancellation & Rescheduling
+                      </Label>
+                      <Textarea
+                        id="cancellationRescheduling"
+                        value={formData.cancellationRescheduling}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            cancellationRescheduling: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="paymentDetails"
+                        className="text-xs font-bold text-slate-500 uppercase"
+                      >
+                        Payment Details
+                      </Label>
+                      <Textarea
+                        id="paymentDetails"
+                        value={formData.paymentDetails}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            paymentDetails: e.target.value,
+                          })
+                        }
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="note" className="text-xs font-bold text-slate-500 uppercase">Note (Optional)</Label>
-                  <Textarea id="note" placeholder="Add a note to the client..." value={formData.note} onChange={(e) => setFormData({...formData, note: e.target.value})} className="min-h-[100px]" />
-                </div>
-              </div>
 
-              {/* Legal & Delivery Terms */}
-              <div className="bg-white p-6 rounded-xl border shadow-sm space-y-6">
-                <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
-                  <ShieldCheck className="w-4 h-4 mr-2 text-primary" />
-                  Legal & Delivery Terms
-                </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="retainerClause" className="text-xs font-bold text-slate-500 uppercase">Retainer & Booking Clause</Label>
-                    <Textarea id="retainerClause" value={formData.retainerClause} onChange={(e) => setFormData({...formData, retainerClause: e.target.value})} />
-                    <p className="text-xs text-slate-400">Appears in the "Financial Terms" section of the document.</p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="fulfillmentSchedule" className="text-xs font-bold text-slate-500 uppercase">Fulfillment Schedule</Label>
-                    <Textarea id="fulfillmentSchedule" value={formData.fulfillmentSchedule} onChange={(e) => setFormData({...formData, fulfillmentSchedule: e.target.value})} />
-                    <p className="text-xs text-slate-400">Appears in the "Deliverables" section of the document.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Detailed Terms & Logistics */}
-              <div className="bg-white p-6 rounded-xl border shadow-sm space-y-6">
-                <div className="flex items-center text-sm font-bold tracking-widest uppercase text-slate-800">
-                  <FileCheck2 className="w-4 h-4 mr-2 text-primary" />
-                  Detailed Terms & Logistics
-                </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="usageLicense" className="text-xs font-bold text-slate-500 uppercase">Usage License</Label>
-                    <Textarea id="usageLicense" placeholder="e.g. Social Media & Web Use only..." value={formData.usageLicense} onChange={(e) => setFormData({...formData, usageLicense: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="usageRights" className="text-xs font-bold text-slate-500 uppercase">Usage Rights (Copyright)</Label>
-                    <Textarea id="usageRights" value={formData.usageRights} onChange={(e) => setFormData({...formData, usageRights: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="transportLogistics" className="text-xs font-bold text-slate-500 uppercase">Transport & Logistics</Label>
-                    <Textarea id="transportLogistics" value={formData.transportLogistics} onChange={(e) => setFormData({...formData, transportLogistics: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cancellationRescheduling" className="text-xs font-bold text-slate-500 uppercase">Cancellation & Rescheduling</Label>
-                    <Textarea id="cancellationRescheduling" value={formData.cancellationRescheduling} onChange={(e) => setFormData({...formData, cancellationRescheduling: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="paymentDetails" className="text-xs font-bold text-slate-500 uppercase">Payment Details</Label>
-                    <Textarea id="paymentDetails" value={formData.paymentDetails} onChange={(e) => setFormData({...formData, paymentDetails: e.target.value})} className="min-h-[100px]" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="sticky bottom-0 bg-white border-t p-4 flex flex-col-reverse sm:flex-row justify-between items-center gap-3 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 mt-8 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-full px-6 w-full sm:w-auto">
-                  Discard Quote
-                </Button>
-                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
-                  <Button type="button" variant="outline" onClick={() => setIsPreviewOpen(true)} className="text-primary border-primary/20 hover:bg-primary/5 rounded-full px-6 w-full sm:w-auto">
-                    <ExternalLink className="w-4 h-4 mr-2" /> Review Document
+                {/* Action Buttons */}
+                <div className="sticky bottom-0 bg-white border-t p-4 flex flex-col-reverse sm:flex-row justify-between items-center gap-3 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 mt-8 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="rounded-full px-6 w-full sm:w-auto"
+                  >
+                    Discard Quote
                   </Button>
-                  <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6 w-full sm:w-auto">
-                    Generate & Save Quote
-                  </Button>
+                  <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsPreviewOpen(true)}
+                      className="text-primary border-primary/20 hover:bg-primary/5 rounded-full px-6 w-full sm:w-auto"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" /> Review Document
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6 w-full sm:w-auto"
+                    >
+                      Generate & Save Quote
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </form>
+              </form>
             </div>
           </DialogContent>
         </Dialog>
@@ -911,289 +1577,476 @@ export function Quotes() {
         <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
           <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50 flex flex-col">
             <div className="sticky top-0 z-10 bg-white border-b px-4 sm:px-6 py-4 flex justify-between items-center shrink-0">
-              <DialogTitle className="text-xl font-bold">Quote Preview</DialogTitle>
+              <DialogTitle className="text-xl font-bold">
+                Quote Preview
+              </DialogTitle>
             </div>
-            
-            <div className="overflow-y-auto flex-1">
-            <div className="p-6 sm:p-12 m-4 sm:m-6 bg-white shadow-xl border border-slate-100 relative overflow-hidden font-sans text-slate-800">
-              {/* Decorative Top Line */}
-              <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(settings.colorScheme)}`}></div>
 
-              {/* Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-start mb-12">
-                <div className="mb-6 sm:mb-0">
-                  {settings.logoUrl && (
-                    <img src={settings.logoUrl} alt="Company Logo" className="h-12 object-contain mb-6" />
-                  )}
-                  <h2 className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Proposal For</h2>
-                  <h1 className="text-3xl sm:text-4xl font-serif text-slate-900 leading-tight">{formData.clientName || 'Client Name'}</h1>
-                  <p className="text-base text-slate-500 mt-2 font-serif italic mb-3">
-                    {formData.projectTitle || 'Project Title'}
-                    {formData.revisionOf && (
-                      <span className="ml-2 text-[10px] font-sans font-bold tracking-widest uppercase text-slate-400 border border-slate-200 px-2 py-0.5 rounded-full align-middle">
-                        Revision
+            <div className="w-full bg-[#FAF8F4] overflow-x-auto">
+              <style
+                dangerouslySetInnerHTML={{
+                  __html: `
+                .quote-root {
+                  --cream: #FAF8F4;
+                  --warm-white: #F5F2EC;
+                  --gold: #B8965A;
+                  --gold-light: #D4AC6E;
+                  --ink: #1C1C1C;
+                  --ink-mid: #3A3A3A;
+                  --ink-soft: #888880;
+                  --rule: #DDD8CE;
+                  --highlight: #F0EBE0;
+                  background: var(--cream);
+                  color: var(--ink);
+                  font-family: 'Jost', sans-serif;
+                  font-weight: 300;
+                  line-height: 1.6;
+                  text-align: left;
+                }
+                .quote-root * { box-sizing: border-box; margin: 0; padding: 0; }
+                .quote-root .page { max-width: 760px; margin: 0 auto; padding: 64px 48px 80px; }
+
+                /* ── HEADER ── */
+                .quote-root .header { text-align: center; padding-bottom: 48px; border-bottom: 1px solid var(--rule); margin-bottom: 48px; }
+                .quote-root .studio-name { font-family: 'Jost', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); margin-bottom: 18px; }
+                .quote-root .header h1 { font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 48px; line-height: 1.1; color: var(--ink); letter-spacing: -0.5px; margin-bottom: 8px; }
+                .quote-root .header h1 em { font-style: italic; color: var(--gold); }
+                .quote-root .header-sub { font-size: 13px; font-weight: 400; letter-spacing: 1px; color: var(--ink-soft); margin-top: 10px; }
+
+                /* ── CLIENT META ── */
+                .quote-root .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 40px; padding: 28px 32px; background: var(--warm-white); border-left: 3px solid var(--gold); margin-bottom: 52px; font-size: 13px; }
+                .quote-root .meta-row { display: flex; gap: 8px; }
+                .quote-root .meta-label { font-weight: 500; color: var(--ink-mid); min-width: 80px; }
+                .quote-root .meta-value { color: var(--ink-soft); }
+
+                /* ── SECTION LABEL ── */
+                .quote-root .section-label { font-size: 10px; font-weight: 600; letter-spacing: 3.5px; text-transform: uppercase; color: var(--ink-soft); display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+                .quote-root .section-label::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+                /* ── PACKAGES GRID ── */
+                .quote-root .packages-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+                .quote-root .package-card { border: 1px solid var(--rule); padding: 28px 26px 22px; position: relative; background: #fff; }
+                .quote-root .package-card.featured { border-color: var(--gold); background: var(--ink); grid-column: 1 / -1; }
+                .quote-root .package-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
+                .quote-root .package-card.featured .package-header { border-bottom-color: rgba(255,255,255,0.12); }
+                .quote-root .package-tier { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--ink-soft); }
+                .quote-root .package-card.featured .package-tier { color: var(--gold-light); }
+                .quote-root .package-price { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 400; color: var(--ink); line-height: 1; }
+                .quote-root .package-card.featured .package-price { color: #fff; }
+                .quote-root .package-price span { font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 400; color: var(--ink-soft); vertical-align: middle; margin-right: 3px; border:none; padding:0; background:transparent;}
+                .quote-root .package-card.featured .package-price span { color: rgba(255,255,255,0.5); }
+                .quote-root .inclusions-label { font-size: 9px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 12px; }
+                .quote-root .package-card.featured .inclusions-label { color: rgba(255,255,255,0.4); }
+                .quote-root .inclusion-list { list-style: none; display: flex; flex-direction: column; gap: 9px; padding-left: 0; }
+                .quote-root .inclusion-list li { font-size: 13.5px; font-weight: 300; color: var(--ink-mid); padding-left: 14px; position: relative; line-height: 1.45; }
+                .quote-root .inclusion-list li::before { content: '·'; position: absolute; left: 0; color: var(--gold); font-size: 18px; line-height: 1.1; }
+                .quote-root .package-card.featured .inclusion-list li { color: rgba(255,255,255,0.75); }
+                .quote-root .package-card.featured .inclusion-list li::before { color: var(--gold-light); }
+                .quote-root .total-row { display: flex; justify-content: space-between; align-items: center; padding-top: 18px; margin-top: auto; border-top: 1px solid var(--rule); font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-soft); }
+                .quote-root .package-card.featured .total-row { border-top-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.45); }
+                .quote-root .total-amount { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; color: var(--ink); letter-spacing: 0; text-transform: none; }
+                .quote-root .package-card.featured .total-amount { color: #fff; }
+                .quote-root .premium-badge { position: absolute; top: -1px; right: 28px; background: var(--gold); color: #fff; font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; padding: 4px 12px; }
+
+                /* ── FEATURED 2-COL BODY ── */
+                .quote-root .featured-body { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px;}
+
+                /* ── ADD-ON ── */
+                .quote-root .addon { margin-top: 20px; padding: 20px 26px; border: 1px dashed var(--gold); background: var(--warm-white); display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+                .quote-root .addon-label { font-size: 10px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+                .quote-root .addon-desc { font-size: 13px; color: var(--ink-mid); font-weight: 300; line-height: 1.5; }
+                .quote-root .addon-price { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 400; color: var(--ink); white-space: nowrap; }
+                .quote-root .addon-price span { font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 400; color: var(--ink-soft); margin-right: 2px; vertical-align: middle; border:none; background:transparent;}
+                .quote-root .addon-note { font-size: 11px; color: var(--ink-soft); margin-top: 4px; font-style: italic; }
+
+                /* ── TERMS SECTION ── */
+                .quote-root .terms { margin-top: 56px; }
+                .quote-root .terms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px 40px; margin-top: 4px; }
+                .quote-root .term-block { padding-top: 20px; }
+                .quote-root .term-title { font-size: 10px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--ink); margin-bottom: 8px; }
+                .quote-root .term-body { font-size: 13px; font-weight: 300; color: var(--ink-soft); line-height: 1.65; white-space: pre-wrap; }
+
+                /* ── PAYMENT DETAILS ── */
+                .quote-root .payment { margin-top: 48px; padding: 28px 32px; background: var(--warm-white); border-top: 2px solid var(--ink); }
+                .quote-root .payment-title { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--ink); margin-bottom: 16px; }
+                .quote-root .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 40px; font-size: 13px; color: var(--ink-soft); font-weight: 300; }
+                .quote-root .payment-grid div { word-break: break-word; }
+
+                /* ── NOTE ── */
+                .quote-root .note { margin-top: 32px; padding: 18px 24px; border-left: 3px solid var(--gold); background: #fff; }
+                .quote-root .note-label { font-size: 9px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+                .quote-root .note-label::before { content: '✦'; font-size: 8px; }
+                .quote-root .note-body { font-size: 13px; color: var(--ink-mid); font-weight: 400; line-height: 1.7; white-space: pre-wrap; }
+
+                /* ── FOOTER ── */
+                .quote-root .footer { margin-top: 52px; padding-top: 24px; border-top: 1px solid var(--rule); text-align: center; }
+                .quote-root .footer-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: var(--ink); margin-bottom: 6px; }
+                .quote-root .footer-contact { font-size: 12px; font-weight: 300; color: var(--ink-soft); letter-spacing: 0.5px; line-height: 1.8; }
+
+                @media print {
+                  .quote-root { background: white; }
+                  .quote-root .page { padding: 32px; }
+                }
+              `,
+                }}
+              />
+              <div
+                ref={quoteRef}
+                className="quote-root w-full mx-auto max-w-[760px] pb-10"
+              >
+                <div className="page">
+                  {/* HEADER */}
+                  <header className="header">
+                    <div className="studio-name">
+                      {settings.companyName || "Mwabonje Photography"}
+                    </div>
+                    <h1>
+                      {formData.projectTitle ? (
+                        <>
+                          {formData.projectTitle
+                            .split(" ")
+                            .slice(0, -1)
+                            .join(" ")}{" "}
+                          <em>{formData.projectTitle.split(" ").slice(-1)}</em>{" "}
+                          Quotation
+                        </>
+                      ) : (
+                        <>
+                          Project <em>Quotation</em>
+                        </>
+                      )}
+                    </h1>
+                    <div className="header-sub">
+                      Quote No. {formData.quoteNumber}
+                    </div>
+                  </header>
+
+                  {/* CLIENT META */}
+                  <div className="meta">
+                    <div className="meta-row">
+                      <span className="meta-label">Client</span>
+                      <span className="meta-value">
+                        {formData.clientName || "Client Name"}
                       </span>
-                    )}
-                  </p>
-                  {(formData.clientEmail || formData.clientPhone) && (
-                    <div className="text-xs text-slate-500 space-y-1">
-                      {formData.clientEmail && <p>{formData.clientEmail}</p>}
-                      {formData.clientPhone && <p>{formData.clientPhone}</p>}
                     </div>
-                  )}
-                </div>
-                <div className="text-left sm:text-right">
-                  <h2 className="text-2xl sm:text-3xl font-serif text-slate-200 tracking-widest uppercase mb-4">Quote</h2>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Quote No.</p>
-                    <p className="text-xs text-slate-800 mb-3 font-mono">{formData.quoteNumber || 'N/A'}</p>
-                    
-                    <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Issue Date</p>
-                    <p className="text-xs text-slate-800 mb-3">{formData.issueDate ? format(new Date(formData.issueDate), 'MMMM d, yyyy') : 'N/A'}</p>
-                    
+                    <div className="meta-row">
+                      <span className="meta-label">Date</span>
+                      <span className="meta-value">
+                        {formData.issueDate
+                          ? format(
+                              new Date(formData.issueDate),
+                              "dd · MM · yyyy",
+                            )
+                          : "N/A"}
+                      </span>
+                    </div>
+                    <div className="meta-row">
+                      <span className="meta-label">Project</span>
+                      <span className="meta-value">
+                        {formData.projectTitle || "N/A"}
+                      </span>
+                    </div>
                     {formData.eventDate && (
-                      <>
-                        <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">Event Date</p>
-                        <p className="text-xs text-slate-800">{format(new Date(formData.eventDate), 'MMMM d, yyyy')}</p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="w-full h-px bg-slate-200 mb-12"></div>
-
-              {/* Deliverables Preview */}
-              {(formData.deliverablesTitle || formData.deliverablesSubTitle || formData.deliverablesPrice || deliverableTasks.length > 0) && (
-                <div className="mb-12 bg-[#1a1b1a] text-white py-8 px-6 sm:p-12 -mx-6 sm:-mx-12 shadow-lg ring-1 ring-white/10 break-inside-avoid">
-                  {/* Header Row */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 border-b border-white/10 pb-8 gap-6">
-                    <div>
-                      {formData.deliverablesSubTitle && (
-                        <p className="text-[#d88c42] text-[10px] font-bold tracking-[0.2em] uppercase mb-2">
-                          {formData.deliverablesSubTitle}
-                        </p>
-                      )}
-                      {formData.deliverablesTitle && (
-                        <h3 className="text-3xl font-serif text-[#f4ecd8]">
-                          {formData.deliverablesTitle}
-                        </h3>
-                      )}
-                    </div>
-                    {formData.deliverablesPrice && (
-                      <div className="text-left sm:text-right shrink-0">
-                        <p className="text-white/40 text-[10px] font-bold tracking-[0.15em] uppercase mb-1">
-                          Total Investment
-                        </p>
-                        <p className="text-3xl font-serif text-white">
-                          <span className="text-sm text-white/50 mr-1 select-none">Ksh</span> 
-                          {Number(formData.deliverablesPrice).toLocaleString()}
-                        </p>
-                        {formData.deliverablesNote && (
-                          <p className="text-[#a1a1aa] text-xs mt-1">
-                            {formData.deliverablesNote}
-                          </p>
-                        )}
+                      <div className="meta-row">
+                        <span className="meta-label">Event Date</span>
+                        <span className="meta-value">
+                          {format(
+                            new Date(formData.eventDate),
+                            "dd · MM · yyyy",
+                          )}
+                        </span>
                       </div>
                     )}
                   </div>
 
-                  {/* Tasks Section */}
-                  <div>
-                    <h4 className="text-white/40 text-[10px] font-bold tracking-[0.2em] uppercase mb-8">
-                      Deliverables By Task
-                    </h4>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                      {deliverableTasks.map((task, idx) => (
-                        <div key={task.id} className="space-y-4">
-                          <div className="flex items-center space-x-3 border-b border-white/10 pb-3">
-                            <span className="bg-[#3e5e3d] text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-sm shrink-0">
-                              {idx + 1}
-                            </span>
-                            <h5 className="text-[#d88c42] text-xs font-bold tracking-[0.15em] uppercase">
-                              {task.title}
-                            </h5>
+                  {/* PACKAGES */}
+                  {packages && packages.length > 0 && (
+                    <>
+                      <div className="section-label">Packages</div>
+                      <div className="packages-grid">
+                        {packages.map((pkg, index) => {
+                          const isFeatured =
+                            packages.length > 2 &&
+                            index === packages.length - 1; // Last item featured if there are more than 2
+                          return (
+                            <div
+                              key={pkg.id}
+                              className={`package-card ${isFeatured ? "featured" : ""} flex flex-col`}
+                            >
+                              {isFeatured && (
+                                <span className="premium-badge">
+                                  Most Popular
+                                </span>
+                              )}
+                              <div className="package-header w-full">
+                                <div>
+                                  <div className="package-tier">
+                                    {pkg.name || `Package ${index + 1}`}
+                                  </div>
+                                </div>
+                                <div className="package-price">
+                                  <span>Ksh</span>
+                                  {pkg.settlement.toLocaleString()}
+                                </div>
+                              </div>
+
+                              {isFeatured ? (
+                                <div className="featured-body w-full">
+                                  <div>
+                                    <div className="inclusions-label">
+                                      Inclusions
+                                    </div>
+                                    <ul className="inclusion-list">
+                                      {pkg.inclusions
+                                        .slice(
+                                          0,
+                                          Math.ceil(pkg.inclusions.length / 2),
+                                        )
+                                        .map((inc, i) => (
+                                          <li key={i}>{inc || "—"}</li>
+                                        ))}
+                                    </ul>
+                                  </div>
+                                  <div>
+                                    <div className="inclusions-label">
+                                      Extras
+                                    </div>
+                                    <ul className="inclusion-list">
+                                      {pkg.inclusions
+                                        .slice(
+                                          Math.ceil(pkg.inclusions.length / 2),
+                                        )
+                                        .map((inc, i) => (
+                                          <li key={i}>{inc || "—"}</li>
+                                        ))}
+                                    </ul>
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="inclusions-label">
+                                    Inclusions
+                                  </div>
+                                  <ul className="inclusion-list mb-auto w-full">
+                                    {pkg.inclusions.map((inc, i) => (
+                                      <li key={i}>{inc || "—"}</li>
+                                    ))}
+                                  </ul>
+                                </>
+                              )}
+
+                              <div className="total-row w-full mt-auto">
+                                <span>Total Investment</span>
+                                <span className="total-amount">
+                                  Ksh {pkg.settlement.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+
+                  {/* NOTE */}
+                  {formData.note && (
+                    <div className="note">
+                      <div className="note-label">Note</div>
+                      <div className="note-body">{formData.note}</div>
+                    </div>
+                  )}
+
+                  {/* TERMS */}
+                  {(formData.retainerClause ||
+                    formData.fulfillmentSchedule ||
+                    formData.usageLicense ||
+                    formData.usageRights ||
+                    formData.transportLogistics ||
+                    formData.cancellationRescheduling) && (
+                    <div className="terms">
+                      <div className="section-label">Terms of Engagement</div>
+                      <div className="terms-grid">
+                        {formData.retainerClause && (
+                          <div className="term-block">
+                            <div className="term-title">
+                              Securing Your Session
+                            </div>
+                            <div className="term-body">
+                              {formData.retainerClause}
+                            </div>
                           </div>
-                          <ul className="space-y-3">
-                            {task.items.map((item, iDx) => (
-                              <li key={iDx} className="text-[#e2e8f0] text-sm flex items-start leading-relaxed font-normal">
-                                <span className="text-white/30 mr-3 shrink-0 select-none font-normal">·</span>
-                                <span className="font-normal">{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Packages */}
-              <div className="mb-12">
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] mb-6">Investment Options</h3>
-                
-                {packages.length === 0 ? (
-                  <p className="text-slate-400 italic font-serif text-sm">No packages detailed.</p>
-                ) : (
-                  <div className="space-y-6">
-                    {packages.map((pkg, index) => (
-                      <div key={pkg.id} className="border border-slate-200 p-6 relative group">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-slate-400 transition-colors"></div>
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-                          <h4 className="text-xl font-serif text-slate-900">{pkg.name || `Package ${index + 1}`}</h4>
-                          <span className="text-lg font-serif text-slate-900 tracking-wide">
-                            Ksh {pkg.settlement.toLocaleString()}
-                          </span>
-                        </div>
-                        {pkg.inclusions.length > 0 && (
-                          <ul className="columns-1 sm:columns-2 gap-x-6">
-                            {pkg.inclusions.map((inc, i) => (
-                              <li key={i} className="mb-2 flex items-start text-xs text-slate-600 break-inside-avoid">
-                                <span className="w-1 h-1 rounded-full bg-slate-300 mr-2 mt-1.5 shrink-0"></span>
-                                <span className="leading-relaxed">{inc || 'Empty inclusion'}</span>
-                              </li>
-                            ))}
-                          </ul>
+                        )}
+                        {formData.fulfillmentSchedule && (
+                          <div className="term-block">
+                            <div className="term-title">
+                              Production & Delivery
+                            </div>
+                            <div className="term-body">
+                              {formData.fulfillmentSchedule}
+                            </div>
+                          </div>
+                        )}
+                        {formData.usageLicense && (
+                          <div className="term-block">
+                            <div className="term-title">Usage License</div>
+                            <div className="term-body">
+                              {formData.usageLicense}
+                            </div>
+                          </div>
+                        )}
+                        {formData.usageRights && (
+                          <div className="term-block">
+                            <div className="term-title">Usage Rights</div>
+                            <div className="term-body">
+                              {formData.usageRights}
+                            </div>
+                          </div>
+                        )}
+                        {formData.transportLogistics && (
+                          <div className="term-block">
+                            <div className="term-title">
+                              Transport & Logistics
+                            </div>
+                            <div className="term-body">
+                              {formData.transportLogistics}
+                            </div>
+                          </div>
+                        )}
+                        {formData.cancellationRescheduling && (
+                          <div className="term-block">
+                            <div className="term-title">
+                              Cancellation Policy
+                            </div>
+                            <div className="term-body">
+                              {formData.cancellationRescheduling}
+                            </div>
+                          </div>
                         )}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                    </div>
+                  )}
 
-              {/* Note */}
-              {formData.note && (
-                <div className="mb-12">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] mb-4">Project Notes</h3>
-                  <div className="pl-4 border-l-2 border-slate-200">
-                    <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed font-serif italic">{formData.note}</p>
-                  </div>
-                </div>
-              )}
-
-              <div className="w-full h-px bg-slate-200 mb-8"></div>
-
-              {/* Terms */}
-              <div>
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-[0.15em] mb-6">Terms & Conditions</h3>
-                
-                <div className="flex flex-wrap -mx-6">
-                  {formData.retainerClause && (
-                    <div className="w-full md:w-1/2 px-6 mb-8">
-                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Retainer & Booking</h5>
-                      <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.retainerClause}</p>
-                    </div>
-                  )}
-                  {formData.fulfillmentSchedule && (
-                    <div className="w-full md:w-1/2 px-6 mb-8">
-                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Fulfillment Schedule</h5>
-                      <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.fulfillmentSchedule}</p>
-                    </div>
-                  )}
-                  {formData.usageLicense && (
-                    <div className="w-full md:w-1/2 px-6 mb-8">
-                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Usage License</h5>
-                      <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.usageLicense}</p>
-                    </div>
-                  )}
-                  {formData.usageRights && (
-                    <div className="w-full md:w-1/2 px-6 mb-8">
-                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Usage Rights</h5>
-                      <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.usageRights}</p>
-                    </div>
-                  )}
-                  {formData.transportLogistics && (
-                    <div className="w-full md:w-1/2 px-6 mb-8">
-                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Transport & Logistics</h5>
-                      <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.transportLogistics}</p>
-                    </div>
-                  )}
-                  {formData.cancellationRescheduling && (
-                    <div className="w-full md:w-1/2 px-6 mb-8">
-                      <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Cancellation</h5>
-                      <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.cancellationRescheduling}</p>
-                    </div>
-                  )}
-                  {formData.paymentDetails && (
-                    <div className="w-full px-6 mb-8">
-                      <div className="bg-slate-50 p-6 border border-slate-100">
-                        <h5 className="font-bold text-slate-900 mb-2 text-[10px] uppercase tracking-wider">Payment Details</h5>
-                        <p className="text-slate-500 text-xs whitespace-pre-wrap leading-relaxed">{formData.paymentDetails}</p>
+                  {/* PAYMENT DETAILS */}
+                  {(formData.paymentDetails || settings.paymentDetails) && (
+                    <div className="payment">
+                      <div className="payment-title">Payment Details</div>
+                      <div className="payment-grid">
+                        {(
+                          formData.paymentDetails ||
+                          settings.paymentDetails ||
+                          ""
+                        )
+                          .split("\\n")
+                          .map((line: string, i: number) => {
+                            const parts = line.split(":");
+                            if (parts.length > 1) {
+                              return (
+                                <div key={i}>
+                                  <strong>{parts[0].trim()}:</strong>{" "}
+                                  {parts.slice(1).join(":").trim()}
+                                </div>
+                              );
+                            }
+                            return <div key={i}>{line}</div>;
+                          })}
                       </div>
                     </div>
                   )}
+
+                  {/* FOOTER */}
+                  <footer className="footer">
+                    <div className="footer-name">
+                      {settings.companyName || "Mwabonje Photography"}
+                    </div>
+                    <div className="footer-contact">
+                      {settings.companyEmail} ·{" "}
+                      {settings.companyAddress || "Malindi, Kenya"}
+                      <br />
+                      {settings.companyWebsite} · {settings.companyPhone}
+                    </div>
+                  </footer>
                 </div>
               </div>
-              
-              {/* Footer Signature Area */}
-              <div className="mt-16 pt-8 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 sm:gap-0">
-                <div className="w-full sm:w-auto">
-                  <p className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase mb-6">Accepted By</p>
-                  <div className="w-full sm:w-32 h-px bg-slate-300 mb-2"></div>
-                  <p className="text-[10px] text-slate-500">Signature / Date</p>
-                </div>
-                <div className="text-left sm:text-right w-full sm:w-auto">
-                  <p className="font-bold text-slate-900 text-sm">{settings.companyName}</p>
-                  {settings.companyEmail && <p className="text-xs text-slate-500 break-all">{settings.companyEmail}</p>}
-                  {settings.companyPhone && <p className="text-xs text-slate-500">{settings.companyPhone}</p>}
-                  {settings.companyWebsite && <p className="text-xs text-slate-500 break-all">{settings.companyWebsite}</p>}
-                  {settings.companyAddress && <p className="text-xs text-slate-500 whitespace-pre-wrap mt-1">{settings.companyAddress}</p>}
-                  <p className="text-xs text-slate-500 mt-2 italic">Thank you for your business.</p>
-                </div>
-              </div>
-            </div>
             </div>
           </DialogContent>
         </Dialog>
 
-        <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
+        <Dialog
+          open={isApproveDialogOpen}
+          onOpenChange={setIsApproveDialogOpen}
+        >
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Approve Quote & Create Invoice</DialogTitle>
             </DialogHeader>
             <div className="space-y-6 py-4">
               <div className="space-y-3">
-                <Label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Selected Packages</Label>
-                <p className="text-xs text-slate-500 mb-2">Select the packages the client has chosen to proceed with.</p>
+                <Label className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                  Selected Packages
+                </Label>
+                <p className="text-xs text-slate-500 mb-2">
+                  Select the packages the client has chosen to proceed with.
+                </p>
                 {quoteToApprove?.packages.map((pkg) => (
-                  <div key={pkg.id} className="flex items-center space-x-3 p-3 border rounded-lg bg-slate-50">
-                    <Checkbox 
-                      id={`pkg-${pkg.id}`} 
+                  <div
+                    key={pkg.id}
+                    className="flex items-center space-x-3 p-3 border rounded-lg bg-slate-50"
+                  >
+                    <Checkbox
+                      id={`pkg-${pkg.id}`}
                       checked={selectedPackageIds.includes(pkg.id)}
                       onCheckedChange={(checked) => {
                         if (checked) {
-                          setSelectedPackageIds([...selectedPackageIds, pkg.id]);
+                          setSelectedPackageIds([
+                            ...selectedPackageIds,
+                            pkg.id,
+                          ]);
                         } else {
-                          setSelectedPackageIds(selectedPackageIds.filter(id => id !== pkg.id));
+                          setSelectedPackageIds(
+                            selectedPackageIds.filter((id) => id !== pkg.id),
+                          );
                         }
                       }}
                     />
-                    <Label htmlFor={`pkg-${pkg.id}`} className="flex-1 cursor-pointer font-medium">
+                    <Label
+                      htmlFor={`pkg-${pkg.id}`}
+                      className="flex-1 cursor-pointer font-medium"
+                    >
                       {pkg.name}
                     </Label>
-                    <span className="font-bold text-sm">KES {pkg.settlement.toLocaleString()}</span>
+                    <span className="font-bold text-sm">
+                      KES {pkg.settlement.toLocaleString()}
+                    </span>
                   </div>
                 ))}
               </div>
 
               <div className="space-y-3">
-                <Label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Deposit Required (%)</Label>
-                <p className="text-xs text-slate-500 mb-2">This will add a note to the invoice about the required deposit.</p>
-                <Input 
-                  type="number" 
-                  min="0" 
-                  max="100" 
-                  value={depositPercentage} 
+                <Label className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                  Deposit Required (%)
+                </Label>
+                <p className="text-xs text-slate-500 mb-2">
+                  This will add a note to the invoice about the required
+                  deposit.
+                </p>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={depositPercentage}
                   onChange={(e) => setDepositPercentage(Number(e.target.value))}
                 />
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button variant="outline" onClick={() => setIsApproveDialogOpen(false)}>Cancel</Button>
-              <Button 
-                onClick={handleApproveAndInvoice} 
+              <Button
+                variant="outline"
+                onClick={() => setIsApproveDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleApproveAndInvoice}
                 disabled={selectedPackageIds.length === 0}
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
@@ -1220,102 +2073,183 @@ export function Quotes() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {quotes.filter(quote => {
+              {quotes.filter((quote) => {
                 const clientName = quote.clientName.toLowerCase();
-                const matchesSearch = clientName.includes(searchQuery.toLowerCase());
-                const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
-                const matchesDate = !dateFilter || (quote.issueDate === dateFilter || quote.date === dateFilter);
+                const matchesSearch = clientName.includes(
+                  searchQuery.toLowerCase(),
+                );
+                const matchesStatus =
+                  statusFilter === "all" || quote.status === statusFilter;
+                const matchesDate =
+                  !dateFilter ||
+                  quote.issueDate === dateFilter ||
+                  quote.date === dateFilter;
                 return matchesSearch && matchesStatus && matchesDate;
               }).length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={8}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No quotes found matching your filters.
                   </TableCell>
                 </TableRow>
               ) : (
-                [...quotes].filter(quote => {
-                  const clientName = quote.clientName.toLowerCase();
-                  const matchesSearch = clientName.includes(searchQuery.toLowerCase());
-                  const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
-                  const matchesDate = !dateFilter || (quote.issueDate === dateFilter || quote.date === dateFilter);
-                  return matchesSearch && matchesStatus && matchesDate;
-                }).sort((a, b) => {
-                  const dateA = new Date(a.date || a.issueDate).getTime();
-                  const dateB = new Date(b.date || b.issueDate).getTime();
-                  if (dateB !== dateA) return dateB - dateA;
-                  const numA = a.quoteNumber || '';
-                  const numB = b.quoteNumber || '';
-                  return numB.localeCompare(numA);
-                }).map((quote) => {
-                  const myCut = quote.isCollaboration 
-                    ? (quote.collaborationType === 'percentage' 
-                        ? (quote.totalAmount * (quote.collaborationCut || 0) / 100) 
-                        : (quote.collaborationCut || 0))
-                    : 0;
-                    
-                  return (
-                    <TableRow key={quote.id}>
-                      <TableCell className="font-mono text-xs text-muted-foreground">
-                        {quote.quoteNumber || quote.id.substring(0, 8).toUpperCase()}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {quote.projectTitle || 'Unknown Project'}
-                        {quote.revisionOf && (
-                          <Badge variant="outline" className="ml-2 text-[10px] bg-slate-100 text-slate-500 border-slate-200">
-                            Revision
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>{quote.clientName || 'Unknown Client'}</TableCell>
-                      <TableCell>{format(new Date(quote.issueDate || quote.date), 'MMM d, yyyy')}</TableCell>
-                      <TableCell className="font-semibold">KES {quote.totalAmount.toLocaleString()}</TableCell>
-                      <TableCell>
-                        {quote.isCollaboration ? (
-                          <span className="text-green-600 font-semibold">KES {myCut.toLocaleString()}</span>
-                        ) : (
-                          <span className="text-slate-400 text-xs">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(quote.status)}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenPreview(quote)} title="Preview Quote">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        {quote.status !== 'approved' && quote.status !== 'declined' && (
-                          <>
-                            <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'approve', quote })} title="Approve & Create Invoice">
-                              <CheckSquare className="w-4 h-4 text-green-600 hover:text-green-700" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'decline', quote })} title="Mark as Declined">
-                              <XCircle className="w-4 h-4 text-red-500 hover:text-red-700" />
-                            </Button>
-                          </>
-                        )}
-                        <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'link', quote })} title="Copy Shareable Link" className="relative">
-                          {copiedId === quote.id ? (
-                            <span className="absolute -top-8 bg-slate-800 text-white text-[10px] px-2 py-1 rounded shadow-sm whitespace-nowrap animate-in fade-in slide-in-from-bottom-2">
-                              Copied!
-                            </span>
-                          ) : null}
-                          {copiedId === quote.id ? (
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <LinkIcon className="w-4 h-4 text-slate-500 hover:text-primary" />
+                [...quotes]
+                  .filter((quote) => {
+                    const clientName = quote.clientName.toLowerCase();
+                    const matchesSearch = clientName.includes(
+                      searchQuery.toLowerCase(),
+                    );
+                    const matchesStatus =
+                      statusFilter === "all" || quote.status === statusFilter;
+                    const matchesDate =
+                      !dateFilter ||
+                      quote.issueDate === dateFilter ||
+                      quote.date === dateFilter;
+                    return matchesSearch && matchesStatus && matchesDate;
+                  })
+                  .sort((a, b) => {
+                    const dateA = new Date(a.date || a.issueDate).getTime();
+                    const dateB = new Date(b.date || b.issueDate).getTime();
+                    if (dateB !== dateA) return dateB - dateA;
+                    const numA = a.quoteNumber || "";
+                    const numB = b.quoteNumber || "";
+                    return numB.localeCompare(numA);
+                  })
+                  .map((quote) => {
+                    const myCut = quote.isCollaboration
+                      ? quote.collaborationType === "percentage"
+                        ? (quote.totalAmount * (quote.collaborationCut || 0)) /
+                          100
+                        : quote.collaborationCut || 0
+                      : 0;
+
+                    return (
+                      <TableRow key={quote.id}>
+                        <TableCell className="font-mono text-xs text-muted-foreground">
+                          {quote.quoteNumber ||
+                            quote.id.substring(0, 8).toUpperCase()}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {quote.projectTitle || "Unknown Project"}
+                          {quote.revisionOf && (
+                            <Badge
+                              variant="outline"
+                              className="ml-2 text-[10px] bg-slate-100 text-slate-500 border-slate-200"
+                            >
+                              Revision
+                            </Badge>
                           )}
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'duplicate', quote })} title="Create Revision">
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'edit', quote })} title="Edit Quote">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setQuoteToDelete(quote.id)} title="Delete Quote">
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
+                        </TableCell>
+                        <TableCell>
+                          {quote.clientName || "Unknown Client"}
+                        </TableCell>
+                        <TableCell>
+                          {format(
+                            new Date(quote.issueDate || quote.date),
+                            "MMM d, yyyy",
+                          )}
+                        </TableCell>
+                        <TableCell className="font-semibold">
+                          KES {quote.totalAmount.toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          {quote.isCollaboration ? (
+                            <span className="text-green-600 font-semibold">
+                              KES {myCut.toLocaleString()}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-xs">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(quote.status)}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenPreview(quote)}
+                            title="Preview Quote"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          {quote.status !== "approved" &&
+                            quote.status !== "declined" && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() =>
+                                    setPendingAction({ type: "approve", quote })
+                                  }
+                                  title="Approve & Create Invoice"
+                                >
+                                  <CheckSquare className="w-4 h-4 text-green-600 hover:text-green-700" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() =>
+                                    setPendingAction({ type: "decline", quote })
+                                  }
+                                  title="Mark as Declined"
+                                >
+                                  <XCircle className="w-4 h-4 text-red-500 hover:text-red-700" />
+                                </Button>
+                              </>
+                            )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              setPendingAction({ type: "link", quote })
+                            }
+                            title="Copy Shareable Link"
+                            className="relative"
+                          >
+                            {copiedId === quote.id ? (
+                              <span className="absolute -top-8 bg-slate-800 text-white text-[10px] px-2 py-1 rounded shadow-sm whitespace-nowrap animate-in fade-in slide-in-from-bottom-2">
+                                Copied!
+                              </span>
+                            ) : null}
+                            {copiedId === quote.id ? (
+                              <CheckCircle2 className="w-4 h-4 text-green-500" />
+                            ) : (
+                              <LinkIcon className="w-4 h-4 text-slate-500 hover:text-primary" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              setPendingAction({ type: "duplicate", quote })
+                            }
+                            title="Create Revision"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              setPendingAction({ type: "edit", quote })
+                            }
+                            title="Edit Quote"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setQuoteToDelete(quote.id)}
+                            title="Delete Quote"
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
               )}
             </TableBody>
           </Table>
@@ -1342,37 +2276,45 @@ export function Quotes() {
           if (!pendingAction) return;
           const { type, quote } = pendingAction;
           setPendingAction(null);
-          
-          if (type === 'approve') {
+
+          if (type === "approve") {
             handleOpenApproveDialog(quote);
-          } else if (type === 'decline') {
+          } else if (type === "decline") {
             try {
-              await updateQuote(quote.id, { status: 'declined' });
-              toast.success('Quote declined successfully');
+              await updateQuote(quote.id, { status: "declined" });
+              toast.success("Quote declined successfully");
             } catch (error) {
-              toast.error('Failed to decline quote');
+              toast.error("Failed to decline quote");
             }
-          } else if (type === 'link') {
+          } else if (type === "link") {
             handleCopyLink(quote.id);
-          } else if (type === 'duplicate') {
+          } else if (type === "duplicate") {
             handleDuplicateQuote(quote);
-          } else if (type === 'edit') {
+          } else if (type === "edit") {
             handleOpenDialog(quote);
           }
         }}
         title={
-          pendingAction?.type === 'approve' ? 'Approve Quote' :
-          pendingAction?.type === 'decline' ? 'Decline Quote' :
-          pendingAction?.type === 'link' ? 'Copy Link' :
-          pendingAction?.type === 'duplicate' ? 'Create Revision' :
-          'Edit Quote'
+          pendingAction?.type === "approve"
+            ? "Approve Quote"
+            : pendingAction?.type === "decline"
+              ? "Decline Quote"
+              : pendingAction?.type === "link"
+                ? "Copy Link"
+                : pendingAction?.type === "duplicate"
+                  ? "Create Revision"
+                  : "Edit Quote"
         }
         description={
-          pendingAction?.type === 'approve' ? 'Are you sure you want to approve this quote? This will proceed to generate an invoice.' :
-          pendingAction?.type === 'decline' ? 'Are you sure you want to mark this quote as declined?' :
-          pendingAction?.type === 'link' ? 'Are you sure you want to copy the shareable link to your clipboard?' :
-          pendingAction?.type === 'duplicate' ? 'Are you sure you want to create a revision/duplicate of this quote?' :
-          'Are you sure you want to edit this quote?'
+          pendingAction?.type === "approve"
+            ? "Are you sure you want to approve this quote? This will proceed to generate an invoice."
+            : pendingAction?.type === "decline"
+              ? "Are you sure you want to mark this quote as declined?"
+              : pendingAction?.type === "link"
+                ? "Are you sure you want to copy the shareable link to your clipboard?"
+                : pendingAction?.type === "duplicate"
+                  ? "Are you sure you want to create a revision/duplicate of this quote?"
+                  : "Are you sure you want to edit this quote?"
         }
         confirmText="Proceed"
       />
