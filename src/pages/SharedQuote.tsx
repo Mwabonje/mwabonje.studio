@@ -138,8 +138,13 @@ export function SharedQuote() {
       const element = quoteRef.current;
       const originalStyle = element.style.cssText;
       element.style.width = "760px";
-      element.style.maxWidth = "none";
+      element.style.maxWidth = "760px";
       element.style.padding = "0px";
+      element.style.margin = "0px";
+      element.style.boxShadow = "none";
+
+      // Allow layout to recalculate
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const safeTitle = (quote.projectTitle || "Quote")
         .replace(/[^a-z0-9]/gi, "_")
@@ -154,6 +159,14 @@ export function SharedQuote() {
       const dataUrl = await htmlToImage.toPng(element, {
         quality: 0.98,
         pixelRatio: 2,
+        width: 760,
+        style: {
+          margin: '0',
+          padding: '0',
+          maxWidth: '760px',
+          width: '760px',
+          boxShadow: 'none',
+        }
       });
 
       const pdf = new jsPDF("p", "mm", "a4");

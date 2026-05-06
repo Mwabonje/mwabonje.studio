@@ -157,9 +157,12 @@ export function SharedInvoice() {
       const element = invoiceRef.current;
       const originalStyle = element.style.cssText;
       element.style.width = '760px';
-      element.style.maxWidth = 'none';
-      element.style.margin = '0';
+      element.style.maxWidth = '760px';
+      element.style.margin = '0px';
       element.style.boxShadow = 'none';
+      
+      // Allow layout to recalculate
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
       
@@ -171,8 +174,13 @@ export function SharedInvoice() {
         quality: 1, 
         pixelRatio: 2,
         backgroundColor: '#FAF8F4',
+        width: 760,
         style: {
-          margin: '0'
+          margin: '0',
+          padding: '0',
+          maxWidth: '760px',
+          width: '760px',
+          boxShadow: 'none',
         }
       });
       

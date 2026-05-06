@@ -179,9 +179,13 @@ export function Payments() {
       const element = receiptRef.current;
       const originalStyle = element.style.cssText;
       element.style.width = '680px';
-      element.style.maxWidth = 'none';
-      element.style.margin = '0';
+      element.style.maxWidth = '680px';
+      element.style.margin = '0px';
+      element.style.padding = '0px';
       element.style.boxShadow = 'none';
+
+      // Allow layout to recalculate
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const invoice = invoices.find(i => i.id === previewPayment.invoiceId);
       const project = projects.find(p => p.id === invoice?.projectId);
@@ -195,8 +199,13 @@ export function Payments() {
         quality: 1, 
         pixelRatio: 2,
         backgroundColor: '#FAF8F4',
+        width: 680,
         style: {
           margin: '0',
+          padding: '0',
+          maxWidth: '680px',
+          width: '680px',
+          boxShadow: 'none',
         }
       });
       
