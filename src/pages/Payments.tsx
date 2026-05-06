@@ -175,10 +175,17 @@ export function Payments() {
     if (!receiptRef.current || isGeneratingPDF || !previewPayment) return;
     
     setIsGeneratingPDF(true);
+    const originalScrollPos = window.scrollY;
+    window.scrollTo(0, 0);
+
     try {
       const element = receiptRef.current;
       const originalStyle = element.style.cssText;
+      const originalClass = element.className;
+      
+      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '');
       element.style.width = '680px';
+      element.style.minWidth = '680px';
       element.style.maxWidth = '680px';
       element.style.margin = '0px';
       element.style.padding = '0px';
@@ -211,15 +218,32 @@ export function Payments() {
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / 680;
+      const pageHeight = pdf.internal.pageSize.getHeight();
       
-      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      let position = 0;
+      while (position < pdfHeightOriginal) {
+        pdf.addImage(
+          dataUrl,
+          'PNG',
+          0,
+          position * -1,
+          pdfWidth,
+          pdfHeightOriginal
+        );
+        position += pageHeight;
+        if (position < pdfHeightOriginal) {
+          pdf.addPage();
+        }
+      }
       pdf.save(`Receipt_${previewPayment.id.substring(0, 6)}.pdf`);
       
       element.style.cssText = originalStyle;
+      element.className = originalClass;
     } catch (error) {
       console.error('Error generating PDF:', error);
     } finally {
+      window.scrollTo(0, originalScrollPos);
       setIsGeneratingPDF(false);
     }
   };

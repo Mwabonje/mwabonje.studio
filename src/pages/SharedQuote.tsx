@@ -134,10 +134,17 @@ export function SharedQuote() {
     if (!quoteRef.current || isGeneratingPDF) return;
 
     setIsGeneratingPDF(true);
+    const originalScrollPos = window.scrollY;
+    window.scrollTo(0, 0);
+
     try {
       const element = quoteRef.current;
       const originalStyle = element.style.cssText;
+      const originalClass = element.className;
+      
+      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '');
       element.style.width = "760px";
+      element.style.minWidth = "760px";
       element.style.maxWidth = "760px";
       element.style.padding = "0px";
       element.style.margin = "0px";
@@ -171,8 +178,7 @@ export function SharedQuote() {
 
       const pdf = new jsPDF("p", "mm", "a4");
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeightOriginal =
-        (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / 760;
       const pageHeight = pdf.internal.pageSize.getHeight();
 
       let position = 0;
@@ -194,6 +200,7 @@ export function SharedQuote() {
       pdf.save(`Proposal_${safeTitle}.pdf`);
 
       element.style.cssText = originalStyle;
+      element.className = originalClass;
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       const errorMessage =
@@ -202,6 +209,7 @@ export function SharedQuote() {
         `Failed to generate PDF: ${errorMessage}. Please try again or use the Print option.`,
       );
     } finally {
+      window.scrollTo(0, originalScrollPos);
       setIsGeneratingPDF(false);
     }
   };

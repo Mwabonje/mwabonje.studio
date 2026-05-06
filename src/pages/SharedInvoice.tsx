@@ -153,12 +153,20 @@ export function SharedInvoice() {
     if (!invoiceRef.current || isGeneratingPDF) return;
     
     setIsGeneratingPDF(true);
+    const originalScrollPos = window.scrollY;
+    window.scrollTo(0, 0);
+
     try {
       const element = invoiceRef.current;
       const originalStyle = element.style.cssText;
+      const originalClass = element.className;
+
+      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '');
       element.style.width = '760px';
+      element.style.minWidth = '760px';
       element.style.maxWidth = '760px';
       element.style.margin = '0px';
+      element.style.padding = '0px';
       element.style.boxShadow = 'none';
       
       // Allow layout to recalculate
@@ -186,7 +194,7 @@ export function SharedInvoice() {
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / 760;
       const pageHeight = pdf.internal.pageSize.getHeight();
       
       let position = 0;
@@ -201,11 +209,13 @@ export function SharedInvoice() {
       pdf.save(`Invoice_${safeTitle}.pdf`);
       
       element.style.cssText = originalStyle;
+      element.className = originalClass;
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       alert(`Failed to generate PDF: ${errorMessage}. Please try again or use the Print option.`);
     } finally {
+      window.scrollTo(0, originalScrollPos);
       setIsGeneratingPDF(false);
     }
   };

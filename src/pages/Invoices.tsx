@@ -43,10 +43,17 @@ export function Invoices() {
     if (!invoiceRef.current || isGeneratingPDF || !previewInvoice) return;
     
     setIsGeneratingPDF(true);
+    const originalScrollPos = window.scrollY;
+    window.scrollTo(0, 0);
+
     try {
       const element = invoiceRef.current;
       const originalStyle = element.style.cssText;
+      const originalClass = element.className;
+      
+      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '');
       element.style.width = '760px'; // changed from 800 to 760 to match standard
+      element.style.minWidth = '760px';
       element.style.maxWidth = '760px';
       element.style.margin = '0px';
       element.style.padding = '0px';
@@ -78,7 +85,7 @@ export function Invoices() {
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / 760;
       const pageHeight = pdf.internal.pageSize.getHeight();
       
       let position = 0;
@@ -93,10 +100,12 @@ export function Invoices() {
       pdf.save(`Invoice_${safeTitle}.pdf`);
       
       element.style.cssText = originalStyle;
+      element.className = originalClass;
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       toast.error(`Failed to generate PDF: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
+      window.scrollTo(0, originalScrollPos);
       setIsGeneratingPDF(false);
     }
   };
