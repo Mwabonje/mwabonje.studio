@@ -137,9 +137,9 @@ export function SharedQuote() {
     try {
       const element = quoteRef.current;
       const originalStyle = element.style.cssText;
-      element.style.width = "800px";
+      element.style.width = "760px";
       element.style.maxWidth = "none";
-      element.style.padding = "40px";
+      element.style.padding = "0px";
 
       const safeTitle = (quote.projectTitle || "Quote")
         .replace(/[^a-z0-9]/gi, "_")

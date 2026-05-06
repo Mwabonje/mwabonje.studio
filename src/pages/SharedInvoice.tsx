@@ -156,7 +156,7 @@ export function SharedInvoice() {
     try {
       const element = invoiceRef.current;
       const originalStyle = element.style.cssText;
-      element.style.width = '800px';
+      element.style.width = '760px';
       element.style.maxWidth = 'none';
       element.style.margin = '0';
       element.style.boxShadow = 'none';
