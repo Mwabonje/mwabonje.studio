@@ -955,12 +955,26 @@ export function Payments() {
 
                         {/* PAYMENT METHOD */}
                         <div className="payment-method">
-                          <div className="payment-method-title">Payment Method</div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 40px', marginBottom: '14px' }}>
+                            <div className="payment-method-title" style={{ marginBottom: 0 }}>Payment Method</div>
+                            {settings?.paymentDetails && <div className="payment-method-title" style={{ marginBottom: 0 }}>Payment Details</div>}
+                          </div>
                           <div className="payment-method-grid">
-                            <div><strong>Method</strong> &nbsp; {previewPayment.method.toUpperCase()}</div>
-                            <div><strong>Transaction Ref.</strong> &nbsp; {previewPayment.reference || '——————'}</div>
-                            <div><strong>Received By</strong> &nbsp; {settings?.companyName || 'Mwabonje Photography'}</div>
-                            {settings?.paymentDetails && <div><strong>Details</strong> &nbsp; {settings.paymentDetails.split('\\n')[0]}</div>}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div><strong>Method</strong> &nbsp; {previewPayment.method.toUpperCase()}</div>
+                              <div><strong>Transaction Ref.</strong> &nbsp; {previewPayment.reference || '——————'}</div>
+                              <div><strong>Received By</strong> &nbsp; {settings?.companyName || 'Mwabonje Photography'}</div>
+                            </div>
+                            
+                            {settings?.paymentDetails && (
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div style={{ lineHeight: 1.6 }}>
+                                  {settings.paymentDetails.split('\n').filter(line => line.trim()).map((line, i) => (
+                                    <div key={i}>{line}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
 
