@@ -982,8 +982,16 @@ export function Payments() {
                         <div className="thankyou">
                           <div className="thankyou-heading">Thank you, {client?.name ? client.name.split(' ')[0] : 'Client'}.</div>
                           <div className="thankyou-body">
-                            Your payment is confirmed. We look forward to capturing beautiful memories.<br/>
-                            {balance > 0 && <span>The remaining balance of <strong>KES {balance.toLocaleString()}</strong> is due on the shoot day before the session begins.</span>}
+                            {balance > 0 ? (
+                              <>
+                                Your payment is confirmed. We look forward to capturing beautiful memories.<br/>
+                                <span>The remaining balance of <strong>KES {balance.toLocaleString()}</strong> is due on the shoot day before the session begins.</span>
+                              </>
+                            ) : (
+                              <>
+                                Your payment is confirmed. Your balance is fully cleared. We appreciate you choosing us to capture your beautiful moments!
+                              </>
+                            )}
                           </div>
                         </div>
 
