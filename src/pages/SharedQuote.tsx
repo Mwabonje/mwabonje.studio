@@ -142,7 +142,7 @@ export function SharedQuote() {
       const originalStyle = element.style.cssText;
       const originalClass = element.className;
       
-      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '');
+      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '') + ' pdf-export';
       element.style.width = "760px";
       element.style.minWidth = "760px";
       element.style.maxWidth = "760px";
@@ -358,6 +358,18 @@ export function SharedQuote() {
             @media print {
               .quote-root { background: white; }
               .quote-root .page { padding: 32px; }
+            }
+
+            @media (max-width: 640px) {
+              .quote-root:not(.pdf-export) .page { padding: 32px 20px 48px; }
+              .quote-root:not(.pdf-export) .header h1 { font-size: 36px; }
+              .quote-root:not(.pdf-export) .meta { grid-template-columns: 1fr; gap: 12px; padding: 20px; margin-bottom: 32px; }
+              .quote-root:not(.pdf-export) .packages-grid { grid-template-columns: 1fr; gap: 16px; }
+              .quote-root:not(.pdf-export) .featured-body { grid-template-columns: 1fr; gap: 16px; }
+              .quote-root:not(.pdf-export) .addon { flex-direction: column; align-items: flex-start; gap: 12px; }
+              .quote-root:not(.pdf-export) .terms-grid { grid-template-columns: 1fr; gap: 24px; }
+              .quote-root:not(.pdf-export) .payment { padding: 20px; }
+              .quote-root:not(.pdf-export) .payment-grid { grid-template-columns: 1fr; gap: 12px; }
             }
           `,
             }}

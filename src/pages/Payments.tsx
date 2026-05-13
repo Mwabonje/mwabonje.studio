@@ -183,7 +183,7 @@ export function Payments() {
       const originalStyle = element.style.cssText;
       const originalClass = element.className;
       
-      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '');
+      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '') + ' pdf-export';
       element.style.width = '680px';
       element.style.minWidth = '680px';
       element.style.maxWidth = '680px';
@@ -827,6 +827,22 @@ export function Payments() {
                   @media print {
                     .receipt-root { background: white; }
                     .receipt-root .page { padding: 32px; }
+                  }
+                  
+                  @media (max-width: 640px) {
+                    .receipt-root:not(.pdf-export) .page { padding: 32px 20px 48px; }
+                    .receipt-root:not(.pdf-export) .header h1 { font-size: 32px; }
+                    .receipt-root:not(.pdf-export) .meta { grid-template-columns: 1fr; gap: 12px; padding: 20px; }
+                    .receipt-root:not(.pdf-export) .amount-box { padding: 24px 20px; margin-bottom: 32px; }
+                    .receipt-root:not(.pdf-export) .items-header { display: none; }
+                    .receipt-root:not(.pdf-export) .item-row { grid-template-columns: 1fr; gap: 8px; position: relative; padding: 16px 0; }
+                    .receipt-root:not(.pdf-export) .item-row .item-qty::before { content: "Qty: "; color: var(--ink-soft); }
+                    .receipt-root:not(.pdf-export) .item-row .item-total { text-align: left; }
+                    .receipt-root:not(.pdf-export) .item-row .item-total::before { content: "Total: "; color: var(--ink-soft); font-family: 'Jost', sans-serif; font-size: 13px; }
+                    .receipt-root:not(.pdf-export) .totals { width: 100%; margin-left: 0; margin-top: 32px; }
+                    .receipt-root:not(.pdf-export) .payment-method { padding: 20px; }
+                    .receipt-root:not(.pdf-export) .payment-method > div { grid-template-columns: 1fr; gap: 12px; }
+                    .receipt-root:not(.pdf-export) .signature { grid-template-columns: 1fr; gap: 24px; }
                   }
                 ` }} />
                 

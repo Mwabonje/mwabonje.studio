@@ -51,7 +51,7 @@ export function Invoices() {
       const originalStyle = element.style.cssText;
       const originalClass = element.className;
       
-      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '');
+      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '') + ' pdf-export';
       element.style.width = '760px'; // changed from 800 to 760 to match standard
       element.style.minWidth = '760px';
       element.style.maxWidth = '760px';
@@ -851,6 +851,33 @@ export function Invoices() {
                     @media print {
                       .invoice-root { background: white; box-shadow: none; font-size: 90% }
                       .invoice-root .page { padding: 0 32px; max-width: 100%; }
+                    }
+
+                    @media (max-width: 640px) {
+                      .invoice-root:not(.pdf-export) .page { padding: 32px 20px 48px; }
+                      .invoice-root:not(.pdf-export) .header h1 { font-size: 36px; }
+                      .invoice-root:not(.pdf-export) .meta-wrap { grid-template-columns: 1fr; gap: 16px; margin-bottom: 32px; }
+                      .invoice-root:not(.pdf-export) .meta-block { padding: 20px; }
+                      
+                      /* Responsive Table */
+                      .invoice-root:not(.pdf-export) .items-table,
+                      .invoice-root:not(.pdf-export) .items-table tbody,
+                      .invoice-root:not(.pdf-export) .items-table tr,
+                      .invoice-root:not(.pdf-export) .items-table td { display: block; width: 100%; }
+                      .invoice-root:not(.pdf-export) .items-table thead { display: none; }
+                      .invoice-root:not(.pdf-export) .items-table tr { padding: 20px 0; border-bottom: 1px solid var(--rule) !important; }
+                      .invoice-root:not(.pdf-export) .items-table td { padding: 6px 0; text-align: left !important; border: none !important; }
+                      .invoice-root:not(.pdf-export) .items-table td:nth-child(1) { padding-bottom: 12px; }
+                      .invoice-root:not(.pdf-export) .items-table td:nth-child(2)::before { content: "Qty: "; color: var(--ink-soft); font-size: 13px; margin-right: 4px; }
+                      .invoice-root:not(.pdf-export) .items-table td:nth-child(3)::before { content: "Price: "; color: var(--ink-soft); font-size: 13px; margin-right: 4px; }
+                      .invoice-root:not(.pdf-export) .items-table td:nth-child(4) { margin-top: 8px; padding-top: 12px; border-top: 1px dashed var(--rule) !important; font-weight: 500; font-size: 15px; font-family: 'Cormorant Garamond', serif; }
+                      .invoice-root:not(.pdf-export) .items-table td:nth-child(4)::before { content: "Total "; font-family: 'Jost', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--ink-soft); margin-right: 8px; font-weight: 600; }
+                      
+                      .invoice-root:not(.pdf-export) .totals-wrap { justify-content: flex-start; }
+                      .invoice-root:not(.pdf-export) .totals-block { width: 100%; border-top: none; padding-top: 12px; }
+                      .invoice-root:not(.pdf-export) .payment { padding: 20px; }
+                      .invoice-root:not(.pdf-export) .payment-grid { grid-template-columns: 1fr; gap: 12px; }
+                      .invoice-root:not(.pdf-export) .signature { grid-template-columns: 1fr; gap: 24px; }
                     }
                   ` }} />
                   <div ref={invoiceRef} className="invoice-root max-w-[760px] mx-auto">
