@@ -48,6 +48,8 @@ import {
   Copy,
   Eye,
   XCircle,
+  Download,
+  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -70,6 +72,8 @@ export function Quotes() {
   } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [quoteToApprove, setQuoteToApprove] = useState<Quote | null>(null);
   const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
@@ -229,6 +233,81 @@ export function Quotes() {
       setDeliverableTasks([]);
     }
     setIsDialogOpen(true);
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!previewRef.current || isGeneratingPDF) return;
+
+    setIsGeneratingPDF(true);
+    const originalScrollPos = previewRef.current.parentElement ? previewRef.current.parentElement.scrollTop : window.scrollY;
+
+    try {
+      const element = previewRef.current;
+      const originalStyle = element.style.cssText;
+      const originalClass = element.className;
+      
+      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '').replace('pb-10', '') + ' pdf-export';
+      element.style.width = "760px";
+      element.style.minWidth = "760px";
+      element.style.maxWidth = "760px";
+      element.style.padding = "0px";
+      element.style.margin = "0px";
+      element.style.boxShadow = "none";
+
+      // Allow layout to recalculate
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const safeTitle = (formData.projectTitle || "Quote")
+        .replace(/[^a-z0-9]/gi, "_")
+        .toLowerCase();
+
+      const htmlToImage = await import("html-to-image");
+      const jsPDFModule = await import("jspdf");
+      const jsPDF = (
+        "default" in jsPDFModule ? jsPDFModule.default : jsPDFModule
+      ) as any;
+
+      const dataUrl = await htmlToImage.toPng(element, {
+        quality: 0.98,
+        pixelRatio: 2,
+        width: 760,
+        style: {
+          margin: '0',
+          padding: '0',
+          maxWidth: '760px',
+          width: '760px',
+          boxShadow: 'none',
+        }
+      });
+
+      const pdfWidth = 210; // A4 width in mm
+      const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / 760;
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [pdfWidth, pdfHeightOriginal]
+      });
+
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
+
+      pdf.save(`Proposal_${safeTitle}.pdf`);
+
+      element.style.cssText = originalStyle;
+      element.className = originalClass;
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      alert(
+        `Failed to generate PDF: ${errorMessage}. Please try again or use the Print option.`,
+      );
+    } finally {
+      if (previewRef.current && previewRef.current.parentElement) {
+        previewRef.current.parentElement.scrollTop = originalScrollPos;
+      }
+      setIsGeneratingPDF(false);
+    }
   };
 
   const handleOpenPreview = (quote: Quote) => {
@@ -1665,6 +1744,24 @@ export function Quotes() {
               <DialogTitle className="text-xl font-bold">
                 Quote Preview
               </DialogTitle>
+              <Button
+                onClick={handleDownloadPDF}
+                disabled={isGeneratingPDF}
+                variant="outline"
+                size="sm"
+                className="bg-slate-900 border-none text-white hover:bg-slate-800 hover:text-white"
+              >
+                {isGeneratingPDF ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" /> Download Document
+                  </>
+                )}
+              </Button>
             </div>
 
             <div className="w-full bg-[#FAF8F4] overflow-x-auto">
@@ -1776,7 +1873,7 @@ export function Quotes() {
                 }}
               />
               <div
-                ref={quoteRef}
+                ref={previewRef}
                 className="quote-root w-full mx-auto max-w-[760px] pb-10"
               >
                 <div className="page">

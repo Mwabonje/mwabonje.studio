@@ -142,7 +142,7 @@ export function SharedQuote() {
       const originalStyle = element.style.cssText;
       const originalClass = element.className;
       
-      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '') + ' pdf-export';
+      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '').replace('pb-10', '') + ' pdf-export';
       element.style.width = "760px";
       element.style.minWidth = "760px";
       element.style.maxWidth = "760px";
@@ -176,26 +176,16 @@ export function SharedQuote() {
         }
       });
 
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfWidth = 210; // A4 width in mm
       const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / 760;
-      const pageHeight = pdf.internal.pageSize.getHeight();
 
-      let position = 0;
-      while (position < pdfHeightOriginal) {
-        pdf.addImage(
-          dataUrl,
-          "PNG",
-          0,
-          position * -1,
-          pdfWidth,
-          pdfHeightOriginal,
-        );
-        position += pageHeight;
-        if (position < pdfHeightOriginal) {
-          pdf.addPage();
-        }
-      }
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [pdfWidth, pdfHeightOriginal]
+      });
+
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
 
       pdf.save(`Proposal_${safeTitle}.pdf`);
 
