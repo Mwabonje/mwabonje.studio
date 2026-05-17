@@ -17,6 +17,7 @@ interface ConfirmDeleteDialogProps {
   title?: string;
   description?: string;
   confirmText?: string;
+  isDestructive?: boolean;
 }
 
 export function ConfirmDeleteDialog({
@@ -25,7 +26,8 @@ export function ConfirmDeleteDialog({
   onConfirm,
   title = "Are you absolutely sure?",
   description = "This action cannot be undone. This will permanently delete this item and remove its data from our servers.",
-  confirmText = "Delete"
+  confirmText = "Delete",
+  isDestructive = true
 }: ConfirmDeleteDialogProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
@@ -38,7 +40,7 @@ export function ConfirmDeleteDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel variant="outline" size="default" onClick={() => onOpenChange(false)}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+          <AlertDialogAction onClick={onConfirm} className={isDestructive ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "bg-primary text-primary-foreground hover:bg-primary/90"}>
             {confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>

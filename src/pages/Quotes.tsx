@@ -2526,6 +2526,7 @@ export function Quotes() {
                   : "Are you sure you want to edit this quote?"
         }
         confirmText="Proceed"
+        isDestructive={false}
       />
     </div>
   );

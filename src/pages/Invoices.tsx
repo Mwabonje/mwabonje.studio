@@ -24,7 +24,11 @@ export function Invoices() {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
   const invoiceRef = useRef<HTMLDivElement>(null);
-  
+  const [pendingAction, setPendingAction] = useState<{
+    type: "duplicate" | "edit";
+    invoice: Invoice;
+  } | null>(null);
+
   const [formData, setFormData] = useState({
     quoteId: 'none',
     projectId: '',
@@ -157,6 +161,24 @@ export function Invoices() {
     }
     
     return <div className="item-name">{description}</div>;
+  };
+
+  const handleDuplicateInvoice = (invoice: Invoice) => {
+    setEditingInvoice(null);
+    setFormData({
+      quoteId: invoice.quoteId || 'none',
+      projectId: invoice.projectId,
+      clientId: invoice.clientId,
+      date: format(new Date(), 'yyyy-MM-dd'),
+      dueDate: format(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+    });
+    setLineItems(
+      invoice.lineItems.map(item => ({
+        ...item,
+        id: crypto.randomUUID()
+      }))
+    );
+    setIsDialogOpen(true);
   };
 
   const handleOpenDialog = (invoice?: Invoice) => {
@@ -1065,7 +1087,10 @@ export function Invoices() {
                         <Button variant="ghost" size="icon" onClick={() => handleOpenPreview(invoice)} title="Preview Invoice">
                           <ExternalLink className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(invoice)}>
+                        <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'duplicate', invoice })} title="Duplicate Invoice">
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'edit', invoice })} title="Edit Invoice">
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => setInvoiceToDelete(invoice.id)}>
@@ -1092,6 +1117,34 @@ export function Invoices() {
         }}
         title="Delete Invoice"
         description="Are you sure you want to delete this invoice? This action cannot be undone."
+      />
+
+      <ConfirmDeleteDialog
+        isOpen={!!pendingAction}
+        onOpenChange={(open) => !open && setPendingAction(null)}
+        onConfirm={async () => {
+          if (!pendingAction) return;
+          const { type, invoice } = pendingAction;
+          setPendingAction(null);
+
+          if (type === "duplicate") {
+            handleDuplicateInvoice(invoice);
+          } else if (type === "edit") {
+            handleOpenDialog(invoice);
+          }
+        }}
+        title={
+          pendingAction?.type === "duplicate"
+            ? "Duplicate Invoice"
+            : "Edit Invoice"
+        }
+        description={
+          pendingAction?.type === "duplicate"
+            ? "Are you sure you want to create a duplicate of this invoice?"
+            : "Are you sure you want to edit this invoice?"
+        }
+        confirmText="Proceed"
+        isDestructive={false}
       />
     </div>
   );
