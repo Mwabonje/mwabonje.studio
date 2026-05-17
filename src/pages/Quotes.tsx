@@ -108,6 +108,7 @@ export function Quotes() {
       "Transport within Nairobi is included. Transport outside Nairobi will be billed at cost.",
     cancellationRescheduling:
       "Cancellations made less than 7 days before the shoot forfeit the retainer.",
+    weatherConditions: "Mwabonje Photography shall not be held liable for delays, rescheduling, or failure to deliver services due to circumstances beyond reasonable control. These include, but are not limited to, extreme weather conditions, acts of God, government restrictions, illness, equipment failure, or other unforeseen events. In such cases, both parties will work together in good faith to reschedule the session or agree on a fair solution.",
     paymentDetails: settings.paymentDetails,
     status: "draft" as Quote["status"],
     date: format(new Date(), "yyyy-MM-dd"),
@@ -203,6 +204,7 @@ export function Quotes() {
         cancellationRescheduling:
           quote.cancellationRescheduling ||
           defaultFormData.cancellationRescheduling,
+        weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
         paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
         status: quote.status,
         date: quote.date,
@@ -254,6 +256,7 @@ export function Quotes() {
       cancellationRescheduling:
         quote.cancellationRescheduling ||
         defaultFormData.cancellationRescheduling,
+      weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
       paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
       status: quote.status,
       date: quote.date,
@@ -296,6 +299,7 @@ export function Quotes() {
       cancellationRescheduling:
         quote.cancellationRescheduling ||
         defaultFormData.cancellationRescheduling,
+      weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
       paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
       status: "draft",
       date: format(new Date(), "yyyy-MM-dd"),
@@ -1585,6 +1589,24 @@ export function Quotes() {
                     </div>
                     <div className="space-y-2">
                       <Label
+                        htmlFor="weatherConditions"
+                        className="text-xs font-bold text-slate-500 uppercase"
+                      >
+                        Weather & Conditions
+                      </Label>
+                      <Textarea
+                        id="weatherConditions"
+                        value={formData.weatherConditions}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            weatherConditions: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label
                         htmlFor="paymentDetails"
                         className="text-xs font-bold text-slate-500 uppercase"
                       >
@@ -1941,7 +1963,8 @@ export function Quotes() {
                     formData.usageLicense ||
                     formData.usageRights ||
                     formData.transportLogistics ||
-                    formData.cancellationRescheduling) && (
+                    formData.cancellationRescheduling ||
+                    formData.weatherConditions) && (
                     <div className="terms">
                       <div className="section-label">Terms of Engagement</div>
                       <div className="terms-grid">
@@ -1998,6 +2021,16 @@ export function Quotes() {
                             </div>
                             <div className="term-body">
                               {formData.cancellationRescheduling}
+                            </div>
+                          </div>
+                        )}
+                        {formData.weatherConditions && (
+                          <div className="term-block">
+                            <div className="term-title">
+                              Weather & Conditions
+                            </div>
+                            <div className="term-body">
+                              {formData.weatherConditions}
                             </div>
                           </div>
                         )}

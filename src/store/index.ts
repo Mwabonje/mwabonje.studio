@@ -69,6 +69,7 @@ export type Quote = {
   usageRights: string;
   transportLogistics: string;
   cancellationRescheduling: string;
+  weatherConditions?: string;
   paymentDetails: string;
   totalAmount: number;
   status: 'draft' | 'sent' | 'approved' | 'declined';
