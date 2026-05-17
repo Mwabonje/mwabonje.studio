@@ -56,6 +56,8 @@ export type Quote = {
   clientEmail: string;
   clientPhone: string;
   projectTitle: string;
+  location?: string;
+  shootingTime?: string;
   issueDate: string;
   eventDate: string;
   moodboardLink: string;

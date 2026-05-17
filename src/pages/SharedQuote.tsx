@@ -425,6 +425,22 @@ export function SharedQuote() {
                   </span>
                 </div>
               )}
+              {quote.shootingTime && (
+                <div className="meta-row">
+                  <span className="meta-label">Shooting Time</span>
+                  <span className="meta-value">
+                    {quote.shootingTime.includes("-") && quote.shootingTime.split("-")[1].trim()
+                      ? `from ${quote.shootingTime}`
+                      : quote.shootingTime}
+                  </span>
+                </div>
+              )}
+              {quote.location && (
+                <div className="meta-row">
+                  <span className="meta-label">Location</span>
+                  <span className="meta-value">{quote.location}</span>
+                </div>
+              )}
             </div>
 
             {/* PACKAGES */}

@@ -91,6 +91,8 @@ export function Quotes() {
     clientEmail: "",
     clientPhone: "",
     projectTitle: "",
+    location: "",
+    shootingTime: "",
     issueDate: format(new Date(), "yyyy-MM-dd"),
     eventDate: "",
     moodboardLink: "",
@@ -184,6 +186,8 @@ export function Quotes() {
         clientEmail: quote.clientEmail || "",
         clientPhone: quote.clientPhone || "",
         projectTitle: quote.projectTitle || "",
+        location: quote.location || "",
+        shootingTime: quote.shootingTime || "",
         issueDate:
           quote.issueDate || quote.date || format(new Date(), "yyyy-MM-dd"),
         eventDate: quote.eventDate || "",
@@ -233,6 +237,8 @@ export function Quotes() {
       clientEmail: quote.clientEmail || "",
       clientPhone: quote.clientPhone || "",
       projectTitle: quote.projectTitle || "",
+      location: quote.location || "",
+      shootingTime: quote.shootingTime || "",
       issueDate:
         quote.issueDate || quote.date || format(new Date(), "yyyy-MM-dd"),
       eventDate: quote.eventDate || "",
@@ -274,6 +280,8 @@ export function Quotes() {
       clientEmail: quote.clientEmail || "",
       clientPhone: quote.clientPhone || "",
       projectTitle: `${quote.projectTitle || ""} (Revision)`,
+      location: quote.location || "",
+      shootingTime: quote.shootingTime || "",
       issueDate: format(new Date(), "yyyy-MM-dd"),
       eventDate: quote.eventDate || "",
       moodboardLink: quote.moodboardLink || "",
@@ -913,6 +921,61 @@ export function Quotes() {
                             setFormData({
                               ...formData,
                               eventDate: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="shootingTime"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Shooting Time
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="time"
+                            value={(formData.shootingTime || "").split(" - ")[0] || ""}
+                            onChange={(e) => {
+                              const parts = (formData.shootingTime || "").split(" - ");
+                              const end = parts.length > 1 ? parts[1] : "";
+                              setFormData({
+                                ...formData,
+                                shootingTime: e.target.value ? `${e.target.value} - ${end}` : (end ? ` - ${end}` : ""),
+                              });
+                            }}
+                          />
+                          <span className="text-slate-400 font-medium">-</span>
+                          <Input
+                            type="time"
+                            value={(formData.shootingTime || "").split(" - ")[1] || ""}
+                            onChange={(e) => {
+                              const parts = (formData.shootingTime || "").split(" - ");
+                              const start = parts[0] || "";
+                              setFormData({
+                                ...formData,
+                                shootingTime: e.target.value ? `${start} - ${e.target.value}` : start,
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="location"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Location
+                        </Label>
+                        <Input
+                          id="location"
+                          placeholder="Event location"
+                          value={formData.location}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              location: e.target.value,
                             })
                           }
                         />
@@ -1755,6 +1818,22 @@ export function Quotes() {
                             "dd · MM · yyyy",
                           )}
                         </span>
+                      </div>
+                    )}
+                    {formData.shootingTime && (
+                      <div className="meta-row">
+                        <span className="meta-label">Shooting Time</span>
+                        <span className="meta-value">
+                          {formData.shootingTime.includes("-") && formData.shootingTime.split("-")[1].trim()
+                            ? `from ${formData.shootingTime}`
+                            : formData.shootingTime}
+                        </span>
+                      </div>
+                    )}
+                    {formData.location && (
+                      <div className="meta-row">
+                        <span className="meta-label">Location</span>
+                        <span className="meta-value">{formData.location}</span>
                       </div>
                     )}
                   </div>
