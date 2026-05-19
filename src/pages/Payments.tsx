@@ -853,9 +853,11 @@ export function Payments() {
                         <>
                           <div className="item-name">{title}</div>
                           {inclusions.length > 0 && (
-                            <div className="item-desc">
-                              {inclusions.join(' · ')}
-                            </div>
+                            <ul className="item-desc" style={{ listStyleType: 'square', paddingLeft: '1.25rem', marginTop: '0.25rem', marginBottom: '0' }}>
+                              {inclusions.map((inc, i) => (
+                                <li key={i} style={{ paddingLeft: '0.25rem', marginBottom: '0.25rem' }}>{inc}</li>
+                              ))}
+                            </ul>
                           )}
                         </>
                       );
