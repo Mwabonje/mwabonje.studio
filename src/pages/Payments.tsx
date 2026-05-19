@@ -841,7 +841,21 @@ export function Payments() {
                   const invoice = invoices.find(i => i.id === previewPayment.invoiceId);
                   const project = projects.find(p => p.id === invoice?.projectId);
                   const client = clients.find(c => c.id === invoice?.clientId);
-                  const balance = invoice ? invoice.totalAmount - invoice.amountPaid : 0;
+                  
+                  const invoicePayments = payments
+                    .filter(p => p.invoiceId === previewPayment.invoiceId)
+                    .sort((a, b) => {
+                      const dateA = new Date(a.date).getTime();
+                      const dateB = new Date(b.date).getTime();
+                      if (dateA !== dateB) return dateA - dateB;
+                      return a.id.localeCompare(b.id);
+                    });
+                  const paymentIndex = invoicePayments.findIndex(p => p.id === previewPayment.id);
+                  const previousAmountPaid = invoicePayments
+                    .slice(0, paymentIndex >= 0 ? paymentIndex : 0)
+                    .reduce((sum, p) => sum + p.amount, 0);
+                    
+                  const balance = invoice ? invoice.totalAmount - (previousAmountPaid + previewPayment.amount) : 0;
                   
                   const renderDescription = (description: string) => {
                     if (!description) return <div className="item-name">Item description</div>;
@@ -918,10 +932,18 @@ export function Payments() {
                               }
                               let amountForThisItem = 0;
                               const itemPrice = item.price || 0;
-                              const remainingPaymentAmount = previewPayment.amount - accumulatedOriginalAmount;
                               
-                              if (remainingPaymentAmount > 0) {
-                                amountForThisItem = Math.min(itemPrice, remainingPaymentAmount);
+                              const itemStart = accumulatedOriginalAmount;
+                              const itemEnd = itemStart + itemPrice;
+                              
+                              const paymentStart = previousAmountPaid;
+                              const paymentEnd = previousAmountPaid + previewPayment.amount;
+
+                              const overlapStart = Math.max(itemStart, paymentStart);
+                              const overlapEnd = Math.min(itemEnd, paymentEnd);
+
+                              if (overlapEnd > overlapStart) {
+                                amountForThisItem = overlapEnd - overlapStart;
                               }
 
                               return (
@@ -945,9 +967,16 @@ export function Payments() {
                               <span>KES {invoice?.totalAmount.toLocaleString()}</span>
                             </div>
 
+                            {previousAmountPaid > 0 && (
+                              <div className="totals-row">
+                                <span>Previous Amount Paid</span>
+                                <span>KES {previousAmountPaid.toLocaleString()}</span>
+                              </div>
+                            )}
+
                             <div className="totals-row grand">
                               <span>Total Due</span>
-                              <span className="amount">KES {invoice?.totalAmount.toLocaleString()}</span>
+                              <span className="amount">KES {((invoice?.totalAmount || 0) - previousAmountPaid).toLocaleString()}</span>
                             </div>
 
                             <div className="totals-row amount-paid">
