@@ -87,19 +87,16 @@ export function Invoices() {
         }
       });
       
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfWidth = 210; // A4 width in mm
       const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / 760;
-      const pageHeight = pdf.internal.pageSize.getHeight();
       
-      let position = 0;
-      while (position < pdfHeightOriginal) {
-        pdf.addImage(dataUrl, 'PNG', 0, position * -1, pdfWidth, pdfHeightOriginal);
-        position += pageHeight;
-        if (position < pdfHeightOriginal) {
-          pdf.addPage();
-        }
-      }
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [pdfWidth, pdfHeightOriginal]
+      });
+
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
       
       pdf.save(`Invoice_${safeTitle}.pdf`);
       
