@@ -910,7 +910,7 @@ export function Invoices() {
                         </div>
                         <div className="header-right">
                           <div className="invoice-label">In<em>voice</em></div>
-                          <div className="invoice-number">{previewInvoice.quoteId ? 'QUOTE' : 'INV'} · {previewInvoice.date ? format(new Date(previewInvoice.date), 'yyyy') : new Date().getFullYear()} · {previewInvoice.quoteId ? (quotes.find(q => q.id === previewInvoice.quoteId)?.quoteNumber?.replace('QT-', '') || previewInvoice.quoteId.slice(0, 3).toUpperCase()) : previewInvoice.id.slice(0, 3).toUpperCase()}</div>
+                          <div className="invoice-number">INV · {previewInvoice.date ? format(new Date(previewInvoice.date), 'yyyy') : new Date().getFullYear()} · {previewInvoice.id.slice(0, 3).toUpperCase()}</div>
                           <div className={`status-badge ${previewInvoice.amountPaid === 0 ? 'status-unpaid' : previewInvoice.amountPaid < previewInvoice.totalAmount ? 'status-partial' : 'status-paid'}`}>
                             {previewInvoice.amountPaid === 0 ? 'Awaiting Payment' : previewInvoice.amountPaid < previewInvoice.totalAmount ? 'Partially Paid' : 'Paid in Full'}
                           </div>

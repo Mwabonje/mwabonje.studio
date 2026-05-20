@@ -908,7 +908,7 @@ export function Payments() {
                             <div className="meta-line"><strong>Receipt No.</strong> &nbsp;RCT-{previewPayment.id.substring(0, 6).toUpperCase()}</div>
                             <div className="meta-line"><strong>Date Paid</strong> &nbsp;&nbsp;&nbsp;{format(new Date(previewPayment.date), 'dd · MM · yyyy')}</div>
                             {project?.title && <div className="meta-line"><strong>Project</strong> &nbsp;&nbsp;&nbsp;&nbsp;{project.title}</div>}
-                            <div className="meta-line"><strong>Ref. Invoice</strong> &nbsp;{invoice?.id.substring(0, 8).toUpperCase()}</div>
+                            <div className="meta-line"><strong>Ref. Invoice</strong> &nbsp;{invoice ? `INV · ${invoice.date ? format(new Date(invoice.date), 'yyyy') : new Date().getFullYear()} · ${invoice.id.slice(0, 3).toUpperCase()}` : '——————'}</div>
                           </div>
                         </div>
 
