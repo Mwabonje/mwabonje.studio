@@ -8,6 +8,8 @@ export type Client = {
   phone: string;
   email: string;
   notes: string;
+  nationality?: string;
+  leadSource?: string;
   uid?: string;
 };
 
@@ -55,6 +57,8 @@ export type Quote = {
   clientName: string;
   clientEmail: string;
   clientPhone: string;
+  clientNationality?: string;
+  clientLeadSource?: string;
   projectTitle: string;
   location?: string;
   shootingTime?: string;

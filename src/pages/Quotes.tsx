@@ -66,6 +66,7 @@ export function Quotes() {
     updateQuote,
     deleteQuote,
     addClient,
+    updateClient,
     addProject,
     updateProject,
     addInvoice,
@@ -94,6 +95,8 @@ export function Quotes() {
     clientName: "",
     clientEmail: "",
     clientPhone: "",
+    clientNationality: "",
+    clientLeadSource: "",
     projectTitle: "",
     location: "",
     shootingTime: "",
@@ -190,6 +193,8 @@ export function Quotes() {
         clientName: quote.clientName || "",
         clientEmail: quote.clientEmail || "",
         clientPhone: quote.clientPhone || "",
+        clientNationality: quote.clientNationality || "",
+        clientLeadSource: quote.clientLeadSource || "",
         projectTitle: quote.projectTitle || "",
         location: quote.location || "",
         shootingTime: quote.shootingTime || "",
@@ -317,6 +322,8 @@ export function Quotes() {
       clientName: quote.clientName || "",
       clientEmail: quote.clientEmail || "",
       clientPhone: quote.clientPhone || "",
+      clientNationality: quote.clientNationality || "",
+      clientLeadSource: quote.clientLeadSource || "",
       projectTitle: quote.projectTitle || "",
       location: quote.location || "",
       shootingTime: quote.shootingTime || "",
@@ -361,6 +368,8 @@ export function Quotes() {
       clientName: quote.clientName || "",
       clientEmail: quote.clientEmail || "",
       clientPhone: quote.clientPhone || "",
+      clientNationality: quote.clientNationality || "",
+      clientLeadSource: quote.clientLeadSource || "",
       projectTitle: `${quote.projectTitle || ""} (Revision)`,
       location: quote.location || "",
       shootingTime: quote.shootingTime || "",
@@ -677,6 +686,15 @@ export function Quotes() {
         );
         if (existingClient) {
           clientId = existingClient.id;
+          if (
+            (quoteToApprove.clientNationality && !existingClient.nationality) ||
+            (quoteToApprove.clientLeadSource && !existingClient.leadSource)
+          ) {
+            await updateClient(existingClient.id, {
+              nationality: existingClient.nationality || quoteToApprove.clientNationality,
+              leadSource: existingClient.leadSource || quoteToApprove.clientLeadSource,
+            });
+          }
         } else {
           clientId = crypto.randomUUID();
           await addClient({
@@ -684,6 +702,8 @@ export function Quotes() {
             name: quoteToApprove.clientName,
             email: quoteToApprove.clientEmail,
             phone: quoteToApprove.clientPhone,
+            nationality: quoteToApprove.clientNationality,
+            leadSource: quoteToApprove.clientLeadSource,
             notes: "Auto-created from quote",
           });
         }
@@ -912,6 +932,44 @@ export function Quotes() {
                             setFormData({
                               ...formData,
                               clientPhone: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="clientNationality"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Nationality
+                        </Label>
+                        <Input
+                          id="clientNationality"
+                          placeholder="e.g. Kenyan, British"
+                          value={formData.clientNationality}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              clientNationality: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="clientLeadSource"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Lead Source
+                        </Label>
+                        <Input
+                          id="clientLeadSource"
+                          placeholder="e.g. Website, Instagram"
+                          value={formData.clientLeadSource}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              clientLeadSource: e.target.value,
                             })
                           }
                         />
