@@ -2224,24 +2224,42 @@ export function Quotes() {
                     <div className="payment">
                       <div className="payment-title">Payment Details</div>
                       <div className="payment-grid">
-                        {(
-                          formData.paymentDetails ||
-                          settings.paymentDetails ||
-                          ""
-                        )
-                          .split("\\n")
-                          .map((line: string, i: number) => {
+                        {(() => {
+                          const lines = (
+                            formData.paymentDetails ||
+                            settings.paymentDetails ||
+                            ""
+                          )
+                            .split("\n")
+                            .filter((line: string) => line.trim());
+                          const mid = Math.ceil(lines.length / 2);
+                          const col1 = lines.slice(0, mid);
+                          const col2 = lines.slice(mid);
+
+                          const renderLine = (line: string, i: number) => {
                             const parts = line.split(":");
                             if (parts.length > 1) {
                               return (
-                                <div key={i}>
-                                  <strong>{parts[0].trim()}:</strong>{" "}
-                                  {parts.slice(1).join(":").trim()}
+                                <div key={i} style={{ marginBottom: "4px" }}>
+                                  <span style={{ color: "var(--ink-soft)" }}>{parts[0].trim()}:</span>{" "}
+                                  <span style={{ color: "var(--ink)" }}>{parts.slice(1).join(":").trim()}</span>
                                 </div>
                               );
                             }
-                            return <div key={i}>{line}</div>;
-                          })}
+                            return <div key={i} style={{ marginBottom: "4px" }}>{line}</div>;
+                          };
+
+                          return (
+                            <>
+                              <div className="payment-col">
+                                {col1.map(renderLine)}
+                              </div>
+                              <div className="payment-col">
+                                {col2.map(renderLine)}
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   )}
