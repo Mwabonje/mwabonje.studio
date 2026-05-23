@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Download } from 'lucide-react';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Clients() {
@@ -45,6 +45,39 @@ export function Clients() {
       console.error("Error saving client:", error);
       alert("Failed to save client. Please check your connection and try again.");
     }
+  };
+
+  const handleExportCSV = () => {
+    if (filteredClients.length === 0) return;
+
+    // Use filteredClients to respect any active search
+    const exportData = filteredClients;
+
+    const headers = ['Name', 'Email', 'Phone', 'Nationality', 'Lead Source', 'Notes'];
+    const csvContent = [
+      headers.join(','),
+      ...exportData.map(client => 
+        [
+          `"${(client.name || '').replace(/"/g, '""')}"`,
+          `"${(client.email || '').replace(/"/g, '""')}"`,
+          `"${(client.phone || '').replace(/"/g, '""')}"`,
+          `"${(client.nationality || '').replace(/"/g, '""')}"`,
+          `"${(client.leadSource || '').replace(/"/g, '""')}"`,
+          `"${(client.notes || '').replace(/"/g, '""')}"`
+        ].join(',')
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `clients_export_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const filteredClients = clients.filter(client => 
@@ -134,6 +167,10 @@ export function Clients() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+          <Button onClick={handleExportCSV} variant="outline" className="w-full sm:w-auto">
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger render={<Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto" />}>
               <Plus className="w-4 h-4 mr-2" />
