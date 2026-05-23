@@ -68,20 +68,56 @@ export function Clients() {
     statsLeadSource[source] = (statsLeadSource[source] || 0) + 1;
   });
 
-  const getPercentages = (stats: Record<string, number>, total: number) => {
-    return Object.entries(stats)
+  const getPercentages = (stats: Record<string, number>, totalValid: number) => {
+    let entries = Object.entries(stats)
       .filter(([key]) => key !== 'Unknown')
       .map(([name, count]) => ({
         name,
         count,
-        percentage: total > 0 ? Math.round((count / total) * 100) : 0
+        percentage: 0 // Will calculate properly
       }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5); // top 5
+      .sort((a, b) => b.count - a.count);
+
+    if (entries.length === 0) return [];
+
+    if (entries.length > 5) {
+      const top4 = entries.slice(0, 4);
+      const others = entries.slice(4);
+      const othersCount = others.reduce((sum, item) => sum + item.count, 0);
+      top4.push({ name: 'Other', count: othersCount, percentage: 0 });
+      entries = top4;
+    }
+
+    // Largest Remainder Method to ensure it sums exactly to 100%
+    const exactPercentages = entries.map(item => ({
+      ...item,
+      exactPercentage: (item.count / totalValid) * 100,
+      floorPercentage: Math.floor((item.count / totalValid) * 100),
+      remainder: ((item.count / totalValid) * 100) - Math.floor((item.count / totalValid) * 100)
+    }));
+
+    let currentSum = exactPercentages.reduce((sum, item) => sum + item.floorPercentage, 0);
+    let diff = 100 - currentSum;
+
+    // Sort by remainder descending to distribute the remaining percentage points
+    exactPercentages.sort((a, b) => b.remainder - a.remainder);
+
+    for (let i = 0; i < diff && i < exactPercentages.length; i++) {
+      exactPercentages[i].floorPercentage += 1;
+    }
+
+    // Restore original order (by count descending)
+    exactPercentages.sort((a, b) => b.count - a.count);
+
+    return exactPercentages.map(item => ({
+      name: item.name,
+      count: item.count,
+      percentage: item.floorPercentage
+    }));
   };
 
-  const topNationalities = getPercentages(statsNationality, clients.length);
-  const topSources = getPercentages(statsLeadSource, clients.length);
+  const topNationalities = getPercentages(statsNationality, validNationalityCount);
+  const topSources = getPercentages(statsLeadSource, validLeadSourceCount);
 
   return (
     <div className="space-y-6">
