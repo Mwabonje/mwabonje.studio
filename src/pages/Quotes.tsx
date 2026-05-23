@@ -945,7 +945,8 @@ export function Quotes() {
                         </Label>
                         <Input
                           id="clientNationality"
-                          placeholder="e.g. Kenyan, British"
+                          list="quoteNationalities"
+                          placeholder="e.g. Kenya, Italy"
                           value={formData.clientNationality}
                           onChange={(e) =>
                             setFormData({
@@ -954,6 +955,20 @@ export function Quotes() {
                             })
                           }
                         />
+                        <datalist id="quoteNationalities">
+                          <option value="Kenya" />
+                          <option value="Italy" />
+                          <option value="United Kingdom" />
+                          <option value="United States" />
+                          <option value="Germany" />
+                          <option value="France" />
+                          <option value="South Africa" />
+                          <option value="Uganda" />
+                          <option value="Tanzania" />
+                          <option value="Canada" />
+                          <option value="Australia" />
+                          <option value="India" />
+                        </datalist>
                       </div>
                       <div className="space-y-2">
                         <Label
@@ -964,6 +979,7 @@ export function Quotes() {
                         </Label>
                         <Input
                           id="clientLeadSource"
+                          list="quoteLeadSources"
                           placeholder="e.g. Website, Instagram"
                           value={formData.clientLeadSource}
                           onChange={(e) =>
@@ -973,6 +989,16 @@ export function Quotes() {
                             })
                           }
                         />
+                        <datalist id="quoteLeadSources">
+                          <option value="Instagram" />
+                          <option value="Facebook" />
+                          <option value="Website" />
+                          <option value="Referral" />
+                          <option value="TikTok" />
+                          <option value="Google Search" />
+                          <option value="LinkedIn" />
+                          <option value="Twitter / X" />
+                        </datalist>
                       </div>
                     </div>
                   </div>

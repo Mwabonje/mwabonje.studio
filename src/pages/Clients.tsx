@@ -139,19 +139,45 @@ export function Clients() {
                   <Label htmlFor="nationality">Nationality</Label>
                   <Input
                     id="nationality"
+                    list="nationalities"
                     value={formData.nationality}
                     onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
-                    placeholder="e.g. Kenyan, British"
+                    placeholder="e.g. Kenya, Italy"
                   />
+                  <datalist id="nationalities">
+                    <option value="Kenya" />
+                    <option value="Italy" />
+                    <option value="United Kingdom" />
+                    <option value="United States" />
+                    <option value="Germany" />
+                    <option value="France" />
+                    <option value="South Africa" />
+                    <option value="Uganda" />
+                    <option value="Tanzania" />
+                    <option value="Canada" />
+                    <option value="Australia" />
+                    <option value="India" />
+                  </datalist>
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="leadSource">Lead Source (Platform / Referral)</Label>
                   <Input
                     id="leadSource"
+                    list="leadSources"
                     value={formData.leadSource}
                     onChange={(e) => setFormData({ ...formData, leadSource: e.target.value })}
-                    placeholder="e.g. Instagram, Facebook, Website, Referral"
+                    placeholder="e.g. Instagram, Referral"
                   />
+                  <datalist id="leadSources">
+                    <option value="Instagram" />
+                    <option value="Facebook" />
+                    <option value="Website" />
+                    <option value="Referral" />
+                    <option value="TikTok" />
+                    <option value="Google Search" />
+                    <option value="LinkedIn" />
+                    <option value="Twitter / X" />
+                  </datalist>
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="notes">Notes</Label>
