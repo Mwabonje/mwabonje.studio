@@ -43,6 +43,8 @@ service cloud.firestore {
              isValidOptionalString('phone', 0, 50) &&
              isValidOptionalString('email', 0, 150) &&
              isValidOptionalString('notes', 0, 5000) &&
+             isValidOptionalString('nationality', 0, 100) &&
+             isValidOptionalString('leadSource', 0, 100) &&
              data.uid == request.auth.uid;
     }
 

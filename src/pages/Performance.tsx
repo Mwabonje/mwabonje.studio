@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useStore, Project } from '@/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Wallet, Clock, FileText, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { DollarSign, Wallet, Clock, FileText, Calendar, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { isSameMonth, isSameYear, format, subMonths, addMonths, addYears, subYears } from 'date-fns';
 import { Button } from '@/components/ui/button';
 
@@ -120,6 +120,7 @@ export function Performance() {
     {
       title: 'Total Earning',
       value: `Ksh ${totalEarning.toLocaleString()}`,
+      rawValue: totalEarning,
       icon: DollarSign,
       description: `Total revenue across all projects in ${format(selectedMonth, 'yyyy')}`,
       action: yearPickerAction
@@ -127,6 +128,7 @@ export function Performance() {
     {
       title: 'Net Earning',
       value: `Ksh ${netEarning.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+      rawValue: netEarning,
       icon: Wallet,
       description: `Your personal take after collaborator splits in ${format(selectedMonth, 'MMM yyyy')}`,
       action: monthPickerAction
@@ -134,28 +136,60 @@ export function Performance() {
     {
       title: 'Pending Balances',
       value: `Ksh ${pendingBalances.toLocaleString()}`,
+      rawValue: pendingBalances,
       icon: Clock,
       description: 'Unpaid amounts from issued invoices',
     },
     {
       title: 'Open Quotes',
       value: openQuotes.toString(),
+      rawValue: openQuotes,
       icon: FileText,
       description: 'Quotes awaiting client approval',
     },
     {
       title: `Monthly Earning`,
       value: `Ksh ${monthlyEarning.toLocaleString()}`,
+      rawValue: monthlyEarning,
       icon: Calendar,
       description: `Earnings received in ${format(selectedMonth, 'MMMM yyyy')}`,
       action: monthPickerAction
     },
   ];
 
+  const handleExportCSV = () => {
+    const headers = ['Metric', 'Amount/Value', 'Description'];
+    const csvContent = [
+      headers.join(','),
+      ...stats.map(stat => 
+        [
+          `"${stat.title}"`,
+          `"${stat.rawValue}"`,
+          `"${stat.description}"`
+        ].join(',')
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `performance_export_${format(selectedMonth, 'MMM_yyyy')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Performance Overview</h2>
+        <Button onClick={handleExportCSV} variant="outline" className="w-full sm:w-auto">
+          <Download className="w-4 h-4 mr-2" />
+          Export CSV
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
