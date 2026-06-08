@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useStore, Project, CollaboratorSplit } from '@/store';
+import { useStore, Project, CollaboratorSplit, Milestone } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Users, PieChart } from 'lucide-react';
-import { format } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Edit, Trash2, Users, PieChart, LayoutList, Clock, CheckSquare } from 'lucide-react';
+import { format, isAfter, isBefore, isSameDay } from 'date-fns';
 import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
@@ -388,60 +389,164 @@ export function Projects() {
         </DialogContent>
       </Dialog>
 
-      <Card>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table className="min-w-[800px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Collaborators</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projects.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    No projects found. Create one to get started.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                [...projects].sort((a, b) => {
-                  const dateA = new Date(a.date).getTime();
-                  const dateB = new Date(b.date).getTime();
-                  if (dateB !== dateA) return dateB - dateA;
-                  return b.id.localeCompare(a.id);
-                }).map((project) => {
-                  const client = clients.find(c => c.id === project.clientId);
-                  return (
-                    <TableRow key={project.id}>
-                      <TableCell className="font-medium">{project.title}</TableCell>
-                      <TableCell>{client?.name || 'Unknown Client'}</TableCell>
-                      <TableCell>{project.location}</TableCell>
-                      <TableCell>{project.date ? format(new Date(project.date), 'MMM d, yyyy') : '-'}</TableCell>
-                      <TableCell>{project.collaborators?.length || 0}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => handleOpenSplitDialog(project)} className="mr-2">
-                          <PieChart className="w-4 h-4 mr-1" /> Split
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(project)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setProjectToDelete(project.id)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
+      <Tabs defaultValue="list" className="w-full">
+        <div className="flex justify-between items-center mb-4">
+          <TabsList>
+            <TabsTrigger value="list" className="flex items-center gap-2">
+              <LayoutList className="w-4 h-4" />
+              List View
+            </TabsTrigger>
+            <TabsTrigger value="timeline" className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Timeline View
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="list" className="mt-0">
+          <Card>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table className="min-w-[800px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Progress</TableHead>
+                    <TableHead>Collaborators</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projects.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        No projects found. Create one to get started.
                       </TableCell>
                     </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                  ) : (
+                    [...projects].sort((a, b) => {
+                      const dateA = new Date(a.date).getTime();
+                      const dateB = new Date(b.date).getTime();
+                      if (dateB !== dateA) return dateB - dateA;
+                      return b.id.localeCompare(a.id);
+                    }).map((project) => {
+                      const client = clients.find(c => c.id === project.clientId);
+                      const projectInvoices = invoices.filter(i => i.projectId === project.id);
+                      const totalBilled = projectInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
+                      const totalPaid = projectInvoices.reduce((sum, i) => sum + i.amountPaid, 0);
+                      const progressPercentage = totalBilled > 0 ? Math.min(100, Math.round((totalPaid / totalBilled) * 100)) : 0;
+                      
+                      return (
+                        <TableRow key={project.id}>
+                          <TableCell className="font-medium">{project.title}</TableCell>
+                          <TableCell>{client?.name || 'Unknown Client'}</TableCell>
+                          <TableCell>{project.location}</TableCell>
+                          <TableCell>{project.date ? format(new Date(project.date), 'MMM d, yyyy') : '-'}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary" style={{ width: `${progressPercentage}%` }} />
+                              </div>
+                              <span className="text-xs text-muted-foreground">{progressPercentage}%</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{project.collaborators?.length || 0}</TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm" onClick={() => handleOpenSplitDialog(project)} className="mr-2">
+                              <PieChart className="w-4 h-4 mr-1" /> Split
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(project)}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => setProjectToDelete(project.id)}>
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="timeline" className="mt-0">
+          <div className="relative border-l-2 border-slate-200 ml-4 md:ml-6 space-y-8 pb-8 pt-4">
+            {projects.length === 0 ? (
+              <p className="text-muted-foreground ml-6">No projects found. Create one to get started.</p>
+            ) : (
+              [...projects].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((project) => {
+                const client = clients.find(c => c.id === project.clientId);
+                const projectDate = project.date ? new Date(project.date) : new Date();
+                const today = new Date(new Date().setHours(0,0,0,0));
+                const isPast = projectDate < today;
+                const isToday = isSameDay(projectDate, today);
+                const badgeColor = isPast ? 'bg-slate-300 border-slate-300' : isToday ? 'bg-primary border-primary' : 'bg-blue-500 border-blue-500';
+                
+                const projectInvoices = invoices.filter(i => i.projectId === project.id);
+                const totalBilled = projectInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
+                const totalPaid = projectInvoices.reduce((sum, i) => sum + i.amountPaid, 0);
+                const progressPercentage = totalBilled > 0 ? Math.min(100, Math.round((totalPaid / totalBilled) * 100)) : 0;
+                
+                return (
+                  <div key={project.id} className="relative pl-8 md:pl-10">
+                    <div className={`absolute -left-[9px] top-1.5 h-4 w-4 rounded-full border-2 border-white shadow-sm ${badgeColor}`} />
+                    <Card className={`border-l-4 ${isPast ? 'border-l-slate-300' : isToday ? 'border-l-primary' : 'border-l-blue-500'} hover:shadow-md transition-shadow`}>
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                          <div className="w-full sm:w-auto flex-1">
+                            <div className="flex items-center justify-between sm:justify-start gap-4 mb-2">
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-lg font-semibold">{project.title}</h3>
+                                {isToday && <span className="text-xs font-medium px-2 py-0.5 rounded bg-primary/10 text-primary">Today</span>}
+                              </div>
+                              <div className="flex items-center gap-2 sm:ml-4 bg-slate-50 px-2 py-1 rounded">
+                                <div className="w-20 md:w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                  <div className="h-full bg-primary" style={{ width: `${progressPercentage}%` }} />
+                                </div>
+                                <span className="text-xs font-medium text-slate-600">{progressPercentage}%</span>
+                              </div>
+                            </div>
+                            <div className="text-sm text-muted-foreground flex flex-wrap gap-x-4 gap-y-2">
+                               <span className="flex items-center"><strong>Client:</strong> <span className="ml-1">{client?.name || 'Unknown Client'}</span></span>
+                               <span className="flex items-center"><strong>Location:</strong> <span className="ml-1">{project.location}</span></span>
+                               <span className="flex items-center"><strong>Date:</strong> <span className="ml-1">{project.date ? format(projectDate, 'MMM d, yyyy') : '-'}</span></span>
+                            </div>
+                            {project.description && (
+                              <p className="mt-3 text-sm text-slate-600 line-clamp-2">{project.description}</p>
+                            )}
+                          </div>
+                          <div className="flex -mx-2 sm:mx-0 sm:flex-col gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                             <div className="flex items-center justify-center gap-2 bg-slate-50 px-3 py-1.5 rounded-md border text-sm font-medium shrink-0">
+                               <Users className="w-4 h-4 text-slate-500" />
+                               {project.collaborators?.length || 0}
+                             </div>
+                             <div className="flex items-center space-x-1 sm:justify-end ml-auto sm:ml-0">
+                               <Button variant="ghost" size="icon" onClick={() => handleOpenSplitDialog(project)}>
+                                 <PieChart className="w-4 h-4 text-slate-500" />
+                               </Button>
+                               <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(project)}>
+                                 <Edit className="w-4 h-4 text-slate-500" />
+                               </Button>
+                               <Button variant="ghost" size="icon" onClick={() => setProjectToDelete(project.id)}>
+                                 <Trash2 className="w-4 h-4 text-destructive" />
+                               </Button>
+                             </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <ConfirmDeleteDialog
         isOpen={!!projectToDelete}

@@ -20,6 +20,12 @@ export type CollaboratorSplit = {
   percentage?: number;
 };
 
+export type Milestone = {
+  id: string;
+  title: string;
+  completed: boolean;
+};
+
 export type Project = {
   id: string;
   clientId: string;
@@ -28,6 +34,7 @@ export type Project = {
   date: string;
   description: string;
   collaborators: CollaboratorSplit[];
+  milestones?: Milestone[];
   uid?: string;
 };
 
