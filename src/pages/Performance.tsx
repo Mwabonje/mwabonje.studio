@@ -15,7 +15,7 @@ export function Performance() {
     .reduce((sum, payment) => sum + payment.amount, 0);
 
   // 2. Net Earning (Personal Takes)
-  const calculateNetEarning = () => {
+  const calculateNetEarning = (yearly: boolean = false) => {
     let totalNet = 0;
 
     // Collect all project IDs that exist
@@ -25,7 +25,7 @@ export function Performance() {
     invoices.forEach(invoice => {
       if (!invoice.projectId || invoice.projectId === 'none' || !projectIds.has(invoice.projectId)) {
         const invoicePaymentsForMonth = payments
-          .filter(p => p.invoiceId === invoice.id && isSameMonth(new Date(p.date), selectedMonth))
+          .filter(p => p.invoiceId === invoice.id && (yearly ? isSameYear(new Date(p.date), selectedMonth) : isSameMonth(new Date(p.date), selectedMonth)))
           .reduce((sum, p) => sum + p.amount, 0);
         totalNet += invoicePaymentsForMonth;
       }
@@ -34,7 +34,7 @@ export function Performance() {
     projects.forEach((project) => {
       const projectInvoices = invoices.filter((i) => i.projectId === project.id);
       const projectRevenue = payments
-        .filter(p => isSameMonth(new Date(p.date), selectedMonth) && projectInvoices.some(i => i.id === p.invoiceId))
+        .filter(p => (yearly ? isSameYear(new Date(p.date), selectedMonth) : isSameMonth(new Date(p.date), selectedMonth)) && projectInvoices.some(i => i.id === p.invoiceId))
         .reduce((sum, p) => sum + p.amount, 0);
 
       if (projectRevenue === 0) return;
@@ -79,7 +79,8 @@ export function Performance() {
     return totalNet;
   };
 
-  const netEarning = calculateNetEarning();
+  const netEarning = calculateNetEarning(false);
+  const totalNetEarning = calculateNetEarning(true);
 
   // 3. Pending Balances
   const pendingBalances = invoices.reduce((sum, invoice) => sum + Math.max(0, invoice.totalAmount - invoice.amountPaid), 0);
@@ -123,6 +124,14 @@ export function Performance() {
       rawValue: totalEarning,
       icon: DollarSign,
       description: `Total revenue across all projects in ${format(selectedMonth, 'yyyy')}`,
+      action: yearPickerAction
+    },
+    {
+      title: 'Total Net Earning',
+      value: `Ksh ${totalNetEarning.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+      rawValue: totalNetEarning,
+      icon: Wallet,
+      description: `Your personal take after collaborator splits in ${format(selectedMonth, 'yyyy')}`,
       action: yearPickerAction
     },
     {
