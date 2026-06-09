@@ -61,6 +61,7 @@ export function Quotes() {
     quotes,
     clients,
     projects,
+    invoices,
     settings,
     addQuote,
     updateQuote,
@@ -70,6 +71,7 @@ export function Quotes() {
     addProject,
     updateProject,
     addInvoice,
+    updateInvoice,
   } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -725,21 +727,37 @@ export function Quotes() {
           });
         }
 
-        await addInvoice({
-          id: crypto.randomUUID(),
-          quoteId: quoteToApprove.id,
-          projectId,
-          clientId,
-          lineItems,
-          totalAmount: totalSelectedAmount,
-          amountPaid: 0,
-          status: "unpaid",
-          date: format(new Date(), "yyyy-MM-dd"),
-          dueDate: format(
-            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            "yyyy-MM-dd",
-          ),
-        });
+        const existingInvoice = invoices.find(i => i.projectId === projectId && i.status !== 'paid');
+
+        if (existingInvoice) {
+          const newStatus = existingInvoice.amountPaid >= totalSelectedAmount 
+            ? 'paid' 
+            : (existingInvoice.amountPaid > 0 ? 'partially_paid' : 'unpaid');
+            
+          await updateInvoice(existingInvoice.id, {
+            quoteId: quoteToApprove.id,
+            clientId,
+            lineItems,
+            totalAmount: totalSelectedAmount,
+            status: newStatus
+          });
+        } else {
+          await addInvoice({
+            id: crypto.randomUUID(),
+            quoteId: quoteToApprove.id,
+            projectId,
+            clientId,
+            lineItems,
+            totalAmount: totalSelectedAmount,
+            amountPaid: 0,
+            status: "unpaid",
+            date: format(new Date(), "yyyy-MM-dd"),
+            dueDate: format(
+              new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+              "yyyy-MM-dd",
+            ),
+          });
+        }
       }
 
       // Update quote status, selected packages, and projectId in a single call
