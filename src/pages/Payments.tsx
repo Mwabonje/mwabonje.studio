@@ -900,7 +900,7 @@ export function Payments() {
                           <div className="meta-block accent">
                             <div className="meta-block-title">Received From</div>
                             <div className="meta-line"><strong>{client?.name || 'Client'}</strong></div>
-                            {(client?.address || client?.email) && <div className="meta-line">{client.address || client.email}</div>}
+                            {(client?.phone || client?.email) && <div className="meta-line">{client.phone || client.email}</div>}
                           </div>
 
                           <div className="meta-block">
