@@ -131,6 +131,7 @@ export type Settings = {
   companyWebsite: string;
   colorScheme: string;
   paymentDetails: string;
+  companySignature?: string;
 };
 
 export type ProjectTemplate = {

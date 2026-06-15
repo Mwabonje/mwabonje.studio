@@ -33,6 +33,17 @@ export default function Settings() {
     }
   };
 
+  const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, companySignature: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = async () => {
     try {
       await updateSettings(formData);
@@ -211,6 +222,56 @@ export default function Settings() {
                   placeholder="e.g. Bank: Standard Chartered&#10;Acc Name: CaptureCRM&#10;Acc No: 0100000000000"
                   rows={5}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Signatures & Branding</CardTitle>
+              <CardDescription>
+                Upload images for your signatures.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Company Signature / Owner Signature</Label>
+                <div className="flex items-center gap-4">
+                  <div className="h-20 w-40 rounded-md border flex items-center justify-center bg-slate-50 overflow-hidden">
+                    {formData.companySignature ? (
+                      <img src={formData.companySignature} alt="Signature" className="h-full w-full object-contain mix-blend-multiply" />
+                    ) : (
+                      <ImageIcon className="h-8 w-8 text-slate-300" />
+                    )}
+                  </div>
+                  <div>
+                    <Input
+                      id="signature"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleSignatureUpload}
+                    />
+                    <Label
+                      htmlFor="signature"
+                      className="cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Signature
+                    </Label>
+                    {formData.companySignature && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-2 text-destructive"
+                        onClick={() => setFormData(prev => ({ ...prev, companySignature: "" }))}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">Upload a signature with a transparent background for best results.</p>
               </div>
             </CardContent>
           </Card>

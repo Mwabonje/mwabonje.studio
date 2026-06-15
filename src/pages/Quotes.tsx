@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from "@/store";
+import { NDA } from "@/components/NDA";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,6 +78,11 @@ export function Quotes() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+  const [isNDADialogOpen, setIsNDADialogOpen] = useState(false);
+  const [quoteForNDA, setQuoteForNDA] = useState<Quote | null>(null);
+  const [isGeneratingNDAPDF, setIsGeneratingNDAPDF] = useState(false);
+  const [isNDAAutoSigned, setIsNDAAutoSigned] = useState(false);
+  const ndaRef = useRef<HTMLDivElement>(null);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [quoteToApprove, setQuoteToApprove] = useState<Quote | null>(null);
   const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
@@ -87,7 +93,7 @@ export function Quotes() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [quoteToDelete, setQuoteToDelete] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<{
-    type: "approve" | "decline" | "link" | "duplicate" | "edit";
+    type: "approve" | "decline" | "link" | "duplicate" | "edit" | "nda";
     quote: Quote;
   } | null>(null);
 
@@ -315,6 +321,74 @@ export function Quotes() {
       }
       setIsGeneratingPDF(false);
     }
+  };
+
+  const handleDownloadNDA = async () => {
+    if (!ndaRef.current || isGeneratingNDAPDF || !quoteForNDA) return;
+
+    setIsGeneratingNDAPDF(true);
+    try {
+      const element = ndaRef.current;
+      const originalStyle = element.style.cssText;
+      const originalClass = element.className;
+      
+      element.className = element.className.replace('mx-auto', '').replace('max-w-4xl', '') + ' pdf-export';
+      element.style.width = "760px";
+      element.style.minWidth = "760px";
+      element.style.maxWidth = "760px";
+      element.style.padding = "40px";
+      element.style.margin = "0px";
+      element.style.boxShadow = "none";
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const safeTitle = (quoteForNDA.projectTitle || "Project")
+        .replace(/[^a-z0-9]/gi, "_")
+        .toLowerCase();
+
+      const htmlToImage = await import("html-to-image");
+      const jsPDFModule = await import("jspdf");
+      const jsPDF = ("default" in jsPDFModule ? jsPDFModule.default : jsPDFModule) as any;
+
+      const dataUrl = await htmlToImage.toPng(element, {
+        quality: 0.98,
+        pixelRatio: 2,
+        width: 760,
+        style: {
+          margin: '0',
+          padding: '40px',
+          maxWidth: '760px',
+          width: '760px',
+        }
+      });
+
+      const pdfWidth = 210; // A4 width in mm
+      const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / 760;
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [pdfWidth, pdfHeightOriginal]
+      });
+
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
+
+      pdf.save(`NDA_${safeTitle}.pdf`);
+
+      element.style.cssText = originalStyle;
+      element.className = originalClass;
+    } catch (error) {
+      console.error("Failed to generate NDA PDF:", error);
+      alert("Failed to generate NDA PDF. Please try again.");
+    } finally {
+      setIsGeneratingNDAPDF(false);
+    }
+  };
+
+  const handleOpenNDA = (quote: Quote) => {
+    setQuoteForNDA(quote);
+    setIsNDAAutoSigned(false);
+    setIsNDADialogOpen(true);
   };
 
   const handleOpenPreview = (quote: Quote) => {
@@ -2527,6 +2601,16 @@ export function Quotes() {
                                 </Button>
                               </>
                             )}
+                          {(quote.status === "sent" || quote.status === "approved") && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenNDA(quote)}
+                              title="Generate NDA"
+                            >
+                              <FileText className="w-4 h-4 text-slate-500 hover:text-primary" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
@@ -2584,6 +2668,63 @@ export function Quotes() {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={isNDADialogOpen} onOpenChange={setIsNDADialogOpen}>
+        <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] h-[90vh] flex flex-col p-0 gap-0 overflow-hidden bg-slate-50">
+          <div className="flex flex-col h-full relative">
+            <div className="sticky top-0 z-10 bg-white border-b px-4 sm:px-6 py-4 flex justify-between items-center shrink-0">
+              <DialogTitle className="text-xl font-bold">
+                Confidentiality Agreement (NDA)
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                {!isNDAAutoSigned && (
+                  <Button
+                    onClick={() => {
+                      if (!settings?.companySignature) {
+                        toast.error("Please upload a company signature in Settings first");
+                        return;
+                      }
+                      setIsNDAAutoSigned(true);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="border-slate-300"
+                  >
+                    Auto-Sign
+                  </Button>
+                )}
+                <Button
+                  onClick={handleDownloadNDA}
+                  disabled={isGeneratingNDAPDF}
+                  variant="outline"
+                  size="sm"
+                  className="bg-slate-900 border-none text-white hover:bg-slate-800 hover:text-white"
+                >
+                  {isGeneratingNDAPDF ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" /> Download Document
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="w-full bg-[#FAF8F4] overflow-y-auto overflow-x-hidden flex-1 h-full py-4 sm:py-10 relative">
+              {quoteForNDA && (
+                <div className="w-full mx-auto max-w-[760px] pb-10 px-2 sm:px-6">
+                  <div className="bg-white mx-auto shadow-2xl relative w-full border border-slate-200">
+                    <NDA quote={quoteForNDA} ref={ndaRef} isAutoSigned={isNDAAutoSigned} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDeleteDialog
         isOpen={!!quoteToDelete}
