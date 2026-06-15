@@ -125,6 +125,7 @@ export type Payment = {
 export type Settings = {
   logoUrl: string;
   companyName: string;
+  ownerName: string;
   companyAddress: string;
   companyEmail: string;
   companyPhone: string;
@@ -189,6 +190,7 @@ type AppState = {
 const defaultSettings: Settings = {
   logoUrl: '',
   companyName: 'CaptureCRM',
+  ownerName: '',
   companyAddress: '',
   companyEmail: '',
   companyPhone: '',

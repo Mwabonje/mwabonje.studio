@@ -10,6 +10,7 @@ interface NDAProps {
 export const NDA = forwardRef<HTMLDivElement, NDAProps>(({ quote, isAutoSigned }, ref) => {
   const { settings } = useStore();
   const companyName = settings?.companyName || "Mwabonje Photography";
+  const ownerName = settings?.ownerName || companyName;
 
   return (
     <div
@@ -36,7 +37,7 @@ export const NDA = forwardRef<HTMLDivElement, NDAProps>(({ quote, isAutoSigned }
 
         <div className="pl-4 border-l-2 border-slate-200 ml-4 py-2">
           <p>
-            <strong>1. {companyName}</strong>{" "}
+            <strong>1. {ownerName}</strong>{" "}
             ("Photographer/Videographer"),
           </p>
           <p>AND</p>
@@ -163,11 +164,11 @@ export const NDA = forwardRef<HTMLDivElement, NDAProps>(({ quote, isAutoSigned }
               The Photographer
             </h3>
             <div className="border-b border-slate-400 pb-1 h-12 relative flex items-end">
-              <p className="font-medium text-lg">{companyName}</p>
+              <p className="font-medium text-lg">{ownerName}</p>
               {isAutoSigned && settings?.companySignature && (
                 <img 
                   src={settings.companySignature} 
-                  alt="Company Signature" 
+                  alt="Owner Signature" 
                   className="absolute bottom-0 left-0 h-20 w-auto object-contain mix-blend-multiply opacity-90"
                 />
               )}

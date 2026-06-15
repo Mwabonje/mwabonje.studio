@@ -37,8 +37,94 @@ export default function Settings() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, companySignature: reader.result as string }));
+      reader.onloadend = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          let targetWidth = img.width;
+          let targetHeight = img.height;
+          
+          const MAX_DIMENSION = 800;
+          if (targetWidth > MAX_DIMENSION || targetHeight > MAX_DIMENSION) {
+            if (targetWidth > targetHeight) {
+              targetHeight = Math.floor((MAX_DIMENSION / targetWidth) * targetHeight);
+              targetWidth = MAX_DIMENSION;
+            } else {
+              targetWidth = Math.floor((MAX_DIMENSION / targetHeight) * targetWidth);
+              targetHeight = MAX_DIMENSION;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+          
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+          
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          
+          let minX = canvas.width;
+          let minY = canvas.height;
+          let maxX = 0;
+          let maxY = 0;
+          
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            
+            // Calculate brightness
+            const brightness = (r + g + b) / 3;
+            
+            if (brightness < 160) {
+              // It's the dark ink. Enhance it to a clean deep blue.
+              data[i] = 10;     // R
+              data[i+1] = 20;   // G
+              data[i+2] = 100;  // B
+              
+              const alpha = ((160 - brightness) / 160) * 255;
+              data[i+3] = alpha > 255 ? 255 : alpha;
+              
+              if (alpha > 50) {
+                const x = (i / 4) % canvas.width;
+                const y = Math.floor((i / 4) / canvas.width);
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+              }
+            } else {
+              // Paper or faint lines
+              data[i+3] = 0;
+            }
+          }
+          
+          ctx.putImageData(imageData, 0, 0);
+          
+          // Crop the canvas to the bounding box if we found ink
+          if (minX < maxX && minY < maxY) {
+            const padding = 20;
+            minX = Math.max(0, minX - padding);
+            minY = Math.max(0, minY - padding);
+            maxX = Math.min(canvas.width, maxX + padding);
+            maxY = Math.min(canvas.height, maxY + padding);
+            
+            const croppedCanvas = document.createElement("canvas");
+            const croppedCtx = croppedCanvas.getContext("2d");
+            if (croppedCtx) {
+               croppedCanvas.width = maxX - minX;
+               croppedCanvas.height = maxY - minY;
+               croppedCtx.drawImage(canvas, minX, minY, croppedCanvas.width, croppedCanvas.height, 0, 0, croppedCanvas.width, croppedCanvas.height);
+               setFormData((prev) => ({ ...prev, companySignature: croppedCanvas.toDataURL("image/png") }));
+               return;
+            }
+          }
+          
+          setFormData((prev) => ({ ...prev, companySignature: canvas.toDataURL("image/png") }));
+        };
+        img.src = event.target?.result as string;
       };
       reader.readAsDataURL(file);
     }
@@ -119,6 +205,17 @@ export default function Settings() {
                 value={formData.companyName}
                 onChange={handleChange}
                 placeholder="e.g. CaptureCRM"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ownerName">Owner Name / Photographer Name</Label>
+              <Input
+                id="ownerName"
+                name="ownerName"
+                value={formData.ownerName || ''}
+                onChange={handleChange}
+                placeholder="e.g. John Doe"
               />
             </div>
 
@@ -226,55 +323,57 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Signatures & Branding</CardTitle>
-              <CardDescription>
-                Upload images for your signatures.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Company Signature / Owner Signature</Label>
-                <div className="flex items-center gap-4">
-                  <div className="h-20 w-40 rounded-md border flex items-center justify-center bg-slate-50 overflow-hidden">
-                    {formData.companySignature ? (
-                      <img src={formData.companySignature} alt="Signature" className="h-full w-full object-contain mix-blend-multiply" />
-                    ) : (
-                      <ImageIcon className="h-8 w-8 text-slate-300" />
-                    )}
-                  </div>
-                  <div>
-                    <Input
-                      id="signature"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleSignatureUpload}
-                    />
-                    <Label
-                      htmlFor="signature"
-                      className="cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload Signature
-                    </Label>
-                    {formData.companySignature && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="ml-2 text-destructive"
-                        onClick={() => setFormData(prev => ({ ...prev, companySignature: "" }))}
+          {false && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Signatures & Branding</CardTitle>
+                <CardDescription>
+                  Upload images for your signatures.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Company Signature / Owner Signature</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="h-20 w-40 rounded-md border flex items-center justify-center bg-slate-50 overflow-hidden">
+                      {formData.companySignature ? (
+                        <img src={formData.companySignature} alt="Signature" className="h-full w-full object-contain mix-blend-multiply" />
+                      ) : (
+                        <ImageIcon className="h-8 w-8 text-slate-300" />
+                      )}
+                    </div>
+                    <div>
+                      <Input
+                        id="signature"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleSignatureUpload}
+                      />
+                      <Label
+                        htmlFor="signature"
+                        className="cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
                       >
-                        Remove
-                      </Button>
-                    )}
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Signature
+                      </Label>
+                      {formData.companySignature && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="ml-2 text-destructive"
+                          onClick={() => setFormData(prev => ({ ...prev, companySignature: "" }))}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
                   </div>
+                  <p className="text-xs text-muted-foreground">Upload a signature with a transparent background for best results.</p>
                 </div>
-                <p className="text-xs text-muted-foreground">Upload a signature with a transparent background for best results.</p>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
