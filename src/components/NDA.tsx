@@ -153,18 +153,20 @@ export const NDA = forwardRef<HTMLDivElement, NDAProps>(({ quote, isAutoSigned }
             <h3 className="font-bold text-slate-500 uppercase text-xs tracking-wider">
               The Client
             </h3>
-            <div className="border-b border-slate-400 pb-1 h-12 flex items-end">
-              <p className="font-medium text-lg">{quote.clientName}</p>
+            <div className="border-b border-slate-400 pb-1 h-16 flex items-end">
+              {/* Client signature space */}
             </div>
-            <p className="text-sm text-slate-500">Signature & Date</p>
+            <div>
+              <p className="font-medium text-lg">{quote.clientName}</p>
+              <p className="text-sm text-slate-500">Date & Signature</p>
+            </div>
           </div>
 
           <div className="space-y-6">
             <h3 className="font-bold text-slate-500 uppercase text-xs tracking-wider">
               The Photographer
             </h3>
-            <div className="border-b border-slate-400 pb-1 h-12 relative flex items-end">
-              <p className="font-medium text-lg">{ownerName}</p>
+            <div className="border-b border-slate-400 pb-1 h-16 relative flex items-end">
               {isAutoSigned && settings?.companySignature && (
                 <img 
                   src={settings.companySignature} 
@@ -173,7 +175,10 @@ export const NDA = forwardRef<HTMLDivElement, NDAProps>(({ quote, isAutoSigned }
                 />
               )}
             </div>
-            <p className="text-sm text-slate-500">Signature & Date</p>
+            <div>
+              <p className="font-medium text-lg">{ownerName}</p>
+              <p className="text-sm text-slate-500">Date & Signature</p>
+            </div>
           </div>
         </div>
       </div>
