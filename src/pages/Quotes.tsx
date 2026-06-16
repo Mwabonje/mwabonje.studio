@@ -93,7 +93,7 @@ export function Quotes() {
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [quoteToApprove, setQuoteToApprove] = useState<Quote | null>(null);
   const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
-  const [depositPercentage, setDepositPercentage] = useState<number>(50);
+  const [depositPercentage, setDepositPercentage] = useState<number>(65);
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
@@ -774,7 +774,7 @@ export function Quotes() {
   const handleOpenApproveDialog = (quote: Quote) => {
     setQuoteToApprove(quote);
     setSelectedPackageIds(quote.selectedPackages || []);
-    setDepositPercentage(50);
+    setDepositPercentage(65);
     setIsApproveDialogOpen(true);
   };
 

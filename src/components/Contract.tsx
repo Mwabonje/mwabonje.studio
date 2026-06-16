@@ -23,7 +23,7 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
   const getTotalAmount = () => getSubtotal() + getTaxAmount();
 
   const getDepositAmount = () => {
-    if (!quote.depositRate) return getTotalAmount() * 0.5; // default 50%
+    if (!quote.depositRate) return getTotalAmount() * 0.65; // default 65%
     return getTotalAmount() * (quote.depositRate / 100);
   };
 
@@ -105,7 +105,7 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
         <ul className="list-disc pl-8 space-y-2">
           <li>
             <strong>Retainer/Deposit:</strong> A non-refundable retainer of{" "}
-            <strong>{formatCurrency(getDepositAmount())}</strong> ({(quote.depositRate || 50)}%) must be paid upon signing this Agreement to secure the Date.
+            <strong>{formatCurrency(getDepositAmount())}</strong> ({(quote.depositRate || 65)}%) must be paid upon signing this Agreement to secure the Date.
           </li>
           <li>
             <strong>Balance Due:</strong> The remaining balance of{" "}
