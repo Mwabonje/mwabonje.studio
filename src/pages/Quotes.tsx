@@ -427,15 +427,34 @@ export function Quotes() {
         .replace(/[^a-z0-9]/gi, "_")
         .toLowerCase();
       
-      const opt = {
-        margin: [10, 0, 10, 0],
-        filename: `contract_${safeTitle}.pdf`,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      };
+      const htmlToImage = await import("html-to-image");
+      const jsPDFModule = await import("jspdf");
+      const jsPDF = ("default" in jsPDFModule ? jsPDFModule.default : jsPDFModule) as any;
 
-      await (window as any).html2pdf().set(opt).from(element).save();
+      const dataUrl = await htmlToImage.toPng(element, {
+        quality: 0.98,
+        pixelRatio: 2,
+        width: 760,
+        style: {
+          margin: '0',
+          padding: '40px',
+          maxWidth: '760px',
+          width: '760px',
+        }
+      });
+
+      const pdfWidth = 210; // A4 width in mm
+      const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / 760;
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [pdfWidth, pdfHeightOriginal]
+      });
+
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
+
+      pdf.save(`Contract_${safeTitle}.pdf`);
 
       element.style.cssText = originalStyle;
       element.className = originalClass;
