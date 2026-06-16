@@ -138,7 +138,7 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
       <div className="space-y-4">
         <h2 className="text-lg font-bold">5. Delivery and Archiving</h2>
         <p>
-          The Service Provider shall deliver the final edited media to the Client within a reasonable timeframe, typically estimated in the attached quotation. Following delivery, the Client assumes sole responsibility for backing up the media. The Service Provider will retain active files for up to 30 days post-delivery; thereafter, archives may be purged.
+          The Service Provider shall deliver the final edited media to the Client within a reasonable timeframe, typically estimated in the attached quotation. Following delivery, the Client assumes sole responsibility for backing up the media. The Service Provider will retain active files for up to 7 days post-delivery; thereafter, archives may be purged.
         </p>
       </div>
 
