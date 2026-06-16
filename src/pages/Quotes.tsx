@@ -435,7 +435,7 @@ export function Quotes() {
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       };
 
-      await window.html2pdf().set(opt).from(element).save();
+      await (window as any).html2pdf().set(opt).from(element).save();
 
       element.style.cssText = originalStyle;
       element.className = originalClass;

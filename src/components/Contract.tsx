@@ -12,8 +12,15 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
   const companyName = settings?.companyName || "Mwabonje Photography";
   const ownerName = settings?.ownerName || companyName;
 
+  const getSelectedPackages = () => {
+    if (quote.selectedPackages && quote.selectedPackages.length > 0) {
+      return quote.packages.filter(pkg => quote.selectedPackages!.includes(pkg.id));
+    }
+    return quote.packages;
+  };
+
   const getSubtotal = () =>
-    quote.packages.reduce((sum, pkg) => sum + pkg.price, 0);
+    getSelectedPackages().reduce((sum, pkg) => sum + pkg.settlement, 0);
 
   const getTaxAmount = () => {
     if (!quote.taxRate) return 0;
@@ -87,9 +94,9 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
         <div className="bg-slate-50 p-4 border border-slate-200 text-xs">
           <strong>Packages Selected:</strong>
           <ul className="list-disc pl-5 mt-2 space-y-1">
-            {quote.packages.map((pkg) => (
+            {getSelectedPackages().map((pkg) => (
               <li key={pkg.id}>
-                {pkg.name} - {formatCurrency(pkg.price)}
+                {pkg.name} - {formatCurrency(pkg.settlement)}
               </li>
             ))}
           </ul>
