@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from "@/store";
 import { NDA } from "@/components/NDA";
+import { Contract } from "@/components/Contract";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,6 +84,12 @@ export function Quotes() {
   const [isGeneratingNDAPDF, setIsGeneratingNDAPDF] = useState(false);
   const [isNDAAutoSigned, setIsNDAAutoSigned] = useState(false);
   const ndaRef = useRef<HTMLDivElement>(null);
+  
+  const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
+  const [quoteForContract, setQuoteForContract] = useState<Quote | null>(null);
+  const [isGeneratingContractPDF, setIsGeneratingContractPDF] = useState(false);
+  const [isContractAutoSigned, setIsContractAutoSigned] = useState(false);
+  const contractRef = useRef<HTMLDivElement>(null);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [quoteToApprove, setQuoteToApprove] = useState<Quote | null>(null);
   const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
@@ -389,6 +396,55 @@ export function Quotes() {
     setQuoteForNDA(quote);
     setIsNDAAutoSigned(false);
     setIsNDADialogOpen(true);
+  };
+
+  const handleOpenContract = (quote: Quote) => {
+    setQuoteForContract(quote);
+    setIsContractAutoSigned(false);
+    setIsContractDialogOpen(true);
+  };
+
+  const handleDownloadContract = async () => {
+    if (!contractRef.current || isGeneratingContractPDF || !quoteForContract) return;
+
+    setIsGeneratingContractPDF(true);
+    try {
+      const element = contractRef.current;
+      const originalStyle = element.style.cssText;
+      const originalClass = element.className;
+      
+      element.className = element.className.replace('mx-auto', '').replace('max-w-4xl', '') + ' pdf-export';
+      element.style.width = "760px";
+      element.style.minWidth = "760px";
+      element.style.maxWidth = "760px";
+      element.style.padding = "40px";
+      element.style.margin = "0px";
+      element.style.boxShadow = "none";
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const safeTitle = (quoteForContract.projectTitle || "Project")
+        .replace(/[^a-z0-9]/gi, "_")
+        .toLowerCase();
+      
+      const opt = {
+        margin: [10, 0, 10, 0],
+        filename: `contract_${safeTitle}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      };
+
+      await window.html2pdf().set(opt).from(element).save();
+
+      element.style.cssText = originalStyle;
+      element.className = originalClass;
+    } catch (error) {
+      console.error("Error generating Contract PDF:", error);
+      toast.error('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsGeneratingContractPDF(false);
+    }
   };
 
   const handleOpenPreview = (quote: Quote) => {
@@ -2602,14 +2658,24 @@ export function Quotes() {
                               </>
                             )}
                           {(quote.status === "sent" || quote.status === "approved") && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenNDA(quote)}
-                              title="Generate NDA"
-                            >
-                              <FileText className="w-4 h-4 text-slate-500 hover:text-primary" />
-                            </Button>
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenContract(quote)}
+                                title="Generate Contract"
+                              >
+                                <FileSignature className="w-4 h-4 justify-center items-center flex text-slate-500 hover:text-primary" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenNDA(quote)}
+                                title="Generate NDA"
+                              >
+                                <FileText className="w-4 h-4 text-slate-500 hover:text-primary" />
+                              </Button>
+                            </>
                           )}
                           <Button
                             variant="ghost"
@@ -2718,6 +2784,63 @@ export function Quotes() {
                 <div className="w-full mx-auto max-w-[760px] pb-10 px-2 sm:px-6">
                   <div className="bg-white mx-auto shadow-2xl relative w-full border border-slate-200">
                     <NDA quote={quoteForNDA} ref={ndaRef} isAutoSigned={isNDAAutoSigned} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isContractDialogOpen} onOpenChange={setIsContractDialogOpen}>
+        <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] h-[90vh] flex flex-col p-0 gap-0 overflow-hidden bg-slate-50">
+          <div className="flex flex-col h-full relative">
+            <div className="sticky top-0 z-10 bg-white border-b px-4 sm:px-6 py-4 flex justify-between items-center shrink-0">
+              <DialogTitle className="text-xl font-bold">
+                Service Agreement
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                {!isContractAutoSigned && (
+                  <Button
+                    onClick={() => {
+                      if (!settings?.companySignature) {
+                        toast.error("Please upload a company signature in Settings first");
+                        return;
+                      }
+                      setIsContractAutoSigned(true);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="border-slate-300"
+                  >
+                    Auto-Sign
+                  </Button>
+                )}
+                <Button
+                  onClick={handleDownloadContract}
+                  disabled={isGeneratingContractPDF}
+                  variant="outline"
+                  size="sm"
+                  className="bg-slate-900 border-none text-white hover:bg-slate-800 hover:text-white"
+                >
+                  {isGeneratingContractPDF ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" /> Download Document
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="w-full bg-[#FAF8F4] overflow-y-auto overflow-x-hidden flex-1 h-full py-4 sm:py-10 relative">
+              {quoteForContract && (
+                <div className="w-full mx-auto max-w-[760px] pb-10 px-2 sm:px-6">
+                  <div className="bg-white mx-auto shadow-2xl relative w-full border border-slate-200">
+                    <Contract quote={quoteForContract} ref={contractRef} isAutoSigned={isContractAutoSigned} />
                   </div>
                 </div>
               )}
