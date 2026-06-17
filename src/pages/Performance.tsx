@@ -222,6 +222,87 @@ export function Performance() {
           </Card>
         ))}
       </div>
+
+      <div className="mt-8">
+        <Card className="border-slate-100 shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-semibold text-slate-800">
+                  Revenue Heatmap
+                </CardTitle>
+                <p className="text-sm text-slate-500 mt-1">
+                  Peak booking months and seasonal income trends for {selectedMonth.getFullYear()}
+                </p>
+              </div>
+              {yearPickerAction}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 pt-4">
+              {Array.from({ length: 12 }, (_, i) => {
+                const revenue = payments
+                  .filter(p => new Date(p.date).getFullYear() === selectedMonth.getFullYear() && new Date(p.date).getMonth() === i)
+                  .reduce((sum, p) => sum + p.amount, 0);
+                
+                const allRevenues = Array.from({ length: 12 }, (_, j) => 
+                  payments
+                    .filter(p => new Date(p.date).getFullYear() === selectedMonth.getFullYear() && new Date(p.date).getMonth() === j)
+                    .reduce((sum, p) => sum + p.amount, 0)
+                );
+                
+                const maxRev = Math.max(...allRevenues, 1);
+                
+                let scale = 0;
+                if (revenue > 0) {
+                  scale = Math.ceil((revenue / maxRev) * 5);
+                }
+
+                const colors = [
+                  'bg-slate-100', // 0
+                  'bg-emerald-100', // 1
+                  'bg-emerald-300', // 2
+                  'bg-emerald-500', // 3
+                  'bg-emerald-700', // 4
+                  'bg-emerald-900'  // 5
+                ];
+                
+                const heatmapMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                return (
+                  <div key={i} className="flex flex-col items-center gap-3 flex-1 min-w-[3rem] relative group cursor-pointer">
+                    <div 
+                      className={`w-full aspect-square rounded-md ${colors[scale]} transition-all duration-300 group-hover:ring-2 group-hover:ring-offset-2 group-hover:ring-emerald-500 group-hover:scale-105`} 
+                    ></div>
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{heatmapMonths[i]}</span>
+                    
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 hidden group-hover:flex flex-col items-center z-10 pointer-events-none drop-shadow-md transition-all">
+                      <div className="bg-slate-900 text-white text-xs py-1.5 px-3 rounded-md whitespace-nowrap font-medium">
+                        {heatmapMonths[i]} {selectedMonth.getFullYear()}: <span className="text-emerald-400">Ksh {revenue.toLocaleString()}</span>
+                      </div>
+                      <div className="w-2.5 h-2.5 bg-slate-900 rotate-45 -mt-1.5 hidden group-hover:block"></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            <div className="mt-6 flex items-center justify-end gap-2 text-xs text-slate-500 font-medium">
+              <span>Less</span>
+              <div className="flex gap-1">
+                <div className="w-3 h-3 rounded-sm bg-slate-100 border border-slate-200"></div>
+                <div className="w-3 h-3 rounded-sm bg-emerald-100"></div>
+                <div className="w-3 h-3 rounded-sm bg-emerald-300"></div>
+                <div className="w-3 h-3 rounded-sm bg-emerald-500"></div>
+                <div className="w-3 h-3 rounded-sm bg-emerald-700"></div>
+                <div className="w-3 h-3 rounded-sm bg-emerald-900"></div>
+              </div>
+              <span>More</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

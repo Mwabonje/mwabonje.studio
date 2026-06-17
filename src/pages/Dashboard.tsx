@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/store';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays } from 'date-fns';
-import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2, Activity, CreditCard, FileText, UserPlus, FileCheck } from 'lucide-react';
+import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2, Activity, CreditCard, FileText, UserPlus, FileCheck, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
@@ -123,7 +123,7 @@ export function Dashboard() {
     .slice(0, 2);
 
   // Recent Activities
-  const activities: { id: string; type: string; date: Date; title: string; description: string; icon: React.ReactNode }[] = [];
+  const activities: { id: string; type: string; date: Date; title: string; description: string; icon: React.ReactNode; link: string; actionLabel: string }[] = [];
 
   if (payments) {
     payments.forEach(p => {
@@ -134,7 +134,9 @@ export function Dashboard() {
         date: new Date(p.date),
         title: 'Payment Received',
         description: `Ksh ${p.amount.toLocaleString()} via ${p.method}`,
-        icon: <CreditCard className="w-4 h-4 text-emerald-500" />
+        icon: <CreditCard className="w-4 h-4 text-emerald-500" />,
+        link: '/payments',
+        actionLabel: 'View'
       });
     });
   }
@@ -146,7 +148,9 @@ export function Dashboard() {
       date: new Date(q.date || q.issueDate),
       title: `Quote ${q.status.charAt(0).toUpperCase() + q.status.slice(1)}`,
       description: `Total: Ksh ${q.totalAmount.toLocaleString()}`,
-      icon: <FileCheck className="w-4 h-4 text-blue-500" />
+      icon: <FileCheck className="w-4 h-4 text-blue-500" />,
+        link: '/quotes',
+        actionLabel: 'View'
     });
   });
 
@@ -158,7 +162,9 @@ export function Dashboard() {
         date: new Date(p.date),
         title: 'Shoot Scheduled',
         description: `${p.title} at ${p.location}`,
-        icon: <Camera className="w-4 h-4 text-purple-500" />
+        icon: <Camera className="w-4 h-4 text-purple-500" />,
+        link: '/projects',
+        actionLabel: 'View'
       });
     });
   }
@@ -172,7 +178,9 @@ export function Dashboard() {
           date: new Date(i.date),
           title: `Invoice ${i.status === 'partially_paid' ? 'Partially Paid' : 'Created'}`,
           description: `Total: Ksh ${i.totalAmount.toLocaleString()}`,
-          icon: <FileText className="w-4 h-4 text-orange-500" />
+          icon: <FileText className="w-4 h-4 text-orange-500" />,
+          link: '/invoices',
+          actionLabel: 'Pay'
         });
       }
     });
@@ -459,16 +467,22 @@ export function Dashboard() {
               <p className="text-sm text-slate-500">No recent activity.</p>
             ) : (
               recentActivities.map(activity => (
-                <div key={activity.id} className="flex gap-4">
-                  <div className="mt-0.5 w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-sm">
-                    {activity.icon}
+                <div key={activity.id} className="flex gap-4 items-center justify-between group">
+                  <div className="flex gap-4 items-start">
+                    <div className="mt-0.5 w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-sm">
+                      {activity.icon}
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800 text-sm">{activity.title}</p>
+                      <p className="text-xs text-slate-500 mt-0.5 uppercase tracking-wide">
+                        {format(activity.date, 'MMM dd, yyyy')} • {activity.description}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold text-slate-800 text-sm">{activity.title}</p>
-                    <p className="text-xs text-slate-500 mt-0.5 uppercase tracking-wide">
-                      {format(activity.date, 'MMM dd, yyyy')} • {activity.description}
-                    </p>
-                  </div>
+                  <Link to={activity.link} className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase text-slate-400 hover:text-primary">
+                    {activity.actionLabel}
+                    <ArrowUpRight className="w-3 h-3" />
+                  </Link>
                 </div>
               ))
             )}
