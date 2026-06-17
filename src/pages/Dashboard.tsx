@@ -122,74 +122,6 @@ export function Dashboard() {
     .sort((a, b) => new Date(b.issueDate || b.date).getTime() - new Date(a.issueDate || a.date).getTime())
     .slice(0, 2);
 
-  // Recent Activities
-  const activities: { id: string; type: string; date: Date; title: string; description: string; icon: React.ReactNode; link: string; actionLabel: string }[] = [];
-
-  if (payments) {
-    payments.forEach(p => {
-      const invoice = invoices.find(i => i.id === p.invoiceId);
-      activities.push({
-        id: p.id,
-        type: 'payment',
-        date: new Date(p.date),
-        title: 'Payment Received',
-        description: `Ksh ${p.amount.toLocaleString()} via ${p.method}`,
-        icon: <CreditCard className="w-4 h-4 text-emerald-500" />,
-        link: '/payments',
-        actionLabel: 'View'
-      });
-    });
-  }
-
-  quotes.forEach(q => {
-    activities.push({
-      id: q.id + '-quote',
-      type: 'quote',
-      date: new Date(q.date || q.issueDate),
-      title: `Quote ${q.status.charAt(0).toUpperCase() + q.status.slice(1)}`,
-      description: `Total: Ksh ${q.totalAmount.toLocaleString()}`,
-      icon: <FileCheck className="w-4 h-4 text-blue-500" />,
-        link: '/quotes',
-        actionLabel: 'View'
-    });
-  });
-
-  if (projects) {
-    projects.forEach(p => {
-      activities.push({
-        id: p.id + '-project',
-        type: 'project',
-        date: new Date(p.date),
-        title: 'Shoot Scheduled',
-        description: `${p.title} at ${p.location}`,
-        icon: <Camera className="w-4 h-4 text-purple-500" />,
-        link: '/projects',
-        actionLabel: 'View'
-      });
-    });
-  }
-
-  if (invoices) {
-    invoices.forEach(i => {
-      if (i.status === 'unpaid' || i.status === 'partially_paid') {
-         activities.push({
-          id: i.id + '-invoice',
-          type: 'invoice',
-          date: new Date(i.date),
-          title: `Invoice ${i.status === 'partially_paid' ? 'Partially Paid' : 'Created'}`,
-          description: `Total: Ksh ${i.totalAmount.toLocaleString()}`,
-          icon: <FileText className="w-4 h-4 text-orange-500" />,
-          link: '/invoices',
-          actionLabel: 'Pay'
-        });
-      }
-    });
-  }
-
-  const recentActivities = activities
-    .sort((a, b) => b.date.getTime() - a.date.getTime())
-    .slice(0, 3);
-
   return (
     <div className="flex flex-col xl:flex-row gap-8">
       {/* Calendar Section */}
@@ -453,40 +385,6 @@ export function Dashboard() {
               + Create New Quote
             </Button>
           </Link>
-        </div>
-
-        {/* Recent Activity */}
-        <div>
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xs font-bold tracking-widest text-slate-800 uppercase flex items-center gap-2">
-              <Activity className="w-4 h-4" /> Recent Activity
-            </h3>
-          </div>
-          <div className="space-y-6 pb-4">
-            {recentActivities.length === 0 ? (
-              <p className="text-sm text-slate-500">No recent activity.</p>
-            ) : (
-              recentActivities.map(activity => (
-                <div key={activity.id} className="flex gap-4 items-center justify-between group">
-                  <div className="flex gap-4 items-start">
-                    <div className="mt-0.5 w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-sm">
-                      {activity.icon}
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-800 text-sm">{activity.title}</p>
-                      <p className="text-xs text-slate-500 mt-0.5 uppercase tracking-wide">
-                        {format(activity.date, 'MMM dd, yyyy')} • {activity.description}
-                      </p>
-                    </div>
-                  </div>
-                  <Link to={activity.link} className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase text-slate-400 hover:text-primary">
-                    {activity.actionLabel}
-                    <ArrowUpRight className="w-3 h-3" />
-                  </Link>
-                </div>
-              ))
-            )}
-          </div>
         </div>
       </div>
     </div>
