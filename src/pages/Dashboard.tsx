@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/store';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays } from 'date-fns';
-import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2 } from 'lucide-react';
+import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2, Activity, CreditCard, FileText, UserPlus, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function Dashboard() {
-  const { projects, quotes, clients, invoices, deleteProject, addProject, deleteQuote } = useStore();
+  const { projects, quotes, clients, invoices, payments, deleteProject, addProject, deleteQuote } = useStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
@@ -115,15 +115,75 @@ export function Dashboard() {
   const upcomingShoots = projects
     .filter(p => new Date(p.date) >= new Date(new Date().setHours(0,0,0,0)))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 3);
+    .slice(0, 2);
 
   // Recent quotes
   const recentQuotes = quotes
     .sort((a, b) => new Date(b.issueDate || b.date).getTime() - new Date(a.issueDate || a.date).getTime())
+    .slice(0, 2);
+
+  // Recent Activities
+  const activities: { id: string; type: string; date: Date; title: string; description: string; icon: React.ReactNode }[] = [];
+
+  if (payments) {
+    payments.forEach(p => {
+      const invoice = invoices.find(i => i.id === p.invoiceId);
+      activities.push({
+        id: p.id,
+        type: 'payment',
+        date: new Date(p.date),
+        title: 'Payment Received',
+        description: `Ksh ${p.amount.toLocaleString()} via ${p.method}`,
+        icon: <CreditCard className="w-4 h-4 text-emerald-500" />
+      });
+    });
+  }
+
+  quotes.forEach(q => {
+    activities.push({
+      id: q.id + '-quote',
+      type: 'quote',
+      date: new Date(q.date || q.issueDate),
+      title: `Quote ${q.status.charAt(0).toUpperCase() + q.status.slice(1)}`,
+      description: `Total: Ksh ${q.totalAmount.toLocaleString()}`,
+      icon: <FileCheck className="w-4 h-4 text-blue-500" />
+    });
+  });
+
+  if (projects) {
+    projects.forEach(p => {
+      activities.push({
+        id: p.id + '-project',
+        type: 'project',
+        date: new Date(p.date),
+        title: 'Shoot Scheduled',
+        description: `${p.title} at ${p.location}`,
+        icon: <Camera className="w-4 h-4 text-purple-500" />
+      });
+    });
+  }
+
+  if (invoices) {
+    invoices.forEach(i => {
+      if (i.status === 'unpaid' || i.status === 'partially_paid') {
+         activities.push({
+          id: i.id + '-invoice',
+          type: 'invoice',
+          date: new Date(i.date),
+          title: `Invoice ${i.status === 'partially_paid' ? 'Partially Paid' : 'Created'}`,
+          description: `Total: Ksh ${i.totalAmount.toLocaleString()}`,
+          icon: <FileText className="w-4 h-4 text-orange-500" />
+        });
+      }
+    });
+  }
+
+  const recentActivities = activities
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 3);
 
   return (
-    <div className="flex flex-col xl:flex-row gap-12 h-full">
+    <div className="flex flex-col xl:flex-row gap-8">
       {/* Calendar Section */}
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm flex flex-col md:flex-row overflow-hidden border border-slate-100 min-h-[600px]">
         {/* Left Panel (Primary Color) */}
@@ -281,10 +341,10 @@ export function Dashboard() {
       </div>
 
       {/* Right Sidebar Section */}
-      <div className="w-full xl:w-[400px] flex flex-col gap-12 xl:pl-4">
+      <div className="w-full xl:w-[400px] flex flex-col gap-8 xl:pl-4">
         {/* Upcoming Shoots */}
         <div>
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex justify-between items-center mb-6">
             <h3 className="text-xs font-bold tracking-widest text-slate-800 uppercase">Upcoming Shoots</h3>
             <Link to="/projects" className="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors uppercase">View All</Link>
           </div>
@@ -326,7 +386,7 @@ export function Dashboard() {
 
         {/* Recent Quotes */}
         <div>
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <h3 className="text-xs font-bold tracking-widest text-slate-800 uppercase">Recent Quotes</h3>
             {recentQuotes.length > 0 && (
               <Dialog open={isClearQuotesDialogOpen} onOpenChange={setIsClearQuotesDialogOpen}>
@@ -360,7 +420,7 @@ export function Dashboard() {
               </Dialog>
             )}
           </div>
-          <div className="space-y-6 mb-10">
+          <div className="space-y-6 mb-0">
             {recentQuotes.length === 0 ? (
               <p className="text-sm text-slate-500">No recent quotes.</p>
             ) : (
@@ -381,10 +441,38 @@ export function Dashboard() {
             )}
           </div>
           <Link to="/quotes" className="block">
-            <Button variant="outline" className="w-full rounded-none border-slate-800 text-slate-800 text-xs font-bold tracking-widest uppercase py-6 hover:bg-slate-50">
+            <Button variant="outline" className="w-full rounded-none border-slate-800 text-slate-800 text-xs font-bold tracking-widest uppercase py-6 hover:bg-slate-50 mb-0 mt-6">
               + Create New Quote
             </Button>
           </Link>
+        </div>
+
+        {/* Recent Activity */}
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xs font-bold tracking-widest text-slate-800 uppercase flex items-center gap-2">
+              <Activity className="w-4 h-4" /> Recent Activity
+            </h3>
+          </div>
+          <div className="space-y-6 pb-4">
+            {recentActivities.length === 0 ? (
+              <p className="text-sm text-slate-500">No recent activity.</p>
+            ) : (
+              recentActivities.map(activity => (
+                <div key={activity.id} className="flex gap-4">
+                  <div className="mt-0.5 w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-sm">
+                    {activity.icon}
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-800 text-sm">{activity.title}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 uppercase tracking-wide">
+                      {format(activity.date, 'MMM dd, yyyy')} • {activity.description}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>
