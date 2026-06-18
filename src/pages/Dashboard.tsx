@@ -123,7 +123,7 @@ export function Dashboard() {
     .slice(0, 2);
 
   return (
-    <div className="flex flex-col xl:flex-row gap-8">
+    <div className="flex-1 flex flex-col xl:flex-row gap-8 min-h-full xl:h-full">
       {/* Calendar Section */}
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm flex flex-col md:flex-row overflow-hidden border border-slate-100 min-h-[600px]">
         {/* Left Panel (Primary Color) */}
