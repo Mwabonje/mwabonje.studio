@@ -467,6 +467,8 @@ export function Payments() {
                   .receipt-root.theme-modern .items-table { outline: 1px solid var(--rule); border-radius: 8px; overflow: hidden; margin-bottom: 32px; }
                   .receipt-root.theme-modern .items-table thead tr { background: var(--warm-white); border-bottom: 1px solid var(--rule); }
                   .receipt-root.theme-modern .items-table tbody tr { border-bottom: 1px solid var(--rule); }
+                  .receipt-root.theme-modern .items-table thead th { padding: 16px 20px; }
+                  .receipt-root.theme-modern .items-table tbody td { padding: 16px 20px; }
                   .receipt-root.theme-modern .item-name { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; }
                   .receipt-root.theme-modern .items-table tbody td:last-child { font-family: 'Inter', sans-serif; font-weight: 600; }
                   .receipt-root.theme-modern .totals-block { border-top: 2px solid var(--rule); }
@@ -492,16 +494,18 @@ export function Payments() {
                   .receipt-root.theme-minimal .receipt-label em { font-style: normal; font-weight: 700; color: var(--ink); }
                   .receipt-root.theme-minimal .header-left .studio-name { font-weight: 700; margin-bottom: 0; color: var(--ink); }
                   .receipt-root.theme-minimal .meta-wrap { grid-template-columns: 1fr 1fr; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 24px 0; gap: 24px; margin-bottom: 48px; }
-                  .receipt-root.theme-minimal .meta-block, .receipt-root.theme-minimal .meta-block.accent { border: none; padding: 0; }
+                  .receipt-root.theme-minimal .meta-block, .receipt-root.theme-minimal .meta-block.accent { border: none; padding: 0; background: transparent; }
                   .receipt-root.theme-minimal .meta-line { display: flex; justify-content: space-between; max-width: 300px; }
                   .receipt-root.theme-minimal .items-table { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
                   .receipt-root.theme-minimal .items-table thead tr { border-bottom: 1px solid var(--ink); }
                   .receipt-root.theme-minimal .items-table thead th { font-weight: 700; color: var(--ink); }
                   .receipt-root.theme-minimal .items-table tbody tr { border-bottom: 1px solid var(--rule); }
+                  .receipt-root.theme-minimal .items-table thead th { padding: 12px 16px; }
+                  .receipt-root.theme-minimal .items-table tbody td { padding: 12px 16px; }
                   .receipt-root.theme-minimal .item-name { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 700; text-transform: uppercase; font-size: 12px; }
                   .receipt-root.theme-minimal .items-table tbody td:last-child { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
                   .receipt-root.theme-minimal .totals-block { border-top: none; }
-                  .receipt-root.theme-minimal .totals-row.amount-paid { border-top: 1px solid var(--ink); border-bottom: 1px double var(--ink); padding: 12px 0; margin-top: 8px; font-weight: 700; font-size: 16px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+                  .receipt-root.theme-minimal .totals-row.amount-paid { border-top: 1px solid var(--ink); border-bottom: 1px double var(--ink); border-left: none; padding: 12px 0; margin-top: 8px; font-weight: 700; font-size: 16px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: transparent; }
                   .receipt-root.theme-minimal .paid-stamp { border-radius: 0; box-shadow: none; border-width: 1px; color: var(--ink); background: transparent; }
                   .receipt-root.theme-minimal .paid-stamp::before { display: none; }
 
