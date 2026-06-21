@@ -133,6 +133,7 @@ export type Settings = {
   colorScheme: string;
   paymentDetails: string;
   companySignature?: string;
+  documentTheme?: 'classic' | 'modern' | 'minimal';
 };
 
 export type ProjectTemplate = {

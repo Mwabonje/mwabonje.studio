@@ -375,6 +375,40 @@ export default function Settings() {
         </div>
       </div>
 
+      <div className="max-w-4xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Document Preferences</CardTitle>
+            <CardDescription>
+              Choose the visual theme for your generated quotes and invoices.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 max-w-sm">
+              <div className="space-y-2">
+                <Label>Theme</Label>
+                <Select 
+                  value={formData.documentTheme || 'classic'} 
+                  onValueChange={(val) => handleSelectChange('documentTheme', val)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a theme..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="classic">Classic (Default)</SelectItem>
+                    <SelectItem value="modern">Modern Light</SelectItem>
+                    <SelectItem value="minimal">Minimalist Monochrome</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500 mt-2">
+                  This will apply globally. Try out different themes by viewing a Quote or Invoice!
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex justify-end">
         <Button onClick={handleSave} size="lg">
           Save Settings

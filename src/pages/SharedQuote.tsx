@@ -243,7 +243,7 @@ export function SharedQuote() {
         {/* Quote Document */}
         <div
           ref={quoteRef}
-          className="quote-root bg-[#FAF8F4] overflow-x-auto w-full mx-auto max-w-[760px] pb-10"
+          className={`quote-root theme-${settings?.documentTheme || 'classic'} overflow-x-auto w-full mx-auto max-w-[760px] pb-10`}
         >
           <style
             dangerouslySetInnerHTML={{
@@ -265,6 +265,52 @@ export function SharedQuote() {
               line-height: 1.6;
               text-align: left;
             }
+            .quote-root.theme-modern {
+              --cream: #FFFFFF;
+              --warm-white: #F8FAFC;
+              --gold: #3B82F6;
+              --gold-light: #60A5FA;
+              --ink: #0F172A;
+              --ink-mid: #334155;
+              --ink-soft: #64748B;
+              --rule: #E2E8F0;
+              --highlight: #F1F5F9;
+              font-family: 'Inter', sans-serif;
+            }
+            .quote-root.theme-modern .header { text-align: left; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--rule); padding-bottom: 32px; }
+            .quote-root.theme-modern .header h1 { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 32px; letter-spacing: -1px; margin-bottom: 0; }
+            .quote-root.theme-modern .header h1 em { font-style: normal; color: var(--gold); }
+            .quote-root.theme-modern .studio-name { margin-bottom: 8px; letter-spacing: 2px; }
+            .quote-root.theme-modern .package-card { border-radius: 12px; border: 1px solid var(--rule); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+            .quote-root.theme-modern .premium-badge { border-radius: 0 0 8px 8px; right: 20px; }
+            .quote-root.theme-modern .package-price { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 28px; letter-spacing: -0.5px; }
+            .quote-root.theme-modern .total-amount { font-family: 'Inter', sans-serif; font-weight: 600; }
+            .quote-root.theme-minimal {
+              --cream: #FFFFFF;
+              --warm-white: #FAFAFA;
+              --gold: #000000;
+              --gold-light: #555555;
+              --ink: #000000;
+              --ink-mid: #222222;
+              --ink-soft: #666666;
+              --rule: #E5E5E5;
+              --highlight: #F5F5F5;
+              font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            }
+            .quote-root.theme-minimal .header { border-bottom: none; text-align: left; padding-bottom: 24px; margin-bottom: 32px; display: flex; flex-direction: column; }
+            .quote-root.theme-minimal .header h1 { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 400; font-size: 24px; text-transform: uppercase; letter-spacing: 4px; margin-top: 16px; margin-bottom: 2px;}
+            .quote-root.theme-minimal .header h1 em { font-style: normal; font-weight: 700; color: var(--ink); }
+            .quote-root.theme-minimal .studio-name { font-weight: 700; margin-bottom: 0; color: var(--ink); }
+            .quote-root.theme-minimal .package-card { padding: 32px; border: none; outline: 1px solid var(--rule); background: transparent; }
+            .quote-root.theme-minimal .package-card.featured { outline: 2px solid var(--ink); background: transparent; }
+            .quote-root.theme-minimal .package-card.featured .package-price, .quote-root.theme-minimal .package-card.featured .total-amount { color: var(--ink); }
+            .quote-root.theme-minimal .package-card.featured .package-header { border-bottom-color: var(--rule); }
+            .quote-root.theme-minimal .package-card.featured .total-row { border-top-color: var(--rule); color: var(--ink-soft); }
+            .quote-root.theme-minimal .package-card.featured .inclusion-list li { color: var(--ink-mid); }
+            .quote-root.theme-minimal .package-card.featured .package-tier { color: var(--ink); font-weight: 700; }
+            .quote-root.theme-minimal .package-price { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 400; }
+            .quote-root.theme-minimal .premium-badge { background: var(--ink); color: #fff; right: auto; left: 32px; top: -12px; padding: 4px 8px; }
+            .quote-root.theme-minimal .total-amount { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 20px; }
             .quote-root * { box-sizing: border-box; margin: 0; padding: 0; }
             .quote-root .page { max-width: 760px; margin: 0 auto; padding: 64px 48px 80px; }
 
