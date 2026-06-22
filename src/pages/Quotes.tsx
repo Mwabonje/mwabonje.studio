@@ -2048,10 +2048,11 @@ export function Quotes() {
                   --highlight: #F1F5F9;
                   font-family: 'Inter', sans-serif;
                 }
-                .quote-root.theme-modern .header { text-align: left; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--rule); padding-bottom: 32px; }
-                .quote-root.theme-modern .header h1 { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 32px; letter-spacing: -1px; margin-bottom: 0; }
+                .quote-root.theme-modern .header { text-align: center; display: grid; grid-template-columns: 1fr auto 1fr; align-items: baseline; gap: 24px; border-bottom: 2px solid var(--rule); padding-bottom: 32px; }
+                .quote-root.theme-modern .header h1 { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 32px; letter-spacing: -1px; margin-bottom: 0; line-height: 1.2; text-align: center; }
                 .quote-root.theme-modern .header h1 em { font-style: normal; color: var(--gold); }
-                .quote-root.theme-modern .studio-name { margin-bottom: 8px; letter-spacing: 2px; }
+                .quote-root.theme-modern .studio-name { margin-bottom: 0; letter-spacing: 2px; text-align: left; }
+                .quote-root.theme-modern .header-sub { margin-top: 0; text-align: right; }
                 .quote-root.theme-modern .package-card { border-radius: 12px; border: 1px solid var(--rule); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
                 .quote-root.theme-modern .premium-badge { border-radius: 0 0 8px 8px; right: 20px; }
                 .quote-root.theme-modern .package-price { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 28px; letter-spacing: -0.5px; }
@@ -2166,6 +2167,21 @@ export function Quotes() {
                   .quote-root { background: white; }
                   .quote-root .page { padding: 32px; }
                 }
+
+                @media (max-width: 640px) {
+                  .quote-root .page { padding: 32px 20px 48px; }
+                  .quote-root .header h1 { font-size: 28px; }
+                  .quote-root.theme-modern .header { grid-template-columns: 1fr; text-align: center; gap: 12px; }
+                  .quote-root.theme-modern .studio-name { text-align: center; }
+                  .quote-root.theme-modern .header-sub { text-align: center; }
+                  .quote-root .meta { grid-template-columns: 1fr; gap: 12px; padding: 20px; margin-bottom: 32px; }
+                  .quote-root .packages-grid { grid-template-columns: 1fr; gap: 16px; }
+                  .quote-root .featured-body { grid-template-columns: 1fr; gap: 16px; }
+                  .quote-root .addon { flex-direction: column; align-items: flex-start; gap: 12px; }
+                  .quote-root .terms-grid { grid-template-columns: 1fr; gap: 24px; }
+                  .quote-root .payment { padding: 20px; }
+                  .quote-root .payment-grid { grid-template-columns: 1fr; gap: 12px; }
+                }
               `,
                 }}
               />
@@ -2182,12 +2198,8 @@ export function Quotes() {
                     <h1>
                       {formData.projectTitle ? (
                         <>
-                          {formData.projectTitle
-                            .split(" ")
-                            .slice(0, -1)
-                            .join(" ")}{" "}
-                          <em>{formData.projectTitle.split(" ").slice(-1)}</em>{" "}
-                          Quotation
+                          {formData.projectTitle.replace(/quotation$/i, '').trim()}{" "}
+                          <em>Quotation</em>
                         </>
                       ) : (
                         <>
