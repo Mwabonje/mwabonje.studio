@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Upload, Image as ImageIcon } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { getResolvedTheme } from '../lib/theme';
+import { Badge } from '../components/ui/badge';
 
 export default function Settings() {
   const { settings, updateSettings } = useStore();
@@ -325,22 +326,27 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Signatures & Branding</CardTitle>
-              <CardDescription>
-                Upload images for your signatures.
-              </CardDescription>
+          <Card className="opacity-75">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div className="space-y-1.5">
+                <CardTitle className="flex items-center gap-2">
+                  Signatures & Branding
+                  <Badge variant="secondary" className="text-[10px] uppercase font-semibold tracking-wider">Coming Soon</Badge>
+                </CardTitle>
+                <CardDescription>
+                  Upload images for your signatures.
+                </CardDescription>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pointer-events-none">
               <div className="space-y-2">
                 <Label>Company Signature / Owner Signature</Label>
                 <div className="flex items-center gap-4">
-                  <div className="h-20 w-40 rounded-md border flex items-center justify-center bg-slate-50 overflow-hidden">
+                  <div className="h-20 w-40 rounded-md border border-dashed flex items-center justify-center bg-slate-50/50 overflow-hidden">
                     {formData.companySignature ? (
-                      <img src={formData.companySignature} alt="Signature" className="h-full w-full object-contain mix-blend-multiply" />
+                      <img src={formData.companySignature} alt="Signature" className="h-full w-full object-contain mix-blend-multiply opacity-50" />
                     ) : (
-                      <ImageIcon className="h-8 w-8 text-slate-300" />
+                      <ImageIcon className="h-8 w-8 text-slate-200" />
                     )}
                   </div>
                   <div>
@@ -350,10 +356,11 @@ export default function Settings() {
                       accept="image/*"
                       className="hidden"
                       onChange={handleSignatureUpload}
+                      disabled
                     />
                     <Label
                       htmlFor="signature"
-                      className="cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                      className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background/50 shadow-sm h-9 px-4 py-2 opacity-50 select-none"
                     >
                       <Upload className="mr-2 h-4 w-4" />
                       Upload Signature
