@@ -495,7 +495,8 @@ export function Payments() {
                   .receipt-root.theme-minimal .header-left .studio-name { font-weight: 700; margin-bottom: 0; color: var(--ink); }
                   .receipt-root.theme-minimal .meta-wrap { grid-template-columns: 1fr 1fr; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 24px 0; gap: 24px; margin-bottom: 48px; }
                   .receipt-root.theme-minimal .meta-block, .receipt-root.theme-minimal .meta-block.accent { border: none; padding: 0; background: transparent; }
-                  .receipt-root.theme-minimal .meta-line { display: flex; justify-content: space-between; max-width: 300px; }
+                  .receipt-root.theme-minimal .meta-line { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; text-align: right; }
+                  .receipt-root.theme-minimal .meta-line strong { flex-shrink: 0; text-align: left; }
                   .receipt-root.theme-minimal .items-table { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
                   .receipt-root.theme-minimal .items-table thead tr { border-bottom: 1px solid var(--ink); }
                   .receipt-root.theme-minimal .items-table thead th { font-weight: 700; color: var(--ink); }
