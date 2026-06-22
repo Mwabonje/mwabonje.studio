@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle, ExternalLink, Download, Copy, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { getResolvedTheme } from '@/lib/theme';
 
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
@@ -964,7 +965,7 @@ export function Invoices() {
                       .invoice-root:not(.pdf-export) .signature { grid-template-columns: 1fr; gap: 24px; }
                     }
                   ` }} />
-                  <div ref={invoiceRef} className={`invoice-root theme-${settings.documentTheme || 'classic'} max-w-[760px] mx-auto`}>
+                  <div ref={invoiceRef} className={`invoice-root theme-${getResolvedTheme(settings.documentTheme, settings.companyEmail)} max-w-[760px] mx-auto`}>
                     <div className="page">
                       
                       {/* HEADER */}

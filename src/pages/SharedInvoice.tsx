@@ -6,6 +6,7 @@ import { Printer, Download, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { getResolvedTheme } from '@/lib/theme';
 
 export function SharedInvoice() {
   const [searchParams] = useSearchParams();
@@ -759,7 +760,7 @@ export function SharedInvoice() {
         </div>
 
         {/* Invoice Document */}
-        <div ref={invoiceRef} className={`invoice-root theme-${settings?.documentTheme || 'classic'} max-w-[760px] mx-auto`}>
+        <div ref={invoiceRef} className={`invoice-root theme-${getResolvedTheme(settings?.documentTheme, settings?.companyEmail)} max-w-[760px] mx-auto`}>
           <div className="page">
             
             {/* HEADER */}

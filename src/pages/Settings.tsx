@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { toast } from 'sonner';
 import { Upload, Image as ImageIcon } from 'lucide-react';
+import { auth } from '../lib/firebase';
+import { getResolvedTheme } from '../lib/theme';
 
 export default function Settings() {
   const { settings, updateSettings } = useStore();
@@ -388,14 +390,16 @@ export default function Settings() {
               <div className="space-y-2">
                 <Label>Theme</Label>
                 <Select 
-                  value={formData.documentTheme || 'classic'} 
+                  value={getResolvedTheme(formData.documentTheme, formData.companyEmail)} 
                   onValueChange={(val) => handleSelectChange('documentTheme', val)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a theme..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="classic">Classic (Default)</SelectItem>
+                    {(auth.currentUser?.email === 'ringa.michael@gmail.com' || formData.companyEmail === 'ringa.michael@gmail.com') && (
+                      <SelectItem value="classic">Classic</SelectItem>
+                    )}
                     <SelectItem value="modern">Modern Light</SelectItem>
                     <SelectItem value="minimal">Minimalist Monochrome</SelectItem>
                   </SelectContent>

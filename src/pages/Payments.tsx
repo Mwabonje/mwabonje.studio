@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Download, Edit, Eye, ArrowUpDown, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { getResolvedTheme } from '@/lib/theme';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
@@ -946,7 +947,7 @@ export function Payments() {
                   };
 
                   return (
-                    <div ref={receiptRef} className={`receipt-root theme-${settings.documentTheme || 'classic'} w-full mx-auto max-w-[760px] pb-10`}>
+                    <div ref={receiptRef} className={`receipt-root theme-${getResolvedTheme(settings.documentTheme, settings.companyEmail)} w-full mx-auto max-w-[760px] pb-10`}>
                       <div className="page">
                         
                         {/* HEADER */}

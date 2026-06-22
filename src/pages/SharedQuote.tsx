@@ -12,6 +12,7 @@ import {
 import { format } from "date-fns";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { getResolvedTheme } from "@/lib/theme";
 
 export function SharedQuote() {
   const [searchParams] = useSearchParams();
@@ -243,7 +244,7 @@ export function SharedQuote() {
         {/* Quote Document */}
         <div
           ref={quoteRef}
-          className={`quote-root theme-${settings?.documentTheme || 'classic'} overflow-x-auto w-full mx-auto max-w-[760px] pb-10`}
+          className={`quote-root theme-${getResolvedTheme(settings?.documentTheme, settings?.companyEmail)} overflow-x-auto w-full mx-auto max-w-[760px] pb-10`}
         >
           <style
             dangerouslySetInnerHTML={{
