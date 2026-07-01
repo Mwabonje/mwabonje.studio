@@ -122,6 +122,11 @@ export function Dashboard() {
     .sort((a, b) => new Date(b.issueDate || b.date).getTime() - new Date(a.issueDate || a.date).getTime())
     .slice(0, 2);
 
+  const pendingInvoices = invoices.filter(i => (i.totalAmount - (i.amountPaid || 0)) > 0);
+  const totalPendingAmount = pendingInvoices.reduce((sum, i) => sum + (i.totalAmount - (i.amountPaid || 0)), 0);
+
+  const upcomingDeadlinesCount = projects.filter(p => new Date(p.date) >= new Date(new Date().setHours(0,0,0,0))).length;
+
   return (
     <div className="flex-1 flex flex-col xl:flex-row gap-8 min-h-full xl:h-full">
       {/* Calendar Section */}
@@ -282,6 +287,25 @@ export function Dashboard() {
 
       {/* Right Sidebar Section */}
       <div className="w-full xl:w-[400px] flex flex-col gap-8 xl:pl-4">
+        {/* Summary Card */}
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex flex-col gap-5 shadow-sm">
+          <div>
+            <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Total Pending Invoices</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-slate-800">Ksh {totalPendingAmount.toLocaleString()}</span>
+              <span className="text-xs font-medium text-slate-400">({pendingInvoices.length} pending)</span>
+            </div>
+          </div>
+          <div className="h-px bg-slate-200 w-full"></div>
+          <div>
+            <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Upcoming Deadlines</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-slate-800">{upcomingDeadlinesCount}</span>
+              <span className="text-xs font-medium text-slate-400">projects scheduled</span>
+            </div>
+          </div>
+        </div>
+
         {/* Upcoming Shoots */}
         <div>
           <div className="flex justify-between items-center mb-6">
