@@ -277,56 +277,69 @@ export function Projects() {
                 </div>
                 
                 {collaborators.length > 0 && (
-                  <div className="space-y-3">
+                  <div className="space-y-3 pt-2">
                     {collaborators.map((collab) => (
-                      <div key={collab.id} className="flex items-center gap-3 bg-slate-50 p-3 rounded-md border">
-                        <div className="flex-1">
-                          <Input
-                            placeholder="Collaborator Name"
-                            value={collab.name}
-                            onChange={(e) => updateCollaborator(collab.id, 'name', e.target.value)}
-                            required
-                          />
-                        </div>
-                        <div className="w-32">
-                          <Select
-                            value={collab.splitType}
-                            onValueChange={(value) => updateCollaborator(collab.id, 'splitType', value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="equal">Equal Split</SelectItem>
-                              <SelectItem value="percentage">Percentage</SelectItem>
-                              <SelectItem value="fixed">Fixed Amount</SelectItem>
-                              <SelectItem value="transport">Transport Expense</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {(collab.splitType === 'percentage' || collab.splitType === 'fixed' || collab.splitType === 'transport') && (
-                          <div className="w-24">
+                      <div key={collab.id} className="flex flex-col gap-3 bg-slate-50 p-3 rounded-md border">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1">
                             <Input
-                              type="number"
-                              placeholder={collab.splitType === 'percentage' ? '%' : 'Amount'}
-                              min="0"
-                              max={collab.splitType === 'percentage' ? "100" : undefined}
-                              step={collab.splitType === 'percentage' ? "0.01" : "1"}
-                              value={collab.splitType === 'percentage' ? (collab.percentage || '') : (collab.amount || '')}
-                              onChange={(e) => {
-                                if (collab.splitType === 'percentage') {
-                                  updateCollaborator(collab.id, 'percentage', Number(e.target.value));
-                                } else {
-                                  updateCollaborator(collab.id, 'amount', Number(e.target.value));
-                                }
-                              }}
+                              placeholder="Collaborator Name"
+                              value={collab.name}
+                              onChange={(e) => updateCollaborator(collab.id, 'name', e.target.value)}
                               required
                             />
                           </div>
-                        )}
-                        <Button type="button" variant="ghost" size="icon" onClick={() => removeCollaborator(collab.id)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
+                          <Button type="button" variant="ghost" size="icon" className="shrink-0 text-slate-500 hover:text-destructive" onClick={() => removeCollaborator(collab.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="w-32 shrink-0">
+                            <Select
+                              value={collab.splitType}
+                              onValueChange={(value) => updateCollaborator(collab.id, 'splitType', value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="equal">Equal Split</SelectItem>
+                                <SelectItem value="percentage">Percentage</SelectItem>
+                                <SelectItem value="fixed">Fixed Amount</SelectItem>
+                                <SelectItem value="transport">Transport Expense</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {(collab.splitType === 'percentage' || collab.splitType === 'fixed' || collab.splitType === 'transport') && (
+                            <div className="w-24 shrink-0">
+                              <Input
+                                type="number"
+                                placeholder={collab.splitType === 'percentage' ? '%' : 'Amount'}
+                                min="0"
+                                max={collab.splitType === 'percentage' ? "100" : undefined}
+                                step={collab.splitType === 'percentage' ? "0.01" : "1"}
+                                value={collab.splitType === 'percentage' ? (collab.percentage || '') : (collab.amount || '')}
+                                onChange={(e) => {
+                                  if (collab.splitType === 'percentage') {
+                                    updateCollaborator(collab.id, 'percentage', Number(e.target.value));
+                                  } else {
+                                    updateCollaborator(collab.id, 'amount', Number(e.target.value));
+                                  }
+                                }}
+                                required
+                              />
+                            </div>
+                          )}
+                          {collab.splitType === 'transport' && (
+                            <div className="flex-1 min-w-[150px]">
+                              <Input
+                                placeholder="e.g. Malindi to Watamu"
+                                value={collab.description || ''}
+                                onChange={(e) => updateCollaborator(collab.id, 'description', e.target.value)}
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

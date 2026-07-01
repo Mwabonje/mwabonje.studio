@@ -19,6 +19,7 @@ export type CollaboratorSplit = {
   splitType: 'equal' | 'percentage' | 'fixed' | 'transport';
   percentage?: number;
   amount?: number;
+  description?: string;
 };
 
 export type Milestone = {
