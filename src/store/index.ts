@@ -16,8 +16,9 @@ export type Client = {
 export type CollaboratorSplit = {
   id: string;
   name: string;
-  splitType: 'equal' | 'percentage';
+  splitType: 'equal' | 'percentage' | 'fixed' | 'transport';
   percentage?: number;
+  amount?: number;
 };
 
 export type Milestone = {

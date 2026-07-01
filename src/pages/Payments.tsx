@@ -379,19 +379,27 @@ export function Payments() {
                               <SelectContent>
                                 <SelectItem value="equal">Equal</SelectItem>
                                 <SelectItem value="percentage">%</SelectItem>
+                                <SelectItem value="fixed">Fixed Amount</SelectItem>
+                                <SelectItem value="transport">Transport Expense</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
-                          {collab.splitType === 'percentage' && (
+                          {(collab.splitType === 'percentage' || collab.splitType === 'fixed' || collab.splitType === 'transport') && (
                             <div className="w-24">
                               <Input
                                 type="number"
-                                placeholder="%"
+                                placeholder={collab.splitType === 'percentage' ? '%' : 'Amount'}
                                 min="0"
-                                max="100"
-                                step="0.01"
-                                value={collab.percentage || ''}
-                                onChange={(e) => updateCollaborator(collab.id, 'percentage', Number(e.target.value))}
+                                max={collab.splitType === 'percentage' ? "100" : undefined}
+                                step={collab.splitType === 'percentage' ? "0.01" : "1"}
+                                value={collab.splitType === 'percentage' ? (collab.percentage || '') : (collab.amount || '')}
+                                onChange={(e) => {
+                                  if (collab.splitType === 'percentage') {
+                                    updateCollaborator(collab.id, 'percentage', Number(e.target.value));
+                                  } else {
+                                    updateCollaborator(collab.id, 'amount', Number(e.target.value));
+                                  }
+                                }}
                                 required
                               />
                             </div>

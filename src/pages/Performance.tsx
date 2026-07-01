@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useStore, Project } from '@/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Wallet, Clock, FileText, Calendar, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { DollarSign, Wallet, Clock, FileText, Calendar, ChevronLeft, ChevronRight, Download, Car } from 'lucide-react';
 import { isSameMonth, isSameYear, format, subMonths, addMonths, addYears, subYears } from 'date-fns';
 import { Button } from '@/components/ui/button';
 
@@ -56,6 +56,17 @@ export function Performance() {
         return;
       }
 
+      const totalProjectRevenueAllTime = payments
+        .filter(p => projectInvoices.some(i => i.id === p.invoiceId))
+        .reduce((sum, p) => sum + p.amount, 0);
+
+      const fixedExpenses = project.collaborators
+        .filter(c => c.splitType === 'fixed' || c.splitType === 'transport')
+        .reduce((sum, c) => sum + (c.amount || 0), 0);
+
+      const monthRatio = totalProjectRevenueAllTime > 0 ? projectRevenue / totalProjectRevenueAllTime : 0;
+      const netProjectRevenueForMonth = Math.max(0, totalProjectRevenueAllTime - fixedExpenses) * monthRatio;
+
       const equalSplitCount = project.collaborators.filter((c) => c.splitType === 'equal').length;
       const percentageCollaborators = project.collaborators.filter((c) => c.splitType === 'percentage');
 
@@ -68,19 +79,47 @@ export function Performance() {
 
       let collaboratorTotal = 0;
       project.collaborators.forEach((c) => {
-        const percentage = c.splitType === 'percentage' ? c.percentage || 0 : equalPercentage;
-        collaboratorTotal += (projectRevenue * percentage) / 100;
+        if (c.splitType === 'percentage' || c.splitType === 'equal') {
+          const percentage = c.splitType === 'percentage' ? c.percentage || 0 : equalPercentage;
+          collaboratorTotal += (netProjectRevenueForMonth * percentage) / 100;
+        }
       });
 
-      // Personal take is whatever is left after paying collaborators
-      totalNet += Math.max(0, projectRevenue - collaboratorTotal);
+      // Personal take is whatever is left of the month's net revenue after paying percentage/equal collaborators
+      totalNet += Math.max(0, netProjectRevenueForMonth - collaboratorTotal);
     });
 
     return totalNet;
   };
 
+  const calculateTransportExpenses = (yearly: boolean = false) => {
+    let totalTransport = 0;
+    projects.forEach((project) => {
+      const projectInvoices = invoices.filter((i) => i.projectId === project.id);
+      const projectRevenue = payments
+        .filter(p => (yearly ? isSameYear(new Date(p.date), selectedMonth) : isSameMonth(new Date(p.date), selectedMonth)) && projectInvoices.some(i => i.id === p.invoiceId))
+        .reduce((sum, p) => sum + p.amount, 0);
+
+      if (projectRevenue === 0 || !project.collaborators) return;
+
+      const transportExpenses = project.collaborators
+        .filter(c => c.splitType === 'transport')
+        .reduce((sum, c) => sum + (c.amount || 0), 0);
+      
+      const totalProjectRevenueAllTime = payments
+        .filter(p => projectInvoices.some(i => i.id === p.invoiceId))
+        .reduce((sum, p) => sum + p.amount, 0);
+
+      const monthRatio = totalProjectRevenueAllTime > 0 ? projectRevenue / totalProjectRevenueAllTime : 0;
+      totalTransport += transportExpenses * monthRatio;
+    });
+    return totalTransport;
+  };
+
   const netEarning = calculateNetEarning(false);
   const totalNetEarning = calculateNetEarning(true);
+  const monthlyTransport = calculateTransportExpenses(false);
+  const yearlyTransport = calculateTransportExpenses(true);
 
   // 3. Pending Balances
   const pendingBalances = invoices.reduce((sum, invoice) => sum + Math.max(0, invoice.totalAmount - invoice.amountPaid), 0);
@@ -163,6 +202,22 @@ export function Performance() {
       icon: Calendar,
       description: `Earnings received in ${format(selectedMonth, 'MMMM yyyy')}`,
       action: monthPickerAction
+    },
+    {
+      title: 'Transport Expenses (Monthly)',
+      value: `Ksh ${monthlyTransport.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+      rawValue: monthlyTransport,
+      icon: Car,
+      description: `Transport expenses deducted in ${format(selectedMonth, 'MMM yyyy')}`,
+      action: monthPickerAction
+    },
+    {
+      title: 'Transport Expenses (Yearly)',
+      value: `Ksh ${yearlyTransport.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+      rawValue: yearlyTransport,
+      icon: Car,
+      description: `Transport expenses deducted in ${format(selectedMonth, 'yyyy')}`,
+      action: yearPickerAction
     },
   ];
 
