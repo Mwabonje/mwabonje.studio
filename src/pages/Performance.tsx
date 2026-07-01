@@ -293,7 +293,7 @@ export function Performance() {
               {yearPickerAction}
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-2">
             <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 pt-4">
               {Array.from({ length: 12 }, (_, i) => {
                 const revenue = payments
@@ -343,7 +343,7 @@ export function Performance() {
               })}
             </div>
             
-            <div className="mt-6 flex items-center justify-end gap-2 text-xs text-slate-500 font-medium">
+            <div className="mt-6 mb-4 flex items-center justify-end gap-2 text-xs text-slate-500 font-medium">
               <span>Less</span>
               <div className="flex gap-1">
                 <div className="w-3 h-3 rounded-sm bg-slate-100 border border-slate-200"></div>

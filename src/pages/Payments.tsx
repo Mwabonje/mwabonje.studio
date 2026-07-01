@@ -526,6 +526,7 @@ export function Payments() {
                     max-width: 680px;
                     margin: 0 auto;
                     padding: 64px 48px 80px;
+                    position: relative;
                   }
 
                   /* ── HEADER ── */
@@ -1122,6 +1123,30 @@ export function Payments() {
                             <div className="sig-name">{client?.name || 'Client'}</div>
                           </div>
                         </div>
+
+                        {/* FULLY PAID STAMP */}
+                        {balance <= 0 && (
+                          <div style={{
+                            position: 'absolute',
+                            bottom: '150px',
+                            right: '60px',
+                            transform: 'rotate(-12deg)',
+                            border: '8px solid #16a34a',
+                            color: '#16a34a',
+                            padding: '16px 32px',
+                            borderRadius: '12px',
+                            fontSize: '48px',
+                            fontWeight: '900',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.15em',
+                            opacity: 0.2,
+                            pointerEvents: 'none',
+                            userSelect: 'none',
+                            zIndex: 10
+                          }}>
+                            PAID IN FULL
+                          </div>
+                        )}
 
                         {/* FOOTER */}
                         <footer className="footer">
