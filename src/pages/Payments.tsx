@@ -360,19 +360,21 @@ export function Payments() {
                     <div className="space-y-3 pt-2">
                       {collaborators.map((collab) => (
                         <div key={collab.id} className="flex flex-col gap-3 bg-slate-50 p-3 rounded-md border">
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1">
-                              <Input
-                                placeholder="Name"
-                                value={collab.name}
-                                onChange={(e) => updateCollaborator(collab.id, 'name', e.target.value)}
-                                required
-                              />
+                          {collab.splitType !== 'transport' && (
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1">
+                                <Input
+                                  placeholder="Name"
+                                  value={collab.name}
+                                  onChange={(e) => updateCollaborator(collab.id, 'name', e.target.value)}
+                                  required
+                                />
+                              </div>
+                              <Button type="button" variant="ghost" size="icon" className="shrink-0 text-slate-500 hover:text-destructive" onClick={() => removeCollaborator(collab.id)}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
-                            <Button type="button" variant="ghost" size="icon" className="shrink-0 text-slate-500 hover:text-destructive" onClick={() => removeCollaborator(collab.id)}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
+                          )}
                           <div className="flex flex-wrap items-center gap-2">
                             <div className="w-32 shrink-0">
                               <Select
@@ -418,6 +420,11 @@ export function Payments() {
                                   onChange={(e) => updateCollaborator(collab.id, 'description', e.target.value)}
                                 />
                               </div>
+                            )}
+                            {collab.splitType === 'transport' && (
+                              <Button type="button" variant="ghost" size="icon" className="shrink-0 text-slate-500 hover:text-destructive ml-auto" onClick={() => removeCollaborator(collab.id)}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             )}
                           </div>
                         </div>
