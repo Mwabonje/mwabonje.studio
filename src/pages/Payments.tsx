@@ -1124,8 +1124,8 @@ export function Payments() {
                           </div>
                         </div>
 
-                        {/* FULLY PAID STAMP */}
-                        {balance <= 0 && (
+                        {/* STAMPS */}
+                        {balance <= 0 ? (
                           <div style={{
                             position: 'absolute',
                             bottom: '150px',
@@ -1146,7 +1146,28 @@ export function Payments() {
                           }}>
                             PAID IN FULL
                           </div>
-                        )}
+                        ) : invoice.amountPaid > 0 ? (
+                          <div style={{
+                            position: 'absolute',
+                            bottom: '150px',
+                            right: '60px',
+                            transform: 'rotate(-12deg)',
+                            border: '8px solid #f97316',
+                            color: '#f97316',
+                            padding: '16px 32px',
+                            borderRadius: '12px',
+                            fontSize: '48px',
+                            fontWeight: '900',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.15em',
+                            opacity: 0.2,
+                            pointerEvents: 'none',
+                            userSelect: 'none',
+                            zIndex: 10
+                          }}>
+                            PARTIALLY PAID
+                          </div>
+                        ) : null}
 
                         {/* FOOTER */}
                         <footer className="footer">
