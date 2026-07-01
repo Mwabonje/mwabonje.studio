@@ -1414,7 +1414,7 @@ export function Quotes() {
                             min="0"
                             step={
                               formData.collaborationType === "percentage"
-                                ? "0.1"
+                                ? "0.01"
                                 : "1"
                             }
                             className="bg-white"

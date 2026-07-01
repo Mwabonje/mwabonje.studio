@@ -389,6 +389,7 @@ export function Payments() {
                                 placeholder="%"
                                 min="0"
                                 max="100"
+                                step="0.01"
                                 value={collab.percentage || ''}
                                 onChange={(e) => updateCollaborator(collab.id, 'percentage', Number(e.target.value))}
                                 required
