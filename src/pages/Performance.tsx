@@ -3,6 +3,7 @@ import { useStore, Project } from '@/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, Wallet, Clock, FileText, Calendar, ChevronLeft, ChevronRight, Download, Car } from 'lucide-react';
 import { isSameMonth, isSameYear, format, subMonths, addMonths, addYears, subYears } from 'date-fns';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Button } from '@/components/ui/button';
 
 export function Performance() {
@@ -246,6 +247,25 @@ export function Performance() {
     URL.revokeObjectURL(url);
   };
 
+  const chartData = Array.from({ length: 12 }, (_, i) => {
+    const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i];
+    
+    const revenue = payments
+      .filter(p => new Date(p.date).getFullYear() === selectedMonth.getFullYear() && new Date(p.date).getMonth() === i)
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    const projectCount = projects.filter(p => {
+      const d = new Date(p.date);
+      return d.getFullYear() === selectedMonth.getFullYear() && d.getMonth() === i;
+    }).length;
+
+    return {
+      name: monthName,
+      Revenue: revenue,
+      Projects: projectCount
+    };
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -276,6 +296,69 @@ export function Performance() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="mt-8">
+        <Card className="border-slate-100 shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-semibold text-slate-800">
+                  Revenue & Projects Overview
+                </CardTitle>
+                <p className="text-sm text-slate-500 mt-1">
+                  Monthly breakdown of revenue and number of projects for {selectedMonth.getFullYear()}
+                </p>
+              </div>
+              {yearPickerAction}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[400px] w-full mt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    dy={10}
+                  />
+                  <YAxis 
+                    yAxisId="left"
+                    orientation="left"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    tickFormatter={(value) => `Ksh ${value.toLocaleString()}`}
+                  />
+                  <YAxis 
+                    yAxisId="right"
+                    orientation="right"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#64748b', fontSize: 12 }}
+                  />
+                  <RechartsTooltip 
+                    cursor={{ fill: '#f1f5f9' }}
+                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    formatter={(value: number, name: string) => [
+                      name === 'Revenue' ? `Ksh ${value.toLocaleString()}` : value,
+                      name
+                    ]}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                  <Bar yAxisId="left" dataKey="Revenue" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                  <Bar yAxisId="right" dataKey="Projects" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="mt-8">
