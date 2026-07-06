@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle, ExternalLink, Download, Copy, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useLocation } from 'react-router-dom';
 import { getResolvedTheme } from '@/lib/theme';
 
 import { auth } from '@/lib/firebase';
@@ -18,6 +19,10 @@ import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Invoices() {
   const { invoices, quotes, projects, clients, settings, addInvoice, updateInvoice, deleteInvoice } = useStore();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const highlightedId = searchParams.get('highlight');
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -1163,7 +1168,10 @@ export function Invoices() {
                   const balance = invoice.totalAmount - invoice.amountPaid;
                   
                   return (
-                    <TableRow key={invoice.id}>
+                    <TableRow 
+                      key={invoice.id} 
+                      className={highlightedId === invoice.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}
+                    >
                       <TableCell className="font-mono text-xs text-muted-foreground">
                         {invoice.quoteId ? (quotes.find(q => q.id === invoice.quoteId)?.quoteNumber || invoice.quoteId.substring(0, 8).toUpperCase()) : invoice.id.substring(0, 8).toUpperCase()}
                       </TableCell>

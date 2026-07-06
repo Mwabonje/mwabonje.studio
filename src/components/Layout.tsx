@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
+import { GlobalSearch } from '@/components/GlobalSearch';
 
 export function Layout() {
   const location = useLocation();
@@ -95,6 +96,10 @@ export function Layout() {
           </button>
         </div>
         
+        <div className="px-4 lg:px-8 mb-6">
+          <GlobalSearch />
+        </div>
+
         <nav className="flex-1 overflow-y-auto hide-scrollbar">
           <ul className="space-y-2">
             {navItems.map((item) => {

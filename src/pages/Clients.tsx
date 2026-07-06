@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useStore, Client } from "@/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,10 @@ import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 
 export function Clients() {
   const { clients, addClient, updateClient, deleteClient } = useStore();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const highlightedId = searchParams.get('highlight');
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [formData, setFormData] = useState({
@@ -471,7 +476,10 @@ export function Clients() {
                 [...filteredClients]
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((client) => (
-                    <TableRow key={client.id}>
+                    <TableRow 
+                      key={client.id}
+                      className={highlightedId === client.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}
+                    >
                       <TableCell className="font-medium">
                         {client.name}
                       </TableCell>

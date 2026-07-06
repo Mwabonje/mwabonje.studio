@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useStore, Project, CollaboratorSplit, Milestone } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,10 @@ import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Projects() {
   const { projects, projectTemplates, clients, invoices, quotes, addProject, updateProject, deleteProject, updateQuote, addProjectTemplate, deleteProjectTemplate } = useStore();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const highlightedId = searchParams.get('highlight');
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -468,7 +473,10 @@ export function Projects() {
                       const progressPercentage = totalBilled > 0 ? Math.min(100, Math.round((totalPaid / totalBilled) * 100)) : 0;
                       
                       return (
-                        <TableRow key={project.id}>
+                        <TableRow 
+                          key={project.id}
+                          className={highlightedId === project.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}
+                        >
                           <TableCell className="font-medium">{project.title}</TableCell>
                           <TableCell>{client?.name || 'Unknown Client'}</TableCell>
                           <TableCell>{project.location}</TableCell>
