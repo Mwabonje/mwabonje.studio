@@ -482,12 +482,36 @@ export function SharedQuote() {
                   <span className="meta-value">{quote.location}</span>
                 </div>
               )}
-              {quote.photographers && (
-                <div className="meta-row">
-                  <span className="meta-label">Photographer(s)</span>
-                  <span className="meta-value">{quote.photographers}</span>
-                </div>
-              )}
+              {quote.photographers && quote.photographers.split('\n').map((line, idx) => {
+                if (!line.trim()) return null;
+                
+                const parts = line.split(':');
+                if (parts.length > 1) {
+                  return (
+                    <div className="meta-row" key={`crew-${idx}`}>
+                      <span className="meta-label">{parts[0].trim()}</span>
+                      <span className="meta-value">{parts.slice(1).join(':').trim()}</span>
+                    </div>
+                  );
+                }
+                
+                const parenMatch = line.match(/^(.*?)\s*\((.*?)\)$/);
+                if (parenMatch) {
+                  return (
+                    <div className="meta-row" key={`crew-${idx}`}>
+                      <span className="meta-label">{parenMatch[2].trim()}</span>
+                      <span className="meta-value">{parenMatch[1].trim()}</span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="meta-row" key={`crew-${idx}`}>
+                    <span className="meta-label">Crew</span>
+                    <span className="meta-value">{line.trim()}</span>
+                  </div>
+                );
+              })}
             </div>
 
             {/* PACKAGES */}

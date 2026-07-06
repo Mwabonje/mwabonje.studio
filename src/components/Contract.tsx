@@ -90,12 +90,36 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
         <p>
           <strong>Event/Project Date:</strong> {quote.eventDate ? format(new Date(quote.eventDate), "MMMM d, yyyy") : "TBD"}<br />
           <strong>Location:</strong> {quote.location || "TBD"}
-          {quote.photographers && (
-            <>
-              <br />
-              <strong>Photographer(s):</strong> {quote.photographers}
-            </>
-          )}
+          {quote.photographers && quote.photographers.split('\n').map((line, idx) => {
+            if (!line.trim()) return null;
+            
+            const parts = line.split(':');
+            if (parts.length > 1) {
+              return (
+                <React.Fragment key={`crew-${idx}`}>
+                  <br />
+                  <strong>{parts[0].trim()}:</strong> {parts.slice(1).join(':').trim()}
+                </React.Fragment>
+              );
+            }
+            
+            const parenMatch = line.match(/^(.*?)\s*\((.*?)\)$/);
+            if (parenMatch) {
+              return (
+                <React.Fragment key={`crew-${idx}`}>
+                  <br />
+                  <strong>{parenMatch[2].trim()}:</strong> {parenMatch[1].trim()}
+                </React.Fragment>
+              );
+            }
+
+            return (
+              <React.Fragment key={`crew-${idx}`}>
+                <br />
+                <strong>Crew:</strong> {line.trim()}
+              </React.Fragment>
+            );
+          })}
         </p>
         <div className="bg-slate-50 p-4 border border-slate-200 text-xs">
           <strong>Packages Selected:</strong>

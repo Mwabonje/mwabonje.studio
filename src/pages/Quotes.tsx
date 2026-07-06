@@ -1325,11 +1325,11 @@ export function Quotes() {
                           htmlFor="photographers"
                           className="text-xs font-bold text-slate-500 uppercase"
                         >
-                          Photographer(s)
+                          Team / Crew
                         </Label>
-                        <Input
+                        <Textarea
                           id="photographers"
-                          placeholder="e.g. Steve Dmax, Mike Ringa"
+                          placeholder="e.g. Steve (Photographer)&#10;Mike (Videographer)"
                           value={formData.photographers || ""}
                           onChange={(e) =>
                             setFormData({
@@ -1337,6 +1337,7 @@ export function Quotes() {
                               photographers: e.target.value,
                             })
                           }
+                          className="min-h-[80px]"
                         />
                       </div>
                       <div className="space-y-2 md:col-span-2">
@@ -2289,12 +2290,36 @@ export function Quotes() {
                         <span className="meta-value">{formData.location}</span>
                       </div>
                     )}
-                    {formData.photographers && (
-                      <div className="meta-row">
-                        <span className="meta-label">Photographer(s)</span>
-                        <span className="meta-value">{formData.photographers}</span>
-                      </div>
-                    )}
+                    {formData.photographers && formData.photographers.split('\n').map((line, idx) => {
+                      if (!line.trim()) return null;
+                      
+                      const parts = line.split(':');
+                      if (parts.length > 1) {
+                        return (
+                          <div className="meta-row" key={`crew-${idx}`}>
+                            <span className="meta-label">{parts[0].trim()}</span>
+                            <span className="meta-value">{parts.slice(1).join(':').trim()}</span>
+                          </div>
+                        );
+                      }
+                      
+                      const parenMatch = line.match(/^(.*?)\s*\((.*?)\)$/);
+                      if (parenMatch) {
+                        return (
+                          <div className="meta-row" key={`crew-${idx}`}>
+                            <span className="meta-label">{parenMatch[2].trim()}</span>
+                            <span className="meta-value">{parenMatch[1].trim()}</span>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="meta-row" key={`crew-${idx}`}>
+                          <span className="meta-label">Crew</span>
+                          <span className="meta-value">{line.trim()}</span>
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {/* PACKAGES */}
