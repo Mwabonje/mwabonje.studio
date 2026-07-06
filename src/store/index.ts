@@ -71,6 +71,7 @@ export type Quote = {
   projectTitle: string;
   location?: string;
   shootingTime?: string;
+  photographers?: string;
   issueDate: string;
   eventDate: string;
   moodboardLink: string;

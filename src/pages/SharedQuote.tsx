@@ -482,6 +482,12 @@ export function SharedQuote() {
                   <span className="meta-value">{quote.location}</span>
                 </div>
               )}
+              {quote.photographers && (
+                <div className="meta-row">
+                  <span className="meta-label">Photographer(s)</span>
+                  <span className="meta-value">{quote.photographers}</span>
+                </div>
+              )}
             </div>
 
             {/* PACKAGES */}

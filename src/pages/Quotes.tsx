@@ -116,6 +116,7 @@ export function Quotes() {
     projectTitle: "",
     location: "",
     shootingTime: "",
+    photographers: "",
     issueDate: format(new Date(), "yyyy-MM-dd"),
     eventDate: "",
     moodboardLink: "",
@@ -214,6 +215,7 @@ export function Quotes() {
         projectTitle: quote.projectTitle || "",
         location: quote.location || "",
         shootingTime: quote.shootingTime || "",
+        photographers: quote.photographers || "",
         issueDate:
           quote.issueDate || quote.date || format(new Date(), "yyyy-MM-dd"),
         eventDate: quote.eventDate || "",
@@ -479,6 +481,7 @@ export function Quotes() {
       projectTitle: quote.projectTitle || "",
       location: quote.location || "",
       shootingTime: quote.shootingTime || "",
+      photographers: quote.photographers || "",
       issueDate:
         quote.issueDate || quote.date || format(new Date(), "yyyy-MM-dd"),
       eventDate: quote.eventDate || "",
@@ -525,6 +528,7 @@ export function Quotes() {
       projectTitle: `${quote.projectTitle || ""} (Revision)`,
       location: quote.location || "",
       shootingTime: quote.shootingTime || "",
+      photographers: quote.photographers || "",
       issueDate: format(new Date(), "yyyy-MM-dd"),
       eventDate: quote.eventDate || "",
       moodboardLink: quote.moodboardLink || "",
@@ -1311,6 +1315,26 @@ export function Quotes() {
                             setFormData({
                               ...formData,
                               location: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="photographers"
+                          className="text-xs font-bold text-slate-500 uppercase"
+                        >
+                          Photographer(s)
+                        </Label>
+                        <Input
+                          id="photographers"
+                          placeholder="e.g. Steve Dmax, Mike Ringa"
+                          value={formData.photographers || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              photographers: e.target.value,
                             })
                           }
                         />
@@ -2263,6 +2287,12 @@ export function Quotes() {
                       <div className="meta-row">
                         <span className="meta-label">Location</span>
                         <span className="meta-value">{formData.location}</span>
+                      </div>
+                    )}
+                    {formData.photographers && (
+                      <div className="meta-row">
+                        <span className="meta-label">Photographer(s)</span>
+                        <span className="meta-value">{formData.photographers}</span>
                       </div>
                     )}
                   </div>

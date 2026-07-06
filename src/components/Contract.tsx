@@ -90,6 +90,12 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
         <p>
           <strong>Event/Project Date:</strong> {quote.eventDate ? format(new Date(quote.eventDate), "MMMM d, yyyy") : "TBD"}<br />
           <strong>Location:</strong> {quote.location || "TBD"}
+          {quote.photographers && (
+            <>
+              <br />
+              <strong>Photographer(s):</strong> {quote.photographers}
+            </>
+          )}
         </p>
         <div className="bg-slate-50 p-4 border border-slate-200 text-xs">
           <strong>Packages Selected:</strong>
