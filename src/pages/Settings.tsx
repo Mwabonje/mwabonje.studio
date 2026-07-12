@@ -11,9 +11,11 @@ import { Upload, Image as ImageIcon } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { getResolvedTheme } from '../lib/theme';
 import { Badge } from '../components/ui/badge';
+import { useTheme } from '../components/ThemeProvider';
 
 export default function Settings() {
   const { settings, updateSettings } = useStore();
+  const { theme, setTheme } = useTheme();
   const [formData, setFormData] = useState(settings);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -382,6 +384,40 @@ export default function Settings() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      <div className="max-w-4xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>App Theme</CardTitle>
+            <CardDescription>
+              Choose the color mode for the application interface.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 max-w-sm">
+              <div className="space-y-2">
+                <Label>Color Mode</Label>
+                <Select 
+                  value={theme} 
+                  onValueChange={(val: any) => setTheme(val)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a color mode..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="system">System</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500 mt-2">
+                  This setting is saved to your browser and applies instantly.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="max-w-4xl">

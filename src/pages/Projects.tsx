@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useStore, Project, CollaboratorSplit, Milestone } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Users, PieChart, LayoutList, Clock, CheckSquare } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, PieChart, LayoutList, Clock, CheckSquare, FileText, Download, Loader2 } from 'lucide-react';
 import { format, isAfter, isBefore, isSameDay } from 'date-fns';
 import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
@@ -27,6 +27,11 @@ export function Projects() {
   const [viewingSplitProject, setViewingSplitProject] = useState<Project | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewProject, setPreviewProject] = useState<Project | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const projectRef = useRef<HTMLDivElement>(null);
+
   const [formData, setFormData] = useState({
     title: '',
     clientId: '',
@@ -35,6 +40,80 @@ export function Projects() {
     description: '',
   });
   const [collaborators, setCollaborators] = useState<CollaboratorSplit[]>([]);
+
+  const handleOpenPreview = (project: Project) => {
+    setPreviewProject(project);
+    setIsPreviewOpen(true);
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!projectRef.current || isGeneratingPDF || !previewProject) return;
+    
+    setIsGeneratingPDF(true);
+    const originalScrollPos = window.scrollY;
+    window.scrollTo(0, 0);
+
+    try {
+      const element = projectRef.current;
+      const originalStyle = element.style.cssText;
+      const originalClass = element.className;
+      
+      element.className = element.className.replace('mx-auto', '').replace('max-w-[760px]', '').replace('w-full', '') + ' pdf-export';
+      element.style.width = '760px'; 
+      element.style.minWidth = '760px';
+      element.style.maxWidth = '760px';
+      element.style.margin = '0px';
+      element.style.padding = '0px';
+      element.style.boxShadow = 'none';
+      
+      // Allow layout to recalculate
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const safeTitle = (previewProject.title || 'Project').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      
+      const htmlToImage = await import('html-to-image');
+      const jsPDFModule = await import('jspdf');
+      const jsPDF = ('default' in jsPDFModule ? jsPDFModule.default : jsPDFModule) as any;
+
+      const dataUrl = await htmlToImage.toPng(element, { 
+        quality: 1, 
+        pixelRatio: 2,
+        backgroundColor: '#FFFFFF',
+        width: 760,
+        style: {
+          margin: '0',
+          padding: '0',
+          maxWidth: '760px',
+          width: '760px',
+          boxShadow: 'none',
+        }
+      });
+      
+      const pdfWidth = 210; // A4 width in mm
+      const pdfHeightOriginal = (element.offsetHeight * pdfWidth) / 760;
+      
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [pdfWidth, pdfHeightOriginal]
+      });
+      
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeightOriginal);
+      pdf.save(`${safeTitle}_report.pdf`);
+      
+      // Restore element
+      element.style.cssText = originalStyle;
+      element.className = originalClass;
+      window.scrollTo(0, originalScrollPos);
+      
+      toast.success("PDF generated successfully");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF. Please try again.");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   const handleOpenDialog = (project?: Project) => {
     if (project) {
@@ -494,6 +573,9 @@ export function Projects() {
                             <Button variant="ghost" size="sm" onClick={() => handleOpenSplitDialog(project)} className="mr-2">
                               <PieChart className="w-4 h-4 mr-1" /> Split
                             </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleOpenPreview(project)} title="View Report">
+                              <FileText className="w-4 h-4" />
+                            </Button>
                             <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(project)}>
                               <Edit className="w-4 h-4" />
                             </Button>
@@ -584,6 +666,133 @@ export function Projects() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50">
+          <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
+            <DialogTitle className="text-xl font-bold">Project Report Preview</DialogTitle>
+            <div className="flex space-x-2">
+              <Button size="sm" onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
+                {isGeneratingPDF ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
+                ) : (
+                  <><Download className="w-4 h-4 mr-2" /> Download PDF</>
+                )}
+              </Button>
+            </div>
+          </div>
+          
+          {previewProject && (() => {
+            const client = clients.find(c => c.id === previewProject.clientId);
+            const projectInvoices = invoices.filter(i => i.projectId === previewProject.id);
+            const totalBilled = projectInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
+            const totalPaid = projectInvoices.reduce((sum, i) => sum + i.amountPaid, 0);
+            const progressPercentage = totalBilled > 0 ? Math.min(100, Math.round((totalPaid / totalBilled) * 100)) : 0;
+            const splits = calculateSplit(previewProject);
+
+            return (
+              <div className="m-4 sm:m-6">
+                <style dangerouslySetInnerHTML={{ __html: `
+                  .pdf-export {
+                    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+                    background-color: white !important;
+                    color: #1e293b;
+                  }
+                  .pdf-export * {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                  }
+                  .pdf-export .border-b { border-bottom: 1px solid #e2e8f0 !important; }
+                  .pdf-export .bg-slate-50 { background-color: #f8fafc !important; }
+                `}} />
+                
+                <div ref={projectRef} className="bg-white border rounded-lg shadow-sm mx-auto max-w-[760px] w-full p-8 md:p-12 invoice-root relative overflow-hidden">
+                  {/* Header */}
+                  <div className="border-b pb-8 mb-8">
+                    <h1 className="text-4xl font-bold text-slate-900 mb-2">{previewProject.title}</h1>
+                    <div className="text-slate-500 text-lg">Project Report</div>
+                  </div>
+
+                  {/* Project Meta */}
+                  <div className="grid grid-cols-2 gap-8 mb-8">
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Project Details</h3>
+                      <div className="space-y-1 text-slate-800">
+                        <p><strong>Date:</strong> {previewProject.date ? format(new Date(previewProject.date), 'MMMM d, yyyy') : 'TBD'}</p>
+                        <p><strong>Location:</strong> {previewProject.location || 'TBD'}</p>
+                        <p><strong>Status:</strong> {progressPercentage === 100 ? 'Completed' : 'In Progress'}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Client Details</h3>
+                      <div className="space-y-1 text-slate-800">
+                        <p><strong>Name:</strong> {client?.name || 'Unknown Client'}</p>
+                        {client?.email && <p><strong>Email:</strong> {client.email}</p>}
+                        {client?.phone && <p><strong>Phone:</strong> {client.phone}</p>}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  {previewProject.description && (
+                    <div className="mb-8">
+                      <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Description</h3>
+                      <p className="text-slate-700 whitespace-pre-wrap">{previewProject.description}</p>
+                    </div>
+                  )}
+
+                  {/* Financials & Roles */}
+                  <div className="mb-8">
+                    <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Financial Summary</h3>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="bg-slate-50 p-4 rounded-lg">
+                        <p className="text-sm text-slate-500 font-medium">Total Billed</p>
+                        <p className="text-2xl font-bold text-slate-800">KES {totalBilled.toLocaleString()}</p>
+                      </div>
+                      <div className="bg-slate-50 p-4 rounded-lg">
+                        <p className="text-sm text-slate-500 font-medium">Total Paid (Revenue)</p>
+                        <p className="text-2xl font-bold text-green-600">KES {totalPaid.toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Team Roles & Cost Split</h3>
+                    {splits.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="font-semibold text-slate-900">Collaborator</TableHead>
+                            <TableHead className="font-semibold text-slate-900">Share</TableHead>
+                            <TableHead className="text-right font-semibold text-slate-900">Calculated Cost</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {splits.map((split, idx) => (
+                            <TableRow key={idx}>
+                              <TableCell className="text-slate-800 font-medium">{split.name}</TableCell>
+                              <TableCell className="text-slate-600">{split.calculatedPercentage.toFixed(1)}%</TableCell>
+                              <TableCell className="text-right font-semibold text-slate-800">
+                                KES {split.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <p className="text-slate-500 text-sm">No team members assigned or no revenue to split.</p>
+                    )}
+                  </div>
+                  
+                  {/* Footer */}
+                  <div className="border-t pt-6 mt-12 text-center text-slate-400 text-sm">
+                    Report generated on {format(new Date(), 'MMMM d, yyyy')}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDeleteDialog
         isOpen={!!projectToDelete}
