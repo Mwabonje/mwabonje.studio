@@ -148,7 +148,7 @@ export function Invoices() {
     const match = description.match(/^(.*?)\s*\((.*)\)$/);
     if (match) {
       const [_, title, inclusionsStr] = match;
-      const inclusions = inclusionsStr.split(',').map(s => s.trim()).filter(Boolean);
+      const inclusions = inclusionsStr.split(/,(?![^(]*\))/).map(s => s.trim()).filter(Boolean);
       return (
         <div>
           <div className="item-name">{title}</div>
