@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { useStore, Project } from '@/store';
-import { calculateProjectSplits } from '@/lib/split-calculator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, Wallet, Clock, FileText, Calendar, ChevronLeft, ChevronRight, Download, Car, Users } from 'lucide-react';
 import { isSameMonth, isSameYear, format, subMonths, addMonths, addYears, subYears } from 'date-fns';
@@ -298,7 +297,7 @@ export function Performance() {
         let percentage = 0;
         let amount = 0;
         
-        if (c.splitType === 'fixed' || c.splitType === 'transport') {
+        if (c.splitType === 'fixed') {
           amount = Number(c.amount || 0);
           percentage = totalRevenue > 0 ? (amount / totalRevenue) * 100 : 0;
         } else {
@@ -519,9 +518,66 @@ export function Performance() {
       </TabsContent>
 
       <TabsContent value="splits" className="space-y-6 mt-0">
+        <Card className="border-slate-100 shadow-sm mb-6">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-semibold text-slate-800">
+                  Monthly Collaborator Totals
+                </CardTitle>
+                <p className="text-sm text-slate-500 mt-1">
+                  Total amounts paid to each collaborator for {format(selectedMonth, 'MMMM yyyy')}
+                </p>
+              </div>
+              {monthPickerAction}
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Collaborator</TableHead>
+                  <TableHead className="text-right">Total Amount Paid</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(() => {
+                  const totals: Record<string, number> = {};
+                  allSplits.forEach(split => {
+                    if (split.projectDate && isSameMonth(split.projectDate, selectedMonth)) {
+                      if (!totals[split.collaboratorName]) totals[split.collaboratorName] = 0;
+                      totals[split.collaboratorName] += split.amount;
+                    }
+                  });
+                  const aggregated = Object.entries(totals).map(([name, amount]) => ({ name, amount })).sort((a, b) => b.amount - a.amount);
+                  
+                  if (aggregated.length === 0) {
+                    return (
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-center py-8 text-muted-foreground">
+                          No payments found for this month.
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+                  
+                  return aggregated.map((agg, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="font-medium text-slate-800">{agg.name}</TableCell>
+                      <TableCell className="text-right font-bold text-emerald-600">
+                        KES {agg.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </TableCell>
+                    </TableRow>
+                  ));
+                })()}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
         <Card className="border-slate-100 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-slate-800">Collaborator Payouts</CardTitle>
+            <CardTitle className="text-lg font-semibold text-slate-800">Detailed Project Splits</CardTitle>
             <p className="text-sm text-slate-500">
               A comprehensive list of all collaborator splits, including amounts, project details, and dates.
             </p>
