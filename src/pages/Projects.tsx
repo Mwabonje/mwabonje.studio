@@ -232,10 +232,15 @@ export function Projects() {
       return [];
     }
 
+    const fixedAndTransportCollaborators = project.collaborators.filter(c => c.splitType === 'fixed' || c.splitType === 'transport');
+    const totalFixedAmount = fixedAndTransportCollaborators.reduce((sum, c) => sum + Number(c.amount || 0), 0);
+    
+    const remainingRevenue = Math.max(0, totalRevenue - totalFixedAmount);
+
     const equalSplitCount = project.collaborators.filter(c => c.splitType === 'equal').length;
     const percentageCollaborators = project.collaborators.filter(c => c.splitType === 'percentage');
     
-    let totalPercentageAllocated = percentageCollaborators.reduce((sum, c) => sum + (c.percentage || 0), 0);
+    let totalPercentageAllocated = percentageCollaborators.reduce((sum, c) => sum + Number(c.percentage || 0), 0);
     
     // Ensure we don't exceed 100%
     if (totalPercentageAllocated > 100) totalPercentageAllocated = 100;
@@ -244,9 +249,17 @@ export function Projects() {
     // Divide the remaining percentage equally among the equal split collaborators PLUS the principal user
     const equalPercentage = equalSplitCount > 0 ? remainingPercentageForEqual / (equalSplitCount + 1) : 0;
 
-    return project.collaborators.map(c => {
-      const percentage = c.splitType === 'percentage' ? (c.percentage || 0) : equalPercentage;
-      const amount = (totalRevenue * percentage) / 100;
+    return project.collaborators
+      .filter(c => c.splitType !== 'transport')
+      .map(c => {
+      if (c.splitType === 'fixed' || c.splitType === 'transport') {
+        const amount = Number(c.amount || 0);
+        const calculatedPercentage = totalRevenue > 0 ? (amount / totalRevenue) * 100 : 0;
+        return { ...c, calculatedPercentage, amount };
+      }
+
+      const percentage = c.splitType === 'percentage' ? Number(c.percentage || 0) : equalPercentage;
+      const amount = (remainingRevenue * percentage) / 100;
       return { ...c, calculatedPercentage: percentage, amount };
     });
   };

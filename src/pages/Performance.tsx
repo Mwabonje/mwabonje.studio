@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore, Project } from '@/store';
+import { calculateProjectSplits } from '@/lib/split-calculator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Wallet, Clock, FileText, Calendar, ChevronLeft, ChevronRight, Download, Car } from 'lucide-react';
+import { DollarSign, Wallet, Clock, FileText, Calendar, ChevronLeft, ChevronRight, Download, Car, Users } from 'lucide-react';
 import { isSameMonth, isSameYear, format, subMonths, addMonths, addYears, subYears } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export function Performance() {
   const { projects, quotes, invoices, payments } = useStore();
@@ -266,6 +269,70 @@ export function Performance() {
     };
   });
 
+  const allSplits = useMemo(() => {
+    const splitsList: any[] = [];
+    
+    projects.forEach(project => {
+      if (!project.collaborators || project.collaborators.length === 0) return;
+      
+      const projectInvoices = invoices.filter(i => i.projectId === project.id);
+      const totalRevenue = projectInvoices.reduce((sum, i) => sum + i.amountPaid, 0);
+      
+      if (totalRevenue === 0) return;
+      
+      const fixedAndTransportCollaborators = project.collaborators.filter(c => c.splitType === 'fixed' || c.splitType === 'transport');
+      const totalFixedAmount = fixedAndTransportCollaborators.reduce((sum, c) => sum + Number(c.amount || 0), 0);
+      const remainingRevenue = Math.max(0, totalRevenue - totalFixedAmount);
+      
+      const equalSplitCount = project.collaborators.filter(c => c.splitType === 'equal').length;
+      const percentageCollaborators = project.collaborators.filter(c => c.splitType === 'percentage');
+      let totalPercentageAllocated = percentageCollaborators.reduce((sum, c) => sum + Number(c.percentage || 0), 0);
+      if (totalPercentageAllocated > 100) totalPercentageAllocated = 100;
+      const remainingPercentageForEqual = 100 - totalPercentageAllocated;
+      const equalPercentage = equalSplitCount > 0 ? remainingPercentageForEqual / (equalSplitCount + 1) : 0;
+      
+      project.collaborators.forEach(c => {
+        if (c.splitType === 'transport') return;
+        if (!c.name || c.name.trim() === '') return;
+        
+        let percentage = 0;
+        let amount = 0;
+        
+        if (c.splitType === 'fixed' || c.splitType === 'transport') {
+          amount = Number(c.amount || 0);
+          percentage = totalRevenue > 0 ? (amount / totalRevenue) * 100 : 0;
+        } else {
+          percentage = c.splitType === 'percentage' ? Number(c.percentage || 0) : equalPercentage;
+          amount = (remainingRevenue * percentage) / 100;
+        }
+        
+        const projectDate = project.date ? new Date(project.date) : null;
+        
+        splitsList.push({
+          id: `${project.id}-${c.id}`,
+          projectId: project.id,
+          projectName: project.title,
+          projectLocation: project.location || 'N/A',
+          projectDate: projectDate,
+          month: projectDate ? format(projectDate, 'MMMM') : 'N/A',
+          year: projectDate ? format(projectDate, 'yyyy') : '',
+          collaboratorName: c.name,
+          amount: amount,
+          percentage: percentage,
+          totalProjectRevenue: totalRevenue
+        });
+      });
+    });
+    
+    // Sort by date descending, null dates at the bottom
+    return splitsList.sort((a, b) => {
+      if (!a.projectDate && !b.projectDate) return 0;
+      if (!a.projectDate) return 1;
+      if (!b.projectDate) return -1;
+      return b.projectDate.getTime() - a.projectDate.getTime();
+    });
+  }, [projects, invoices]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -275,6 +342,14 @@ export function Performance() {
           Export CSV
         </Button>
       </div>
+
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="splits">Collaborator Payouts</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview" className="space-y-6">
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat, index) => (
@@ -441,6 +516,65 @@ export function Performance() {
           </CardContent>
         </Card>
       </div>
+      </TabsContent>
+
+      <TabsContent value="splits" className="space-y-6 mt-0">
+        <Card className="border-slate-100 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-slate-800">Collaborator Payouts</CardTitle>
+            <p className="text-sm text-slate-500">
+              A comprehensive list of all collaborator splits, including amounts, project details, and dates.
+            </p>
+          </CardHeader>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table className="min-w-[1000px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Collaborator</TableHead>
+                  <TableHead>Project Name</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Month/Year</TableHead>
+                  <TableHead className="text-right">Project Revenue</TableHead>
+                  <TableHead className="text-right">Split Share</TableHead>
+                  <TableHead className="text-right">Amount Paid</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allSplits.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      No collaborator splits found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  allSplits.map((split) => (
+                    <TableRow key={split.id}>
+                      <TableCell className="font-medium text-slate-800">{split.collaboratorName}</TableCell>
+                      <TableCell>{split.projectName}</TableCell>
+                      <TableCell>{split.projectLocation}</TableCell>
+                      <TableCell>{split.projectDate ? format(split.projectDate, 'MMM d, yyyy') : 'N/A'}</TableCell>
+                      <TableCell>{split.month} {split.year}</TableCell>
+                      <TableCell className="text-right text-slate-500">
+                        KES {split.totalProjectRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                          {split.percentage.toFixed(1)}%
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right font-semibold text-emerald-600">
+                        KES {split.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </TabsContent>
+      </Tabs>
     </div>
   );
 }
