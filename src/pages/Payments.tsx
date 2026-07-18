@@ -371,11 +371,31 @@ export function Payments() {
                                 />
                               </div>
                               <div className="flex-1">
-                                <Input
-                                  placeholder="Role (e.g. Drone Pilot)"
-                                  value={collab.role || ''}
-                                  onChange={(e) => updateCollaborator(collab.id, 'role', e.target.value)}
-                                />
+                                <Select
+                                value={collab.role || ''}
+                                onValueChange={(value: any) => updateCollaborator(collab.id, 'role', value)}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Lead Photographer">Lead Photographer</SelectItem>
+                                  <SelectItem value="Assistant Photographer">Assistant Photographer</SelectItem>
+                                  <SelectItem value="Videographer">Videographer</SelectItem>
+                                  <SelectItem value="Assistant Videographer">Assistant Videographer</SelectItem>
+                                  <SelectItem value="Drone Pilot">Drone Pilot</SelectItem>
+                                  <SelectItem value="Editor">Editor</SelectItem>
+                                  <SelectItem value="Colorist">Colorist</SelectItem>
+                                  <SelectItem value="Makeup Artist">Makeup Artist</SelectItem>
+                                  <SelectItem value="Stylist">Stylist</SelectItem>
+                                  <SelectItem value="Lighting Assistant">Lighting Assistant</SelectItem>
+                                  <SelectItem value="Production Assistant">Production Assistant</SelectItem>
+                                  <SelectItem value="Audio Technician">Audio Technician</SelectItem>
+                                  <SelectItem value="Director">Director</SelectItem>
+                                  <SelectItem value="Producer">Producer</SelectItem>
+                                  <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
                               </div>
                               <Button type="button" variant="ghost" size="icon" className="shrink-0 text-slate-500 hover:text-destructive" onClick={() => removeCollaborator(collab.id)}>
                                 <Trash2 className="w-4 h-4" />
