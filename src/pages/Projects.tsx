@@ -387,6 +387,13 @@ export function Projects() {
                                 required
                               />
                             </div>
+                            <div className="flex-1">
+                              <Input
+                                placeholder="Role (e.g. Drone Pilot)"
+                                value={collab.role || ''}
+                                onChange={(e) => updateCollaborator(collab.id, 'role', e.target.value)}
+                              />
+                            </div>
                             <Button type="button" variant="ghost" size="icon" className="shrink-0 text-slate-500 hover:text-destructive" onClick={() => removeCollaborator(collab.id)}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -492,6 +499,7 @@ export function Projects() {
                     <TableHeader>
                     <TableRow>
                       <TableHead>Collaborator</TableHead>
+                      <TableHead>Role</TableHead>
                       <TableHead>Share</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
                     </TableRow>
@@ -500,6 +508,7 @@ export function Projects() {
                     {calculateSplit(viewingSplitProject).map((split, idx) => (
                       <TableRow key={idx}>
                         <TableCell className="font-medium">{split.name}</TableCell>
+                        <TableCell className="text-slate-500">{split.role || '-'}</TableCell>
                         <TableCell>{split.calculatedPercentage.toFixed(1)}%</TableCell>
                         <TableCell className="text-right font-semibold text-green-600">
                           KES {split.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
@@ -775,6 +784,7 @@ export function Projects() {
                         <TableHeader>
                           <TableRow>
                             <TableHead className="font-semibold text-slate-900">Collaborator</TableHead>
+                            <TableHead className="font-semibold text-slate-900">Role</TableHead>
                             <TableHead className="font-semibold text-slate-900">Share</TableHead>
                             <TableHead className="text-right font-semibold text-slate-900">Calculated Cost</TableHead>
                           </TableRow>
@@ -783,6 +793,7 @@ export function Projects() {
                           {splits.map((split, idx) => (
                             <TableRow key={idx}>
                               <TableCell className="text-slate-800 font-medium">{split.name}</TableCell>
+                              <TableCell className="text-slate-600">{split.role || '-'}</TableCell>
                               <TableCell className="text-slate-600">{split.calculatedPercentage.toFixed(1)}%</TableCell>
                               <TableCell className="text-right font-semibold text-slate-800">
                                 KES {split.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}

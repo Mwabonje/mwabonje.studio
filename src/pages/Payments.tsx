@@ -370,6 +370,13 @@ export function Payments() {
                                   required
                                 />
                               </div>
+                              <div className="flex-1">
+                                <Input
+                                  placeholder="Role (e.g. Drone Pilot)"
+                                  value={collab.role || ''}
+                                  onChange={(e) => updateCollaborator(collab.id, 'role', e.target.value)}
+                                />
+                              </div>
                               <Button type="button" variant="ghost" size="icon" className="shrink-0 text-slate-500 hover:text-destructive" onClick={() => removeCollaborator(collab.id)}>
                                 <Trash2 className="w-4 h-4" />
                               </Button>

@@ -16,6 +16,7 @@ export type Client = {
 export type CollaboratorSplit = {
   id: string;
   name: string;
+  role?: string;
   splitType: 'equal' | 'percentage' | 'fixed' | 'transport';
   percentage?: number;
   amount?: number;

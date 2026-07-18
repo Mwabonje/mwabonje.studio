@@ -320,6 +320,7 @@ export function Performance() {
           month: projectDate ? format(projectDate, 'MMMM') : 'N/A',
           year: projectDate ? format(projectDate, 'yyyy') : '',
           collaboratorName: c.name,
+          collaboratorRole: c.role,
           amount: amount,
           percentage: percentage,
           totalProjectRevenue: totalRevenue
@@ -591,6 +592,7 @@ export function Performance() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Collaborator</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead>Project Name</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Date</TableHead>
@@ -603,7 +605,7 @@ export function Performance() {
               <TableBody>
                 {allSplits.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       No collaborator splits found.
                     </TableCell>
                   </TableRow>
@@ -611,6 +613,7 @@ export function Performance() {
                   allSplits.map((split) => (
                     <TableRow key={split.id}>
                       <TableCell className="font-medium text-slate-800">{split.collaboratorName}</TableCell>
+                      <TableCell className="text-slate-500">{split.collaboratorRole || '-'}</TableCell>
                       <TableCell>{split.projectName}</TableCell>
                       <TableCell>{split.projectLocation}</TableCell>
                       <TableCell>{split.projectDate ? format(split.projectDate, 'MMM d, yyyy') : 'N/A'}</TableCell>
