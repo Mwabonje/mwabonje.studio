@@ -11,10 +11,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 export function Performance() {
   const { projects, quotes, invoices, payments } = useStore();
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const parseDate = (dateStr: string) => {
+    if (!dateStr) return new Date();
+    return new Date(dateStr + (dateStr.includes('T') ? '' : 'T12:00:00'));
+  };
 
   // 1. Total Earning
   const totalEarning = payments
-    .filter(p => isSameYear(new Date(p.date), selectedMonth))
+    .filter(p => isSameYear(parseDate(p.date), selectedMonth))
     .reduce((sum, payment) => sum + payment.amount, 0);
 
   // 2. Net Earning (Personal Takes)
@@ -28,7 +32,7 @@ export function Performance() {
     invoices.forEach(invoice => {
       if (!invoice.projectId || invoice.projectId === 'none' || !projectIds.has(invoice.projectId)) {
         const invoicePaymentsForMonth = payments
-          .filter(p => p.invoiceId === invoice.id && (yearly ? isSameYear(new Date(p.date), selectedMonth) : isSameMonth(new Date(p.date), selectedMonth)))
+          .filter(p => p.invoiceId === invoice.id && (yearly ? isSameYear(parseDate(p.date), selectedMonth) : isSameMonth(parseDate(p.date), selectedMonth)))
           .reduce((sum, p) => sum + p.amount, 0);
         totalNet += invoicePaymentsForMonth;
       }
@@ -37,7 +41,7 @@ export function Performance() {
     projects.forEach((project) => {
       const projectInvoices = invoices.filter((i) => i.projectId === project.id);
       const projectRevenue = payments
-        .filter(p => (yearly ? isSameYear(new Date(p.date), selectedMonth) : isSameMonth(new Date(p.date), selectedMonth)) && projectInvoices.some(i => i.id === p.invoiceId))
+        .filter(p => (yearly ? isSameYear(parseDate(p.date), selectedMonth) : isSameMonth(parseDate(p.date), selectedMonth)) && projectInvoices.some(i => i.id === p.invoiceId))
         .reduce((sum, p) => sum + p.amount, 0);
 
       if (projectRevenue === 0) return;
@@ -100,7 +104,7 @@ export function Performance() {
     projects.forEach((project) => {
       const projectInvoices = invoices.filter((i) => i.projectId === project.id);
       const projectRevenue = payments
-        .filter(p => (yearly ? isSameYear(new Date(p.date), selectedMonth) : isSameMonth(new Date(p.date), selectedMonth)) && projectInvoices.some(i => i.id === p.invoiceId))
+        .filter(p => (yearly ? isSameYear(parseDate(p.date), selectedMonth) : isSameMonth(parseDate(p.date), selectedMonth)) && projectInvoices.some(i => i.id === p.invoiceId))
         .reduce((sum, p) => sum + p.amount, 0);
 
       if (projectRevenue === 0 || !project.collaborators) return;
@@ -132,7 +136,7 @@ export function Performance() {
 
   // 5. Monthly Earning
   const monthlyEarning = payments
-    .filter((p) => isSameMonth(new Date(p.date), selectedMonth))
+    .filter((p) => isSameMonth(parseDate(p.date), selectedMonth))
     .reduce((sum, p) => sum + p.amount, 0);
 
   const monthPickerAction = (
@@ -253,11 +257,11 @@ export function Performance() {
     const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i];
     
     const revenue = payments
-      .filter(p => new Date(p.date).getFullYear() === selectedMonth.getFullYear() && new Date(p.date).getMonth() === i)
+      .filter(p => parseDate(p.date).getFullYear() === selectedMonth.getFullYear() && parseDate(p.date).getMonth() === i)
       .reduce((sum, p) => sum + p.amount, 0);
 
     const projectCount = projects.filter(p => {
-      const d = new Date(p.date);
+      const d = parseDate(p.date);
       return d.getFullYear() === selectedMonth.getFullYear() && d.getMonth() === i;
     }).length;
 
@@ -305,7 +309,7 @@ export function Performance() {
           amount = (remainingRevenue * percentage) / 100;
         }
         
-        const projectDate = project.date ? new Date(project.date) : null;
+        const projectDate = project.date ? parseDate(project.date) : null;
         
         splitsList.push({
           id: `${project.id}-${c.id}`,
@@ -454,12 +458,12 @@ export function Performance() {
             <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 pt-4">
               {Array.from({ length: 12 }, (_, i) => {
                 const revenue = payments
-                  .filter(p => new Date(p.date).getFullYear() === selectedMonth.getFullYear() && new Date(p.date).getMonth() === i)
+                  .filter(p => parseDate(p.date).getFullYear() === selectedMonth.getFullYear() && parseDate(p.date).getMonth() === i)
                   .reduce((sum, p) => sum + p.amount, 0);
                 
                 const allRevenues = Array.from({ length: 12 }, (_, j) => 
                   payments
-                    .filter(p => new Date(p.date).getFullYear() === selectedMonth.getFullYear() && new Date(p.date).getMonth() === j)
+                    .filter(p => parseDate(p.date).getFullYear() === selectedMonth.getFullYear() && parseDate(p.date).getMonth() === j)
                     .reduce((sum, p) => sum + p.amount, 0)
                 );
                 
