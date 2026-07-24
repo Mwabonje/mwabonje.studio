@@ -401,9 +401,9 @@ export function SharedQuote() {
             @media (max-width: 640px) {
               .quote-root:not(.pdf-export) .page { padding: 32px 20px 48px; }
               .quote-root:not(.pdf-export) .header h1 { font-size: 28px; }
-              .quote-root.theme-modern .header { grid-template-columns: 1fr; text-align: center; gap: 12px; }
-              .quote-root.theme-modern .studio-name { text-align: center; }
-              .quote-root.theme-modern .header-sub { text-align: center; }
+              .quote-root.theme-modern:not(.pdf-export) .header { grid-template-columns: 1fr; text-align: center; gap: 12px; }
+              .quote-root.theme-modern:not(.pdf-export) .studio-name { text-align: center; }
+              .quote-root.theme-modern:not(.pdf-export) .header-sub { text-align: center; }
               .quote-root:not(.pdf-export) .meta { grid-template-columns: 1fr; gap: 12px; padding: 20px; margin-bottom: 32px; }
               .quote-root:not(.pdf-export) .packages-grid { grid-template-columns: 1fr; gap: 16px; }
               .quote-root:not(.pdf-export) .featured-body { grid-template-columns: 1fr; gap: 16px; }
