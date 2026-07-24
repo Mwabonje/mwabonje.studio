@@ -1735,26 +1735,47 @@ export function Quotes() {
                         </div>
 
                         <div className="flex justify-between items-end pt-4 border-t">
-                          <div className="flex items-center space-x-3">
-                            <Label className="text-xs font-bold text-slate-500 uppercase">
-                              Settlement:
-                            </Label>
-                            <div className="relative w-32">
-                              <span className="absolute left-3 top-2.5 text-slate-500 text-sm">
-                                Ksh
-                              </span>
-                              <Input
-                                type="number"
-                                className="pl-10 bg-slate-50"
-                                value={pkg.settlement || ""}
-                                onChange={(e) =>
-                                  updatePackage(
-                                    pkg.id,
-                                    "settlement",
-                                    Number(e.target.value),
-                                  )
-                                }
+                          <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                            <div className="flex items-center space-x-3">
+                              <Label className="text-xs font-bold text-slate-500 uppercase">
+                                Settlement:
+                              </Label>
+                              <div className="relative w-32">
+                                <span className="absolute left-3 top-2.5 text-slate-500 text-sm">
+                                  Ksh
+                                </span>
+                                <Input
+                                  type="number"
+                                  className="pl-10 bg-slate-50"
+                                  value={pkg.settlement || ""}
+                                  onChange={(e) =>
+                                    updatePackage(
+                                      pkg.id,
+                                      "settlement",
+                                      Number(e.target.value),
+                                    )
+                                  }
+                                />
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`popular-${pkg.id}`}
+                                checked={pkg.isMostPopular || false}
+                                onCheckedChange={(checked) => {
+                                  // Update the package being toggled
+                                  updatePackage(pkg.id, "isMostPopular", checked);
+                                  
+                                  // Optionally ensure only one is popular, or let multiple be popular.
+                                  // Let's just let it toggle.
+                                }}
                               />
+                              <Label
+                                htmlFor={`popular-${pkg.id}`}
+                                className="text-sm font-medium leading-none cursor-pointer"
+                              >
+                                Mark as Most Popular
+                              </Label>
                             </div>
                           </div>
                           <div className="text-right">
@@ -2328,9 +2349,7 @@ export function Quotes() {
                       <div className="section-label">Packages</div>
                       <div className="packages-grid">
                         {packages.map((pkg, index) => {
-                          const isFeatured =
-                            packages.length > 2 &&
-                            index === packages.length - 1; // Last item featured if there are more than 2
+                          const isFeatured = pkg.isMostPopular;
                           return (
                             <div
                               key={pkg.id}

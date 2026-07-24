@@ -52,6 +52,7 @@ export type QuotePackage = {
   name: string;
   inclusions: string[];
   settlement: number;
+  isMostPopular?: boolean;
 };
 
 export type QuoteDeliverableTask = {

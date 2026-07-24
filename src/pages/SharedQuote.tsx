@@ -520,9 +520,7 @@ export function SharedQuote() {
                 <div className="section-label">Packages</div>
                 <div className="packages-grid">
                   {quote.packages.map((pkg, index) => {
-                    const isFeatured =
-                      quote.packages!.length > 2 &&
-                      index === quote.packages!.length - 1; // Last item featured if there are more than 2
+                    const isFeatured = pkg.isMostPopular;
                     return (
                       <div
                         key={pkg.id}
