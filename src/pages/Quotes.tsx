@@ -2143,8 +2143,8 @@ export function Quotes() {
                 .quote-root .package-card.featured .package-price span { color: rgba(255,255,255,0.5); }
                 .quote-root .inclusions-label { font-size: 9px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 12px; }
                 .quote-root .package-card.featured .inclusions-label { color: rgba(255,255,255,0.4); }
-                .quote-root .inclusion-list { list-style: none; display: flex; flex-direction: column; gap: 9px; padding-left: 0; }
-                .quote-root .inclusion-list li { font-size: 13.5px; font-weight: 300; color: var(--ink-mid); padding-left: 14px; position: relative; line-height: 1.45; }
+                .quote-root .inclusion-list { list-style: none; display: block; margin: 0; padding-left: 0; }
+                .quote-root .inclusion-list li { font-size: 13.5px; font-weight: 300; color: var(--ink-mid); padding-left: 14px; position: relative; line-height: 1.45; margin-bottom: 9px; display: block; }
                 .quote-root .inclusion-list li::before { content: '·'; position: absolute; left: 0; color: var(--gold); font-size: 18px; line-height: 1.1; }
                 .quote-root .package-card.featured .inclusion-list li { color: rgba(255,255,255,0.75); }
                 .quote-root .package-card.featured .inclusion-list li::before { color: var(--gold-light); }
@@ -2360,14 +2360,7 @@ export function Quotes() {
                                       Inclusions
                                     </div>
                                     <ul className="inclusion-list">
-                                      {pkg.inclusions
-                                        .slice(
-                                          0,
-                                          Math.ceil(pkg.inclusions.length / 2),
-                                        )
-                                        .map((inc, i) => (
-                                          <li key={i}>{inc || "—"}</li>
-                                        ))}
+                                      {pkg.inclusions.filter(inc => inc.trim() !== "").slice(0, Math.ceil(pkg.inclusions.filter(inc => inc.trim() !== "").length / 2)).map((inc, i) => (<li key={i}>{inc}</li>))}
                                     </ul>
                                   </div>
                                   <div>
@@ -2375,13 +2368,7 @@ export function Quotes() {
                                       Extras
                                     </div>
                                     <ul className="inclusion-list">
-                                      {pkg.inclusions
-                                        .slice(
-                                          Math.ceil(pkg.inclusions.length / 2),
-                                        )
-                                        .map((inc, i) => (
-                                          <li key={i}>{inc || "—"}</li>
-                                        ))}
+                                      {pkg.inclusions.filter(inc => inc.trim() !== "").slice(Math.ceil(pkg.inclusions.filter(inc => inc.trim() !== "").length / 2)).map((inc, i) => (<li key={i}>{inc}</li>))}
                                     </ul>
                                   </div>
                                 </div>
@@ -2391,9 +2378,7 @@ export function Quotes() {
                                     Inclusions
                                   </div>
                                   <ul className="inclusion-list mb-auto w-full">
-                                    {pkg.inclusions.map((inc, i) => (
-                                      <li key={i}>{inc || "—"}</li>
-                                    ))}
+                                    {pkg.inclusions.filter(inc => inc.trim() !== "").map((inc, i) => (<li key={i}>{inc}</li>))}
                                   </ul>
                                 </>
                               )}
