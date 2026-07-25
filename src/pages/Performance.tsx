@@ -3,7 +3,7 @@ import { useStore, Project } from '@/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, Wallet, Clock, FileText, Calendar, ChevronLeft, ChevronRight, Download, Car, Users } from 'lucide-react';
 import { isSameMonth, isSameYear, format, subMonths, addMonths, addYears, subYears } from 'date-fns';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -395,7 +395,7 @@ export function Performance() {
           <CardContent>
             <div className="h-[400px] w-full mt-4">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
+                <LineChart
                   data={chartData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
@@ -423,7 +423,7 @@ export function Performance() {
                     tick={{ fill: '#64748b', fontSize: 12 }}
                   />
                   <RechartsTooltip 
-                    cursor={{ fill: '#f1f5f9' }}
+                    cursor={{ stroke: '#f1f5f9', strokeWidth: 2 }}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     formatter={(value: number, name: string) => [
                       name === 'Revenue' ? `Ksh ${value.toLocaleString()}` : value,
@@ -431,9 +431,25 @@ export function Performance() {
                     ]}
                   />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                  <Bar yAxisId="left" dataKey="Revenue" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                  <Bar yAxisId="right" dataKey="Projects" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                </BarChart>
+                  <Line 
+                    yAxisId="left" 
+                    type="monotone" 
+                    dataKey="Revenue" 
+                    stroke="#10b981" 
+                    strokeWidth={3}
+                    dot={{ r: 4, strokeWidth: 2 }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                  />
+                  <Line 
+                    yAxisId="right" 
+                    type="monotone" 
+                    dataKey="Projects" 
+                    stroke="#3b82f6" 
+                    strokeWidth={3}
+                    dot={{ r: 4, strokeWidth: 2 }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
