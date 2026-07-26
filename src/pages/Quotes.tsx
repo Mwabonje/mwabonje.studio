@@ -126,9 +126,9 @@ export function Quotes() {
     fulfillmentSchedule:
       "High-resolution digital files delivered via online gallery within 2-3 business days of the shoot.",
     usageLicense:
-      "Mwabonje Photography retains copyright. Selected images/videos may be used for portfolio purposes unless privacy is requested. RAW files are not included and are only available as an add-on (Ksh 5,000) alongside a booked package.",
+      "Personal and social media sharing included. Commercial licensing available on request.",
     usageRights:
-      "Client receives specific usage rights as detailed. Copyright remains with the photographer.",
+      "Mwabonje Photography retains copyright. Selected images/videos may be used for portfolio purposes unless privacy is requested. RAW files are not included and are only available as an add-on (Ksh 5,000) alongside a booked package.",
     transportLogistics:
       "Transport for both locations is included. Transport outside the mentioned locations will be billed at cost.",
     cancellationRescheduling:
