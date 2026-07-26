@@ -31,6 +31,7 @@ export function Payments() {
     date: format(new Date(), 'yyyy-MM-dd'),
     method: 'mpesa' as Payment['method'],
     reference: '',
+    allocations: {} as Record<number, number>,
   });
 
   const availableInvoices = invoices.filter(i => i.status !== 'paid' || i.id === formData.invoiceId);
@@ -44,6 +45,7 @@ export function Payments() {
         date: payment.date,
         method: payment.method,
         reference: payment.reference || '',
+        allocations: payment.allocations || {},
       });
       const invoice = invoices.find(i => i.id === payment.invoiceId);
       if (invoice) {
@@ -60,6 +62,7 @@ export function Payments() {
         date: format(new Date(), 'yyyy-MM-dd'),
         method: 'mpesa',
         reference: '',
+    allocations: {} as Record<number, number>,
       });
       setCollaborators([]);
     }
@@ -70,7 +73,7 @@ export function Payments() {
     const invoice = invoices.find(i => i.id === invoiceId);
     if (invoice) {
       const balance = invoice.totalAmount - invoice.amountPaid;
-      setFormData({ ...formData, invoiceId, amount: balance });
+      setFormData({ ...formData, invoiceId, amount: balance, allocations: {} });
       
       const project = projects.find(p => p.id === invoice.projectId);
       if (project) {
@@ -104,6 +107,7 @@ export function Payments() {
           date: formData.date,
           method: formData.method,
           reference: formData.reference,
+          allocations: formData.allocations,
         };
         await updatePayment(editingPaymentId, updatedPayment);
         
@@ -127,6 +131,7 @@ export function Payments() {
         date: formData.date,
         method: formData.method,
         reference: formData.reference,
+          allocations: formData.allocations,
       };
       
       await addPayment(newPayment);
@@ -294,17 +299,56 @@ export function Payments() {
                 </Select>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="amount">Amount (KES)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  min="1"
-                  value={formData.amount || ''}
-                  onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
-                  required
-                />
-              </div>
+              {formData.invoiceId ? (() => {
+                const selectedInvoice = invoices.find(i => i.id === formData.invoiceId);
+                return (
+                  <div className="space-y-4 bg-muted/30 p-4 rounded-lg">
+                    <h4 className="font-medium text-sm">Package Allocations</h4>
+                    {selectedInvoice?.lineItems.map((item: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <Label className="text-xs text-muted-foreground line-clamp-1">{item.description}</Label>
+                          <div className="text-sm font-medium">KES {(item.price || 0).toLocaleString()}</div>
+                        </div>
+                        <div className="w-1/3">
+                          <Input
+                            type="number"
+                            min="0"
+                            max={item.price || 0}
+                            placeholder="0"
+                            value={formData.allocations?.[idx] ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value ? Number(e.target.value) : 0;
+                              const newAllocations = { ...(formData.allocations || {}), [idx]: val };
+                              const totalAmount = Object.values(newAllocations).reduce((acc: any, curr: any) => acc + curr, 0);
+                              setFormData({ ...formData, allocations: newAllocations, amount: totalAmount });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    <div className="pt-2 border-t">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Total Payment Amount</span>
+                        <span className="font-bold text-lg">KES {formData.amount.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })() : (
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount (KES)</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    min="1"
+                    value={formData.amount || ''}
+                    disabled
+                    placeholder="Select an invoice first"
+                    required
+                  />
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -771,7 +815,7 @@ export function Payments() {
                   }
 
                   .receipt-root .totals-block {
-                    width: 280px;
+                    width: 320px;
                     border-top: 1px solid var(--rule);
                     padding-top: 14px;
                   }
@@ -802,7 +846,7 @@ export function Payments() {
                     color: var(--ink);
                   }
 
-                  .receipt-root .totals-row.amount-paid {
+                  .receipt-root .totals-row.amount-paid { align-items: center; gap: 16px; 
                     margin-top: 8px;
                     padding: 10px 14px;
                     background: var(--green-bg);
@@ -1043,31 +1087,36 @@ export function Payments() {
                           <thead>
                             <tr>
                               <th style={{width: '60%'}}>Description</th>
-                              <th style={{width: '20%', textAlign: 'right'}}>Package Total</th>
-                              <th style={{width: '20%', textAlign: 'right'}}>Amount Paid</th>
+                              <th style={{width: '20%', textAlign: 'right', whiteSpace: 'nowrap'}}>Package Total</th>
+                              <th style={{width: '20%', textAlign: 'right', whiteSpace: 'nowrap'}}>Amount Paid</th>
                             </tr>
                           </thead>
                           <tbody>
                             {invoice?.lineItems.map((item: any, idx: number) => {
-                              // Distribute amount paid over line items sequentially for display
-                              let accumulatedOriginalAmount = 0;
-                              if (idx > 0) {
-                                for (let i = 0; i < idx; i++) accumulatedOriginalAmount += invoice.lineItems[i].price || 0;
-                              }
-                              let amountForThisItem = 0;
                               const itemPrice = item.price || 0;
+                              const hasAllocations = previewPayment.allocations && Object.keys(previewPayment.allocations).length > 0;
+                              let amountForThisItem = previewPayment.allocations?.[idx] || 0;
                               
-                              const itemStart = accumulatedOriginalAmount;
-                              const itemEnd = itemStart + itemPrice;
-                              
-                              const paymentStart = previousAmountPaid;
-                              const paymentEnd = previousAmountPaid + previewPayment.amount;
+                              if (!hasAllocations) {
+                                // Fallback: Distribute amount paid over line items sequentially for display
+                                let accumulatedOriginalAmount = 0;
+                                if (idx > 0) {
+                                  for (let i = 0; i < idx; i++) accumulatedOriginalAmount += invoice.lineItems[i].price || 0;
+                                }
+                                amountForThisItem = 0;
+                                
+                                const itemStart = accumulatedOriginalAmount;
+                                const itemEnd = itemStart + itemPrice;
+                                
+                                const paymentStart = previousAmountPaid;
+                                const paymentEnd = previousAmountPaid + previewPayment.amount;
 
-                              const overlapStart = Math.max(itemStart, paymentStart);
-                              const overlapEnd = Math.min(itemEnd, paymentEnd);
+                                const overlapStart = Math.max(itemStart, paymentStart);
+                                const overlapEnd = Math.min(itemEnd, paymentEnd);
 
-                              if (overlapEnd > overlapStart) {
-                                amountForThisItem = overlapEnd - overlapStart;
+                                if (overlapEnd > overlapStart) {
+                                  amountForThisItem = overlapEnd - overlapStart;
+                                }
                               }
 
                               return (
@@ -1075,8 +1124,8 @@ export function Payments() {
                                   <td>
                                     {renderDescription(item.description)}
                                   </td>
-                                  <td style={{textAlign: 'right'}}>KES {itemPrice.toLocaleString()}</td>
-                                  <td style={{textAlign: 'right'}}>{amountForThisItem > 0 ? `KES ${amountForThisItem.toLocaleString()}` : 'KES —'}</td>
+                                  <td style={{textAlign: 'right', whiteSpace: 'nowrap'}}>KES {itemPrice.toLocaleString()}</td>
+                                  <td style={{textAlign: 'right', whiteSpace: 'nowrap'}}>{amountForThisItem > 0 ? `KES ${amountForThisItem.toLocaleString()}` : 'KES —'}</td>
                                 </tr>
                               );
                             })}
@@ -1104,7 +1153,7 @@ export function Payments() {
                             </div>
 
                             <div className="totals-row amount-paid">
-                              <span>Amount Received</span>
+                              <span style={{whiteSpace: 'nowrap'}}>Amount Received</span>
                               <span className="amount">KES {previewPayment.amount.toLocaleString()}</span>
                             </div>
 

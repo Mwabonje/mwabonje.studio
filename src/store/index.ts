@@ -11,6 +11,7 @@ export type Client = {
   nationality?: string;
   leadSource?: string;
   uid?: string;
+  allocations?: Record<number, number>;
 };
 
 export type CollaboratorSplit = {
@@ -39,6 +40,7 @@ export type Project = {
   collaborators: CollaboratorSplit[];
   milestones?: Milestone[];
   uid?: string;
+  allocations?: Record<number, number>;
 };
 
 export type LineItem = {
@@ -101,6 +103,7 @@ export type Quote = {
   deliverablesNote?: string;
   deliverableTasks?: QuoteDeliverableTask[];
   uid?: string;
+  allocations?: Record<number, number>;
 };
 
 export type Invoice = {
@@ -125,6 +128,7 @@ export type Payment = {
   method: 'cash' | 'mpesa' | 'bank';
   reference?: string;
   uid?: string;
+  allocations?: Record<number, number>;
 };
 
 export type Settings = {
@@ -149,6 +153,7 @@ export type ProjectTemplate = {
   description: string;
   collaborators: CollaboratorSplit[];
   uid?: string;
+  allocations?: Record<number, number>;
 };
 
 type AppState = {
