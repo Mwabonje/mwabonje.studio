@@ -420,7 +420,7 @@ export function SharedInvoice() {
           margin-top: 0;
         }
 
-        .invoice-root .meta-line {
+        .invoice-root .meta-line { display: flex; gap: 12px; 
           font-size: 13px;
           color: var(--ink-mid);
           font-weight: 300;
@@ -429,9 +429,12 @@ export function SharedInvoice() {
         }
 
         .invoice-root .meta-line strong {
-          font-weight: 500;
-          color: var(--ink);
-        }
+                      font-weight: 500;
+                      color: var(--ink);
+                    }
+                    .invoice-root .meta-block:not(.accent) .meta-line strong {
+                      min-width: 80px;
+                    }
 
         /* ── SECTION LABEL ── */
         .invoice-root .section-label {
@@ -791,10 +794,10 @@ export function SharedInvoice() {
 
               <div className="meta-block">
                 <div className="meta-block-title">Invoice Details</div>
-                <div className="meta-line"><strong>Invoice No.</strong> &nbsp;{invoice.quoteId ? (quote?.quoteNumber || invoice.quoteId.slice(0, 8).toUpperCase()) : invoice.id.slice(0, 8).toUpperCase()}</div>
-                <div className="meta-line"><strong>Issue Date</strong> &nbsp;&nbsp;{invoice.date ? format(new Date(invoice.date), 'dd · MM · yyyy') : 'N/A'}</div>
-                {invoice.dueDate && <div className="meta-line"><strong>Due Date</strong> &nbsp;&nbsp;{format(new Date(invoice.dueDate), 'dd · MM · yyyy')}</div>}
-                {project?.title && <div className="meta-line"><strong>Project</strong> &nbsp;&nbsp;&nbsp;&nbsp;{project.title}</div>}
+                <div className="meta-line"><strong>Invoice No.</strong> <span>{invoice.quoteId ? (quote?.quoteNumber || invoice.quoteId.slice(0, 8).toUpperCase()) : invoice.id.slice(0, 8).toUpperCase()}</span></div>
+                <div className="meta-line"><strong>Issue Date</strong> <span>{invoice.date ? format(new Date(invoice.date), 'dd · MM · yyyy') : 'N/A'}</span></div>
+                {invoice.dueDate && <div className="meta-line"><strong>Due Date</strong> <span>{format(new Date(invoice.dueDate), 'dd · MM · yyyy')}</span></div>}
+                {project?.title && <div className="meta-line"><strong>Project</strong> <span>{project.title}</span></div>}
               </div>
 
             </div>

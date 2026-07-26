@@ -649,7 +649,7 @@ export function Invoices() {
                       margin-top: 0;
                     }
 
-                    .invoice-root .meta-line {
+                    .invoice-root .meta-line { display: flex; gap: 12px; 
                       font-size: 13px;
                       color: var(--ink-mid);
                       font-weight: 300;
@@ -660,6 +660,9 @@ export function Invoices() {
                     .invoice-root .meta-line strong {
                       font-weight: 500;
                       color: var(--ink);
+                    }
+                    .invoice-root .meta-block:not(.accent) .meta-line strong {
+                      min-width: 80px;
                     }
 
                     /* ── SECTION LABEL ── */
@@ -1001,10 +1004,10 @@ export function Invoices() {
 
                         <div className="meta-block">
                           <div className="meta-block-title">Invoice Details</div>
-                          <div className="meta-line"><strong>Invoice No.</strong> &nbsp;{previewInvoice.quoteId ? (quotes.find(q => q.id === previewInvoice.quoteId)?.quoteNumber || previewInvoice.quoteId.slice(0, 8).toUpperCase()) : previewInvoice.id.slice(0, 8).toUpperCase()}</div>
-                          <div className="meta-line"><strong>Issue Date</strong> &nbsp;&nbsp;{previewInvoice.date ? format(new Date(previewInvoice.date), 'dd · MM · yyyy') : 'N/A'}</div>
-                          {previewInvoice.dueDate && <div className="meta-line"><strong>Due Date</strong> &nbsp;&nbsp;{format(new Date(previewInvoice.dueDate), 'dd · MM · yyyy')}</div>}
-                          {project?.title && <div className="meta-line"><strong>Project</strong> &nbsp;&nbsp;&nbsp;&nbsp;{project.title}</div>}
+                          <div className="meta-line"><strong>Invoice No.</strong> <span>{previewInvoice.quoteId ? (quotes.find(q => q.id === previewInvoice.quoteId)?.quoteNumber || previewInvoice.quoteId.slice(0, 8).toUpperCase()) : previewInvoice.id.slice(0, 8).toUpperCase()}</span></div>
+                          <div className="meta-line"><strong>Issue Date</strong> <span>{previewInvoice.date ? format(new Date(previewInvoice.date), 'dd · MM · yyyy') : 'N/A'}</span></div>
+                          {previewInvoice.dueDate && <div className="meta-line"><strong>Due Date</strong> <span>{format(new Date(previewInvoice.dueDate), 'dd · MM · yyyy')}</span></div>}
+                          {project?.title && <div className="meta-line"><strong>Project</strong> <span>{project.title}</span></div>}
                         </div>
 
                       </div>
