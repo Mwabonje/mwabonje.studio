@@ -810,8 +810,8 @@ export function SharedInvoice() {
                 <tr>
                   <th style={{ width: '55%' }}>Description</th>
                   <th className="center" style={{ width: '15%' }}>Qty</th>
-                  <th style={{ width: '15%', textAlign: 'right' }}>Unit Price</th>
-                  <th style={{ width: '15%', textAlign: 'right' }}>Amount</th>
+                  <th style={{ width: '15%', textAlign: 'right', whiteSpace: 'nowrap' }}>Unit Price</th>
+                  <th style={{ width: '15%', textAlign: 'right', whiteSpace: 'nowrap' }}>Amount</th>
                 </tr>
               </thead>
               <tbody>
@@ -821,8 +821,8 @@ export function SharedInvoice() {
                       {renderDescription(item.description)}
                     </td>
                     <td className="center">1</td>
-                    <td style={{ textAlign: 'right' }}>KES {(item.price || 0).toLocaleString()}</td>
-                    <td>KES {(item.price || 0).toLocaleString()}</td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>KES {(item.price || 0).toLocaleString()}</td>
+                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>KES {(item.price || 0).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
