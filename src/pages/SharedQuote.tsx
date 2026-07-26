@@ -325,7 +325,7 @@ export function SharedQuote() {
 
             /* ── CLIENT META ── */
             .quote-root .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 40px; padding: 28px 32px; background: var(--warm-white); border-left: 3px solid var(--gold); margin-bottom: 52px; font-size: 13px; }
-            .quote-root .meta-row { display: flex; gap: 8px; }
+            .quote-root .meta-row { display: grid; grid-template-columns: 120px 1fr; gap: 8px; }
             .quote-root .meta-label { font-weight: 500; color: var(--ink-mid); min-width: 80px; }
             .quote-root .meta-value { color: var(--ink-soft); }
 
