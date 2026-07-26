@@ -122,16 +122,17 @@ export function Quotes() {
     moodboardLink: "",
     note: "",
     retainerClause:
-      "A 50% retainer fee is required to secure your date. Dates are not held without a deposit.",
+      "Payment is split as follows: 50% retainer to confirm your booking, 45% on the day of the shoot, and the final 5% on delivery of your edited gallery.",
     fulfillmentSchedule:
-      "High-resolution digital files will be delivered via online gallery within 14 business days.",
-    usageLicense: "Social Media & Web Use only.",
+      "High-resolution digital files delivered via online gallery within 2-3 business days of the shoot.",
+    usageLicense:
+      "Mwabonje Photography retains copyright. Selected images/videos may be used for portfolio purposes unless privacy is requested. RAW files are not included and are only available as an add-on (Ksh 5,000) alongside a booked package.",
     usageRights:
       "Client receives specific usage rights as detailed. Copyright remains with the photographer.",
     transportLogistics:
-      "Transport within Nairobi is included. Transport outside Nairobi will be billed at cost.",
+      "Transport for both locations is included. Transport outside the mentioned locations will be billed at cost.",
     cancellationRescheduling:
-      "Cancellations made less than 7 days before the shoot forfeit the retainer.",
+      "Cancellation by client: deposit is non-refundable. Rescheduling: minimum 72 hours' notice, subject to availability. Cancellation by photographer: full refund of all payments made.",
     weatherConditions: "Mwabonje Photography shall not be held liable for delays, rescheduling, or failure to deliver services due to circumstances beyond reasonable control. These include, but are not limited to, extreme weather conditions, acts of God, government restrictions, illness, equipment failure, or other unforeseen events. In such cases, both parties will work together in good faith to reschedule the session or agree on a fair solution.",
     paymentDetails: settings.paymentDetails,
     status: "draft" as Quote["status"],
