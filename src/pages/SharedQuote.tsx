@@ -582,6 +582,46 @@ export function SharedQuote() {
               </>
             )}
 
+            {/* DELIVERABLES */}
+            {quote.deliverablesTitle && (
+              <>
+                <div className="section-label mt-[48px]">{quote.deliverablesSubTitle || "Deliverables"}</div>
+                <div className="package-card flex flex-col mb-[40px]">
+                  <div className="package-header w-full">
+                    <div>
+                      <div className="package-tier">{quote.deliverablesTitle}</div>
+                    </div>
+                    {quote.deliverablesPrice && (
+                      <div className="package-price">
+                        <span>Ksh</span>
+                        {Number(quote.deliverablesPrice).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {quote.deliverableTasks && quote.deliverableTasks.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6 w-full mb-6">
+                      {quote.deliverableTasks.map(task => (
+                        <div key={task.id}>
+                          <div className="inclusions-label">{task.title}</div>
+                          <ul className="inclusion-list">
+                            {task.items.map((item, i) => (
+                              <li key={i}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {quote.deliverablesNote && (
+                    <div className="text-[11px] text-[var(--ink-soft)] italic mt-auto pt-4 border-t border-[var(--rule)]">
+                      {quote.deliverablesNote}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
             {/* NOTE */}
             {quote.note && (
               <div className="note">
