@@ -29,13 +29,6 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
 
   const getTotalAmount = () => getSubtotal() + getTaxAmount();
 
-  const getDepositAmount = () => {
-    if (!quote.depositRate) return getTotalAmount() * 0.65; // default 65%
-    return getTotalAmount() * (quote.depositRate / 100);
-  };
-
-  const getBalanceAmount = () => getTotalAmount() - getDepositAmount();
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-KE", {
       style: "currency",
@@ -139,16 +132,9 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
           In consideration for the services provided, the Client agrees to pay the
           Service Provider the total amount of <strong>{formatCurrency(getTotalAmount())}</strong>.
         </p>
-        <ul className="list-disc pl-8 space-y-2">
-          <li>
-            <strong>Retainer/Deposit:</strong> A non-refundable retainer of{" "}
-            <strong>{formatCurrency(getDepositAmount())}</strong> ({(quote.depositRate || 65)}%) must be paid upon signing this Agreement to secure the Date.
-          </li>
-          <li>
-            <strong>Balance Due:</strong> The remaining balance of{" "}
-            <strong>{formatCurrency(getBalanceAmount())}</strong> shall be due and payable prior to or on the date of the event/project, unless otherwise agreed in writing.
-          </li>
-        </ul>
+        <div className="pl-4 border-l-2 border-slate-200 text-slate-700 whitespace-pre-wrap">
+          {quote.retainerClause || "A non-refundable retainer must be paid upon signing this Agreement to secure the Date. The remaining balance shall be due and payable prior to or on the date of the event/project."}
+        </div>
       </div>
 
       <div className="space-y-4">
