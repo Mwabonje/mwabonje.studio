@@ -95,7 +95,7 @@ service cloud.firestore {
              data.invoiceId is string && data.invoiceId.size() > 0 && data.invoiceId.size() < 100 &&
              data.amount is number && data.amount > 0 &&
              data.date is string && data.date.size() > 0 && data.date.size() < 100 &&
-             data.method in ['cash', 'mpesa', 'bank'] &&
+             data.method in ['cash', 'mpesa', 'bank', 'paypal'] &&
              isValidOptionalString('reference', 0, 200) &&
              data.uid == request.auth.uid;
     }

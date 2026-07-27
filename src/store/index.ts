@@ -125,7 +125,7 @@ export type Payment = {
   invoiceId: string;
   amount: number;
   date: string;
-  method: 'cash' | 'mpesa' | 'bank';
+  method: 'cash' | 'mpesa' | 'bank' | 'paypal';
   reference?: string;
   uid?: string;
   allocations?: Record<number, number>;

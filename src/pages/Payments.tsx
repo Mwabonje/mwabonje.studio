@@ -373,6 +373,7 @@ export function Payments() {
                     <SelectContent>
                       <SelectItem value="mpesa">M-Pesa</SelectItem>
                       <SelectItem value="bank">Bank Transfer</SelectItem>
+                      <SelectItem value="paypal">PayPal</SelectItem>
                       <SelectItem value="cash">Cash</SelectItem>
                     </SelectContent>
                   </Select>
