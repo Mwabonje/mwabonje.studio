@@ -1175,7 +1175,7 @@ export function Payments() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               <div><strong>Method</strong> &nbsp; {previewPayment.method.toUpperCase()}</div>
                               <div><strong>Transaction Ref.</strong> &nbsp; {previewPayment.reference || '——————'}</div>
-                              <div><strong>Received By</strong> &nbsp; {settings?.companyName || 'Mwabonje Photography'}</div>
+                              <div><strong>Received By</strong> &nbsp; {settings?.ownerName || settings?.companyName || 'Mwabonje Photography'}</div>
                             </div>
                             
                             {settings?.paymentDetails && (
@@ -1212,7 +1212,7 @@ export function Payments() {
                           <div className="sig-block">
                             <div className="sig-label">Issued By — {settings?.companyName || 'Mwabonje Photography'}</div>
                             <div className="sig-line"></div>
-                            <div className="sig-name">{settings?.companyEmail || 'Admin'}</div>
+                            <div className="sig-name">{settings?.ownerName || settings?.companyName || 'Admin'}</div>
                           </div>
                           <div className="sig-block">
                             <div className="sig-label">Client Acknowledgement</div>

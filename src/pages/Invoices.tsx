@@ -1110,7 +1110,7 @@ export function Invoices() {
                         <div className="sig-block">
                           <div className="sig-label">Authorised — {settings.companyName || 'Photography Studio'}</div>
                           <div className="sig-line"></div>
-                          <div className="sig-name">{settings.companyEmail || ''}</div>
+                          <div className="sig-name">{settings.ownerName || settings.companyName || ''}</div>
                         </div>
                         <div className="sig-block">
                           <div className="sig-label">Client Acknowledgement</div>
