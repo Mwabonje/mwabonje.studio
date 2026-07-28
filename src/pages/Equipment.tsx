@@ -19,6 +19,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter,
 } from "@/components/ui/table";
 import { Plus, Edit, Trash2, Search, Download } from "lucide-react";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
@@ -91,9 +92,9 @@ export function Equipment() {
 
   const formatCurrency = (amount?: number) => {
     if (!amount) return "-";
-    return new Intl.NumberFormat("en-KE", {
-      style: "currency",
-      currency: "KES",
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount);
   };
 
@@ -124,6 +125,8 @@ export function Equipment() {
     link.click();
     document.body.removeChild(link);
   };
+
+  const totalValue = filteredEquipment.reduce((sum, item) => sum + (item.purchasePrice || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -285,7 +288,7 @@ export function Equipment() {
                     <TableHead>Category</TableHead>
                     <TableHead>Serial No.</TableHead>
                     <TableHead>Condition</TableHead>
-                    <TableHead className="text-right">Value</TableHead>
+                    <TableHead className="text-right">Value (Ksh)</TableHead>
                     <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -306,7 +309,7 @@ export function Equipment() {
                           {item.condition || '-'}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.purchasePrice)}</TableCell>
+                      <TableCell className="text-right tabular-nums whitespace-nowrap">{formatCurrency(item.purchasePrice)}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}>
                           <Edit className="w-4 h-4" />
@@ -318,6 +321,13 @@ export function Equipment() {
                     </TableRow>
                   ))}
                 </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-right font-bold">Total Value</TableCell>
+                    <TableCell className="text-right font-bold tabular-nums whitespace-nowrap">{formatCurrency(totalValue)}</TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                </TableFooter>
               </Table>
             </div>
           )}
