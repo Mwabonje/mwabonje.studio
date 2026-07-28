@@ -100,6 +100,19 @@ service cloud.firestore {
              data.uid == request.auth.uid;
     }
 
+    function isValidEquipment() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             isValidOptionalString('category', 0, 100) &&
+             isValidOptionalString('serialNumber', 0, 100) &&
+             isValidOptionalString('purchaseDate', 0, 100) &&
+             (data.purchasePrice == null || data.purchasePrice is number) &&
+             isValidOptionalString('condition', 0, 100) &&
+             isValidOptionalString('notes', 0, 5000) &&
+             data.uid == request.auth.uid;
+    }
+
     function isValidSettings() {
       return isValidOptionalString('logoUrl', 0, 2000) &&
              isValidOptionalString('companyName', 0, 200) &&
@@ -164,6 +177,13 @@ service cloud.firestore {
         allow read: if isOwner(userId);
         allow create: if isOwner(userId) && isValidPayment();
         allow update: if isOwner(userId) && isValidPayment() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isOwner(userId);
+      }
+
+      match /equipment/{equipmentId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidEquipment();
+        allow update: if isOwner(userId) && isValidEquipment() && request.resource.data.uid == resource.data.uid;
         allow delete: if isOwner(userId);
       }
 

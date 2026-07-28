@@ -156,6 +156,18 @@ export type ProjectTemplate = {
   allocations?: Record<number, number>;
 };
 
+export type Equipment = {
+  id: string;
+  name: string;
+  category?: string;
+  serialNumber?: string;
+  purchaseDate?: string;
+  purchasePrice?: number;
+  condition?: string;
+  notes?: string;
+  uid?: string;
+};
+
 type AppState = {
   clients: Client[];
   projects: Project[];
@@ -163,6 +175,7 @@ type AppState = {
   quotes: Quote[];
   invoices: Invoice[];
   payments: Payment[];
+  equipment: Equipment[];
   settings: Settings;
   isSettingsLoaded: boolean;
   isAuthReady: boolean;
@@ -194,6 +207,10 @@ type AppState = {
   addPayment: (payment: Payment) => Promise<void>;
   updatePayment: (id: string, payment: Partial<Payment>) => Promise<void>;
   deletePayment: (id: string) => Promise<void>;
+
+  addEquipment: (equipment: Equipment) => Promise<void>;
+  updateEquipment: (id: string, equipment: Partial<Equipment>) => Promise<void>;
+  deleteEquipment: (id: string) => Promise<void>;
 
   updateSettings: (settings: Partial<Settings>) => Promise<void>;
 };
@@ -231,6 +248,7 @@ export const useStore = create<AppState>((set, get) => ({
   quotes: [],
   invoices: [],
   payments: [],
+  equipment: [],
   settings: defaultSettings,
   isSettingsLoaded: false,
   isAuthReady: false,
@@ -416,6 +434,25 @@ export const useStore = create<AppState>((set, get) => ({
       }
       await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), cleanData({ ...invoice, amountPaid: newAmountPaid, status: newStatus, uid }));
     }
+  },
+
+  addEquipment: async (equipment) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const data = cleanData({ ...equipment, uid });
+    await setDoc(doc(db, `users/${uid}/equipment`, equipment.id), data);
+  },
+  updateEquipment: async (id, equipment) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const existing = get().equipment.find((e) => e.id === id);
+    if (!existing) return;
+    await setDoc(doc(db, `users/${uid}/equipment`, id), cleanData({ ...existing, ...equipment, uid }));
+  },
+  deleteEquipment: async (id) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    await deleteDoc(doc(db, `users/${uid}/equipment`, id));
   },
 
   updateSettings: async (updatedSettings) => {

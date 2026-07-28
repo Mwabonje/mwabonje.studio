@@ -81,6 +81,13 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       console.error("Firebase payments error:", error);
     });
 
+    const unsubEquipment = onSnapshot(query(collection(db, `users/${userId}/equipment`)), (snapshot) => {
+      const equipment = snapshot.docs.map((doc) => doc.data() as any);
+      useStore.setState({ equipment });
+    }, (error) => {
+      console.error("Firebase equipment error:", error);
+    });
+
     const unsubSettings = onSnapshot(doc(db, `users/${userId}/settings/profile`), (docSnap) => {
       if (docSnap.exists()) {
         useStore.setState({ settings: docSnap.data() as Settings, isSettingsLoaded: true });
@@ -99,6 +106,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       unsubQuotes();
       unsubInvoices();
       unsubPayments();
+      unsubEquipment();
       unsubSettings();
     };
   }, [userId]);

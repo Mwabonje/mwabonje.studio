@@ -12,6 +12,7 @@ import { Quotes } from '@/pages/Quotes';
 import { Invoices } from '@/pages/Invoices';
 import { Payments } from '@/pages/Payments';
 import { Performance } from '@/pages/Performance';
+import { Equipment } from '@/pages/Equipment';
 import { SharedQuote } from '@/pages/SharedQuote';
 import { SharedInvoice } from '@/pages/SharedInvoice';
 import Settings from '@/pages/Settings';
@@ -40,6 +41,7 @@ export default function App() {
                 <Route path="invoices" element={<Invoices />} />
                 <Route path="payments" element={<Payments />} />
                 <Route path="performance" element={<Performance />} />
+                <Route path="equipment" element={<Equipment />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
             </Route>
