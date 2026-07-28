@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useStore, Client } from "@/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +42,12 @@ export function Clients() {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [clientToDelete, setClientToDelete] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      handleOpenDialog();
+    }
+  }, [location.search]);
 
   const handleOpenDialog = (client?: Client) => {
     if (client) {

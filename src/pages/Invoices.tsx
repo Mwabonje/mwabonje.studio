@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import { useStore, Invoice, LineItem, Quote } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -208,6 +208,13 @@ export function Invoices() {
     }
     setIsDialogOpen(true);
   };
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('new') === 'true') {
+      handleOpenDialog();
+    }
+  }, []);
 
   const handleQuoteSelect = (quoteId: string) => {
     if (quoteId === 'none') {

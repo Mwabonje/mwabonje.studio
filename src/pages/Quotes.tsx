@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from "@/store";
 import { NDA } from "@/components/NDA";
 import { Contract } from "@/components/Contract";
@@ -258,6 +258,13 @@ export function Quotes() {
     }
     setIsDialogOpen(true);
   };
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('new') === 'true') {
+      handleOpenDialog();
+    }
+  }, []);
 
   const handleDownloadPDF = async () => {
     if (!previewRef.current || isGeneratingPDF) return;

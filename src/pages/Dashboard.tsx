@@ -1,16 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/store';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays } from 'date-fns';
-import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2, Activity, CreditCard, FileText, UserPlus, FileCheck, ArrowUpRight } from 'lucide-react';
+import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2, Activity, CreditCard, FileText, UserPlus, FileCheck, ArrowUpRight, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Link } from 'react-router-dom';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useNavigate, Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const { projects, quotes, clients, invoices, payments, deleteProject, addProject, deleteQuote } = useStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -410,6 +412,35 @@ export function Dashboard() {
             </Button>
           </Link>
         </div>
+      </div>
+
+      {/* Quick Actions Floating Button */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon" className="w-14 h-14 rounded-full shadow-xl bg-slate-800 text-white hover:bg-slate-700 hover:scale-105 transition-all">
+              <Plus className="w-6 h-6" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 mb-2 p-2">
+            <DropdownMenuItem onClick={() => navigate('/clients?new=true')} className="cursor-pointer py-3">
+              <UserPlus className="w-4 h-4 mr-3 text-slate-500" />
+              <span className="font-medium text-slate-700">New Client</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/projects?new=true')} className="cursor-pointer py-3">
+              <Camera className="w-4 h-4 mr-3 text-slate-500" />
+              <span className="font-medium text-slate-700">New Project</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/quotes?new=true')} className="cursor-pointer py-3">
+              <FileText className="w-4 h-4 mr-3 text-slate-500" />
+              <span className="font-medium text-slate-700">New Quote</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/invoices?new=true')} className="cursor-pointer py-3">
+              <Receipt className="w-4 h-4 mr-3 text-slate-500" />
+              <span className="font-medium text-slate-700">New Invoice</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

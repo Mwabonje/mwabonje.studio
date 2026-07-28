@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
 import { useStore, Project, CollaboratorSplit, Milestone } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
@@ -133,6 +133,13 @@ export function Projects() {
     }
     setIsDialogOpen(true);
   };
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('new') === 'true') {
+      handleOpenDialog();
+    }
+  }, []);
 
   const handleOpenSplitDialog = (project: Project) => {
     setViewingSplitProject(project);
