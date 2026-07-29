@@ -2155,7 +2155,7 @@ export function Quotes() {
                 .quote-root .meta-value { color: var(--ink-soft); }
 
                 /* ── SECTION LABEL ── */
-                .quote-root .section-label { font-size: 10px; font-weight: 600; letter-spacing: 3.5px; text-transform: uppercase; color: var(--ink-soft); display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+                .quote-root .section-label { font-size: 10px; font-weight: 600; letter-spacing: 3.5px; text-transform: uppercase; color: var(--ink-soft); display: flex; align-items: center; gap: 14px; margin-bottom: 28px; white-space: nowrap; }
                 .quote-root .section-label::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
 
                 /* ── PACKAGES GRID ── */
@@ -2164,20 +2164,20 @@ export function Quotes() {
                 .quote-root .package-card.featured { border-color: var(--gold); background: var(--ink); grid-column: 1 / -1; }
                 .quote-root .package-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
                 .quote-root .package-card.featured .package-header { border-bottom-color: rgba(255,255,255,0.12); }
-                .quote-root .package-tier { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
+                .quote-root .package-tier { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; word-break: keep-all; flex-shrink: 0; }
                 .quote-root .package-card.featured .package-tier { color: var(--gold-light); }
                 .quote-root .package-price { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 400; color: var(--ink); line-height: 1; }
                 .quote-root .package-card.featured .package-price { color: #fff; }
                 .quote-root .package-price span { font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 400; color: var(--ink-soft); vertical-align: middle; margin-right: 3px; border:none; padding:0; background:transparent;}
                 .quote-root .package-card.featured .package-price span { color: rgba(255,255,255,0.5); }
-                .quote-root .inclusions-label { font-size: 9px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 12px; }
+                .quote-root .inclusions-label { font-size: 9px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 12px; white-space: nowrap; }
                 .quote-root .package-card.featured .inclusions-label { color: rgba(255,255,255,0.4); }
                 .quote-root .inclusion-list { list-style: none; display: block; margin: 0; padding-left: 0; }
                 .quote-root .inclusion-list li { font-size: 13.5px; font-weight: 300; color: var(--ink-mid); padding-left: 14px; position: relative; line-height: 1.45; margin-bottom: 9px; display: block; }
                 .quote-root .inclusion-list li::before { content: '·'; position: absolute; left: 0; color: var(--gold); font-size: 18px; line-height: 1.1; }
                 .quote-root .package-card.featured .inclusion-list li { color: rgba(255,255,255,0.75); }
                 .quote-root .package-card.featured .inclusion-list li::before { color: var(--gold-light); }
-                .quote-root .total-row { display: flex; justify-content: space-between; align-items: center; padding-top: 18px; margin-top: auto; border-top: 1px solid var(--rule); font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-soft); }
+                .quote-root .total-row { display: flex; justify-content: space-between; align-items: center; padding-top: 18px; margin-top: auto; border-top: 1px solid var(--rule); font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
                 .quote-root .package-card.featured .total-row { border-top-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.45); }
                 .quote-root .total-amount { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; color: var(--ink); letter-spacing: 0; text-transform: none; }
                 .quote-root .package-card.featured .total-amount { color: #fff; }
