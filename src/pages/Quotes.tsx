@@ -2164,7 +2164,7 @@ export function Quotes() {
                 .quote-root .package-card.featured { border-color: var(--gold); background: var(--ink); grid-column: 1 / -1; }
                 .quote-root .package-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
                 .quote-root .package-card.featured .package-header { border-bottom-color: rgba(255,255,255,0.12); }
-                .quote-root .package-tier { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--ink-soft); }
+                .quote-root .package-tier { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
                 .quote-root .package-card.featured .package-tier { color: var(--gold-light); }
                 .quote-root .package-price { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 400; color: var(--ink); line-height: 1; }
                 .quote-root .package-card.featured .package-price { color: #fff; }
