@@ -251,12 +251,32 @@ export function Quotes() {
       setDeliverableTasks(quote.deliverableTasks || []);
     } else {
       setEditingQuote(null);
-      setFormData({
-        ...defaultFormData,
-        quoteNumber: generateQuoteNumber(),
-      });
-      setPackages([]);
-      setDeliverableTasks([]);
+      const savedDraft = localStorage.getItem("quoteDraft");
+      if (savedDraft) {
+        try {
+          const parsed = JSON.parse(savedDraft);
+          setFormData(parsed.formData || {
+            ...defaultFormData,
+            quoteNumber: generateQuoteNumber(),
+          });
+          setPackages(parsed.packages || []);
+          setDeliverableTasks(parsed.deliverableTasks || []);
+        } catch (e) {
+          setFormData({
+            ...defaultFormData,
+            quoteNumber: generateQuoteNumber(),
+          });
+          setPackages([]);
+          setDeliverableTasks([]);
+        }
+      } else {
+        setFormData({
+          ...defaultFormData,
+          quoteNumber: generateQuoteNumber(),
+        });
+        setPackages([]);
+        setDeliverableTasks([]);
+      }
     }
     setIsDialogOpen(true);
   };
@@ -267,6 +287,17 @@ export function Quotes() {
       handleOpenDialog();
     }
   }, []);
+
+  useEffect(() => {
+    if (!editingQuote && isDialogOpen) {
+      const draft = {
+        formData,
+        packages,
+        deliverableTasks,
+      };
+      localStorage.setItem("quoteDraft", JSON.stringify(draft));
+    }
+  }, [formData, packages, deliverableTasks, editingQuote, isDialogOpen]);
 
   const handleDownloadPDF = async () => {
     if (!previewRef.current || isGeneratingPDF) return;
@@ -621,6 +652,7 @@ export function Quotes() {
           id: newQuoteId,
           ...quoteData,
         });
+        localStorage.removeItem("quoteDraft");
 
         // Update associated project if it exists
         if (formData.projectId) {
@@ -2058,10 +2090,15 @@ export function Quotes() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                    className="rounded-full px-6 w-full sm:w-auto"
+                    onClick={() => {
+                      if (!editingQuote) {
+                        localStorage.removeItem("quoteDraft");
+                      }
+                      setIsDialogOpen(false);
+                    }}
+                    className={`rounded-full px-6 w-full sm:w-auto ${!editingQuote ? "text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" : ""}`}
                   >
-                    Discard Quote
+                    {!editingQuote ? "Discard Draft" : "Cancel"}
                   </Button>
                   <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
                     <Button
