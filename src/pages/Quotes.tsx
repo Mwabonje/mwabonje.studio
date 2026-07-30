@@ -121,6 +121,7 @@ export function Quotes() {
     eventDate: "",
     moodboardLink: "",
     note: "",
+    hasCommercialLicense: false,
     retainerClause:
       "Payment is split as follows: 50% retainer to confirm your booking, 45% on the day of the shoot, and the final 5% on delivery of your edited gallery.",
     fulfillmentSchedule:
@@ -222,6 +223,7 @@ export function Quotes() {
         eventDate: quote.eventDate || "",
         moodboardLink: quote.moodboardLink || "",
         note: quote.note || "",
+        hasCommercialLicense: quote.hasCommercialLicense || false,
         retainerClause: quote.retainerClause || defaultFormData.retainerClause,
         fulfillmentSchedule:
           quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
@@ -495,6 +497,7 @@ export function Quotes() {
       eventDate: quote.eventDate || "",
       moodboardLink: quote.moodboardLink || "",
       note: quote.note || "",
+      hasCommercialLicense: quote.hasCommercialLicense || false,
       retainerClause: quote.retainerClause || defaultFormData.retainerClause,
       fulfillmentSchedule:
         quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
@@ -541,6 +544,7 @@ export function Quotes() {
       eventDate: quote.eventDate || "",
       moodboardLink: quote.moodboardLink || "",
       note: quote.note || "",
+      hasCommercialLicense: quote.hasCommercialLicense || false,
       retainerClause: quote.retainerClause || defaultFormData.retainerClause,
       fulfillmentSchedule:
         quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
@@ -1899,6 +1903,23 @@ export function Quotes() {
                     Detailed Terms & Logistics
                   </div>
                   <div className="space-y-4">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <input
+                        type="checkbox"
+                        id="hasCommercialLicense"
+                        checked={formData.hasCommercialLicense || false}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            hasCommercialLicense: e.target.checked,
+                          })
+                        }
+                        className="rounded border-slate-300 text-primary focus:ring-primary w-4 h-4"
+                      />
+                      <Label htmlFor="hasCommercialLicense" className="text-sm font-medium text-slate-700">
+                        Include Full Commercial License in Contract
+                      </Label>
+                    </div>
                     <div className="space-y-2">
                       <Label
                         htmlFor="usageLicense"

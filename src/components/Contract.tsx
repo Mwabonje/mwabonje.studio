@@ -147,7 +147,16 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
       <div className="space-y-4">
         <h2 className="text-lg font-bold">4. Copyright and Image Reproduction</h2>
         <p>
-          The Service Provider retains the copyright to all images and media produced. Upon final payment, the Client is granted a non-exclusive, non-transferable license to use, reproduce, and share the media for personal use. Commercial use of the media by the Client requires prior written consent from the Service Provider.
+          The Service Provider retains the copyright to all images and media produced. Upon final payment, the Client is granted a non-exclusive, non-transferable license to use, reproduce, and share the media.{' '}
+          {quote.hasCommercialLicense ? (
+            <>
+              Full commercial usage license included with all delivered assets — covering advertising, packaging, social media, and web use by {quote.clientName}. Portfolio use by Mwabonje Photography included unless otherwise requested.
+            </>
+          ) : (
+            <>
+              Commercial use of the media by the Client requires prior written consent from the Service Provider. Portfolio use by Mwabonje Photography included unless otherwise requested.
+            </>
+          )}
         </p>
       </div>
 

@@ -104,6 +104,7 @@ export type Quote = {
   deliverableTasks?: QuoteDeliverableTask[];
   uid?: string;
   allocations?: Record<number, number>;
+  hasCommercialLicense?: boolean;
 };
 
 export type Invoice = {
