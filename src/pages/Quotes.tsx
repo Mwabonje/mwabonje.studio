@@ -1903,22 +1903,42 @@ export function Quotes() {
                     Detailed Terms & Logistics
                   </div>
                   <div className="space-y-4">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <input
-                        type="checkbox"
-                        id="hasCommercialLicense"
-                        checked={formData.hasCommercialLicense || false}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            hasCommercialLicense: e.target.checked,
-                          })
-                        }
-                        className="rounded border-slate-300 text-primary focus:ring-primary w-4 h-4"
-                      />
-                      <Label htmlFor="hasCommercialLicense" className="text-sm font-medium text-slate-700">
-                        Include Full Commercial License in Contract
+                    <div className="space-y-3 mb-4">
+                      <Label className="text-xs font-bold text-slate-500 uppercase">
+                        Contract License Type
                       </Label>
+                      <div className="flex flex-col space-y-2">
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="hasCommercialLicense"
+                            checked={!formData.hasCommercialLicense}
+                            onChange={() =>
+                              setFormData({
+                                ...formData,
+                                hasCommercialLicense: false,
+                              })
+                            }
+                            className="text-primary focus:ring-primary w-4 h-4"
+                          />
+                          <span className="text-sm font-medium text-slate-700">Standard License (Personal Use)</span>
+                        </label>
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="hasCommercialLicense"
+                            checked={formData.hasCommercialLicense}
+                            onChange={() =>
+                              setFormData({
+                                ...formData,
+                                hasCommercialLicense: true,
+                              })
+                            }
+                            className="text-primary focus:ring-primary w-4 h-4"
+                          />
+                          <span className="text-sm font-medium text-slate-700">Full Commercial License</span>
+                        </label>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label
