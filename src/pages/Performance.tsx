@@ -16,9 +16,29 @@ export function Performance() {
     return new Date(dateStr + (dateStr.includes('T') ? '' : 'T12:00:00'));
   };
 
+  const getPaymentEventDate = (payment: any) => {
+    const invoice = invoices.find(i => i.id === payment.invoiceId);
+    if (invoice) {
+      if (invoice.projectId && invoice.projectId !== 'none') {
+        const project = projects.find(p => p.id === invoice.projectId);
+        if (project && project.date) {
+          return parseDate(project.date);
+        }
+      }
+      if (invoice.quoteId) {
+        const quote = quotes.find(q => q.id === invoice.quoteId);
+        if (quote && quote.eventDate) {
+          return parseDate(quote.eventDate);
+        }
+      }
+      return parseDate(invoice.date);
+    }
+    return parseDate(payment.date);
+  };
+
   // 1. Total Earning
   const totalEarning = payments
-    .filter(p => isSameYear(parseDate(p.date), selectedMonth))
+    .filter(p => isSameYear(getPaymentEventDate(p), selectedMonth))
     .reduce((sum, payment) => sum + payment.amount, 0);
 
   // 2. Net Earning (Personal Takes)
@@ -32,7 +52,7 @@ export function Performance() {
     invoices.forEach(invoice => {
       if (!invoice.projectId || invoice.projectId === 'none' || !projectIds.has(invoice.projectId)) {
         const invoicePaymentsForMonth = payments
-          .filter(p => p.invoiceId === invoice.id && (yearly ? isSameYear(parseDate(p.date), selectedMonth) : isSameMonth(parseDate(p.date), selectedMonth)))
+          .filter(p => p.invoiceId === invoice.id && (yearly ? isSameYear(getPaymentEventDate(p), selectedMonth) : isSameMonth(getPaymentEventDate(p), selectedMonth)))
           .reduce((sum, p) => sum + p.amount, 0);
         totalNet += invoicePaymentsForMonth;
       }
@@ -41,7 +61,7 @@ export function Performance() {
     projects.forEach((project) => {
       const projectInvoices = invoices.filter((i) => i.projectId === project.id);
       const projectRevenue = payments
-        .filter(p => (yearly ? isSameYear(parseDate(p.date), selectedMonth) : isSameMonth(parseDate(p.date), selectedMonth)) && projectInvoices.some(i => i.id === p.invoiceId))
+        .filter(p => (yearly ? isSameYear(getPaymentEventDate(p), selectedMonth) : isSameMonth(getPaymentEventDate(p), selectedMonth)) && projectInvoices.some(i => i.id === p.invoiceId))
         .reduce((sum, p) => sum + p.amount, 0);
 
       if (projectRevenue === 0) return;
@@ -104,7 +124,7 @@ export function Performance() {
     projects.forEach((project) => {
       const projectInvoices = invoices.filter((i) => i.projectId === project.id);
       const projectRevenue = payments
-        .filter(p => (yearly ? isSameYear(parseDate(p.date), selectedMonth) : isSameMonth(parseDate(p.date), selectedMonth)) && projectInvoices.some(i => i.id === p.invoiceId))
+        .filter(p => (yearly ? isSameYear(getPaymentEventDate(p), selectedMonth) : isSameMonth(getPaymentEventDate(p), selectedMonth)) && projectInvoices.some(i => i.id === p.invoiceId))
         .reduce((sum, p) => sum + p.amount, 0);
 
       if (projectRevenue === 0 || !project.collaborators) return;
@@ -136,7 +156,7 @@ export function Performance() {
 
   // 5. Monthly Earning
   const monthlyEarning = payments
-    .filter((p) => isSameMonth(parseDate(p.date), selectedMonth))
+    .filter((p) => isSameMonth(getPaymentEventDate(p), selectedMonth))
     .reduce((sum, p) => sum + p.amount, 0);
 
   const monthPickerAction = (
@@ -257,7 +277,7 @@ export function Performance() {
     const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i];
     
     const revenue = payments
-      .filter(p => parseDate(p.date).getFullYear() === selectedMonth.getFullYear() && parseDate(p.date).getMonth() === i)
+      .filter(p => getPaymentEventDate(p).getFullYear() === selectedMonth.getFullYear() && getPaymentEventDate(p).getMonth() === i)
       .reduce((sum, p) => sum + p.amount, 0);
 
     const projectCount = projects.filter(p => {
@@ -475,12 +495,12 @@ export function Performance() {
             <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 pt-4">
               {Array.from({ length: 12 }, (_, i) => {
                 const revenue = payments
-                  .filter(p => parseDate(p.date).getFullYear() === selectedMonth.getFullYear() && parseDate(p.date).getMonth() === i)
+                  .filter(p => getPaymentEventDate(p).getFullYear() === selectedMonth.getFullYear() && getPaymentEventDate(p).getMonth() === i)
                   .reduce((sum, p) => sum + p.amount, 0);
                 
                 const allRevenues = Array.from({ length: 12 }, (_, j) => 
                   payments
-                    .filter(p => parseDate(p.date).getFullYear() === selectedMonth.getFullYear() && parseDate(p.date).getMonth() === j)
+                    .filter(p => getPaymentEventDate(p).getFullYear() === selectedMonth.getFullYear() && getPaymentEventDate(p).getMonth() === j)
                     .reduce((sum, p) => sum + p.amount, 0)
                 );
                 
