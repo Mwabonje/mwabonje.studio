@@ -185,6 +185,12 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
               <p className="font-medium text-lg">{quote.clientName}</p>
               <p className="text-sm text-slate-500">Date & Signature</p>
             </div>
+            <div className="border-b border-slate-400 pb-1 h-10 mt-4 flex items-end">
+              {/* ID/Passport space */}
+            </div>
+            <div>
+              <p className="text-sm text-slate-500">ID / Passport No.</p>
+            </div>
           </div>
 
           <div className="space-y-6">
