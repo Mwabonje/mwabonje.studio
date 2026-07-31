@@ -75,6 +75,7 @@ export function Quotes() {
     updateProject,
     addInvoice,
     updateInvoice,
+    deleteInvoice,
   } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -679,6 +680,14 @@ export function Quotes() {
       if (editingQuote) {
         await updateQuote(editingQuote.id, quoteData);
         localStorage.removeItem(`quoteDraft_${editingQuote.id}`);
+        
+        if (quoteData.status === "declined") {
+          const relatedInvoices = invoices.filter((i) => i.quoteId === editingQuote.id);
+          for (const invoice of relatedInvoices) {
+            await deleteInvoice(invoice.id);
+          }
+        }
+        
         // Update associated project if it exists
         if (formData.projectId) {
           const project = projects.find((p) => p.id === formData.projectId);
@@ -3192,6 +3201,12 @@ export function Quotes() {
           } else if (type === "decline") {
             try {
               await updateQuote(quote.id, { status: "declined" });
+              
+              const relatedInvoices = invoices.filter(i => i.quoteId === quote.id);
+              for (const invoice of relatedInvoices) {
+                await deleteInvoice(invoice.id);
+              }
+              
               toast.success("Quote declined successfully");
             } catch (error) {
               toast.error("Failed to decline quote");

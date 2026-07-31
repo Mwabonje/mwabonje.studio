@@ -371,6 +371,13 @@ export const useStore = create<AppState>((set, get) => ({
   deleteInvoice: async (id) => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
+    
+    // Delete payments for this invoice
+    const relatedPayments = get().payments.filter(p => p.invoiceId === id);
+    for (const payment of relatedPayments) {
+      await deleteDoc(doc(db, `users/${uid}/payments`, payment.id));
+    }
+    
     await deleteDoc(doc(db, `users/${uid}/invoices`, id));
   },
 

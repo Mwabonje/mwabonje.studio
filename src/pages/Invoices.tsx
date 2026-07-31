@@ -1232,7 +1232,15 @@ export function Invoices() {
                   </TableCell>
                 </TableRow>
               ) : (
-                [...invoices].sort((a, b) => {
+                [...invoices].filter(invoice => {
+                  if (invoice.quoteId && invoice.quoteId !== 'none') {
+                    const quote = quotes.find(q => q.id === invoice.quoteId);
+                    if (quote && quote.status === 'declined') {
+                      return false;
+                    }
+                  }
+                  return true;
+                }).sort((a, b) => {
                   const dateA = new Date(a.date).getTime();
                   const dateB = new Date(b.date).getTime();
                   if (dateB !== dateA) return dateB - dateA;

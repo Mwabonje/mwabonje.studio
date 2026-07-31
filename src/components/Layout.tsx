@@ -10,10 +10,27 @@ import { GlobalSearch } from '@/components/GlobalSearch';
 export function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { clients, projects, invoices, settings, isSettingsLoaded } = useStore();
+  const { clients, projects, invoices, quotes, settings, isSettingsLoaded, deleteInvoice } = useStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userName, setUserName] = useState('Mwabonje Admin');
   const [userInitial, setUserInitial] = useState('M');
+
+  useEffect(() => {
+    // Cleanup orphaned invoices where the associated quote is declined
+    const cleanupOrphanedInvoices = async () => {
+      for (const invoice of invoices) {
+        if (invoice.quoteId && invoice.quoteId !== 'none') {
+          const quote = quotes.find(q => q.id === invoice.quoteId);
+          if (quote && quote.status === 'declined') {
+            await deleteInvoice(invoice.id);
+          }
+        }
+      }
+    };
+    if (invoices.length > 0 && quotes.length > 0) {
+      cleanupOrphanedInvoices();
+    }
+  }, [invoices, quotes, deleteInvoice]);
 
   useEffect(() => {
     if (isSettingsLoaded && settings) {
