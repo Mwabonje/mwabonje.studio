@@ -206,49 +206,97 @@ export function Quotes() {
   const handleOpenDialog = (quote?: Quote) => {
     if (quote) {
       setEditingQuote(quote);
-      setFormData({
-        quoteNumber: quote.quoteNumber || "",
-        projectId: quote.projectId || "",
-        clientName: quote.clientName || "",
-        clientEmail: quote.clientEmail || "",
-        clientPhone: quote.clientPhone || "",
-        clientNationality: quote.clientNationality || "",
-        clientLeadSource: quote.clientLeadSource || "",
-        projectTitle: quote.projectTitle || "",
-        location: quote.location || "",
-        shootingTime: quote.shootingTime || "",
-        photographers: quote.photographers || "",
-        issueDate:
-          quote.issueDate || quote.date || format(new Date(), "yyyy-MM-dd"),
-        eventDate: quote.eventDate || "",
-        moodboardLink: quote.moodboardLink || "",
-        note: quote.note || "",
-        hasCommercialLicense: quote.hasCommercialLicense || false,
-        retainerClause: quote.retainerClause || defaultFormData.retainerClause,
-        fulfillmentSchedule:
-          quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
-        usageLicense: quote.usageLicense || defaultFormData.usageLicense,
-        usageRights: quote.usageRights || defaultFormData.usageRights,
-        transportLogistics:
-          quote.transportLogistics || defaultFormData.transportLogistics,
-        cancellationRescheduling:
-          quote.cancellationRescheduling ||
-          defaultFormData.cancellationRescheduling,
-        weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
-        paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
-        status: quote.status,
-        date: quote.date,
-        revisionOf: quote.revisionOf,
-        isCollaboration: quote.isCollaboration || false,
-        collaborationCut: quote.collaborationCut || 0,
-        collaborationType: quote.collaborationType || "percentage",
-        deliverablesSubTitle: quote.deliverablesSubTitle || "",
-        deliverablesTitle: quote.deliverablesTitle || "",
-        deliverablesPrice: quote.deliverablesPrice?.toString() || "",
-        deliverablesNote: quote.deliverablesNote || "",
-      });
-      setPackages(quote.packages || []);
-      setDeliverableTasks(quote.deliverableTasks || []);
+      
+      const savedDraft = localStorage.getItem(`quoteDraft_${quote.id}`);
+      if (savedDraft) {
+        try {
+          const parsed = JSON.parse(savedDraft);
+          setFormData(parsed.formData || {
+            quoteNumber: quote.quoteNumber || "",
+            projectId: quote.projectId || "",
+            clientName: quote.clientName || "",
+            clientEmail: quote.clientEmail || "",
+            clientPhone: quote.clientPhone || "",
+            clientNationality: quote.clientNationality || "",
+            clientLeadSource: quote.clientLeadSource || "",
+            projectTitle: quote.projectTitle || "",
+            location: quote.location || "",
+            shootingTime: quote.shootingTime || "",
+            photographers: quote.photographers || "",
+            issueDate: quote.issueDate || quote.date || format(new Date(), "yyyy-MM-dd"),
+            eventDate: quote.eventDate || "",
+            moodboardLink: quote.moodboardLink || "",
+            note: quote.note || "",
+            hasCommercialLicense: quote.hasCommercialLicense || false,
+            retainerClause: quote.retainerClause || defaultFormData.retainerClause,
+            fulfillmentSchedule: quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
+            usageLicense: quote.usageLicense || defaultFormData.usageLicense,
+            usageRights: quote.usageRights || defaultFormData.usageRights,
+            transportLogistics: quote.transportLogistics || defaultFormData.transportLogistics,
+            cancellationRescheduling: quote.cancellationRescheduling || defaultFormData.cancellationRescheduling,
+            weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
+            paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
+            status: quote.status,
+            date: quote.date,
+            revisionOf: quote.revisionOf,
+            isCollaboration: quote.isCollaboration || false,
+            collaborationCut: quote.collaborationCut || 0,
+            collaborationType: quote.collaborationType || "percentage",
+            deliverablesSubTitle: quote.deliverablesSubTitle || "",
+            deliverablesTitle: quote.deliverablesTitle || "",
+            deliverablesPrice: quote.deliverablesPrice?.toString() || "",
+            deliverablesNote: quote.deliverablesNote || "",
+          });
+          setPackages(parsed.packages || quote.packages || []);
+          setDeliverableTasks(parsed.deliverableTasks || quote.deliverableTasks || []);
+        } catch (e) {
+          console.error("Failed to parse quote draft", e);
+        }
+      } else {
+        setFormData({
+          quoteNumber: quote.quoteNumber || "",
+          projectId: quote.projectId || "",
+          clientName: quote.clientName || "",
+          clientEmail: quote.clientEmail || "",
+          clientPhone: quote.clientPhone || "",
+          clientNationality: quote.clientNationality || "",
+          clientLeadSource: quote.clientLeadSource || "",
+          projectTitle: quote.projectTitle || "",
+          location: quote.location || "",
+          shootingTime: quote.shootingTime || "",
+          photographers: quote.photographers || "",
+          issueDate:
+            quote.issueDate || quote.date || format(new Date(), "yyyy-MM-dd"),
+          eventDate: quote.eventDate || "",
+          moodboardLink: quote.moodboardLink || "",
+          note: quote.note || "",
+          hasCommercialLicense: quote.hasCommercialLicense || false,
+          retainerClause: quote.retainerClause || defaultFormData.retainerClause,
+          fulfillmentSchedule:
+            quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
+          usageLicense: quote.usageLicense || defaultFormData.usageLicense,
+          usageRights: quote.usageRights || defaultFormData.usageRights,
+          transportLogistics:
+            quote.transportLogistics || defaultFormData.transportLogistics,
+          cancellationRescheduling:
+            quote.cancellationRescheduling ||
+            defaultFormData.cancellationRescheduling,
+          weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
+          paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
+          status: quote.status,
+          date: quote.date,
+          revisionOf: quote.revisionOf,
+          isCollaboration: quote.isCollaboration || false,
+          collaborationCut: quote.collaborationCut || 0,
+          collaborationType: quote.collaborationType || "percentage",
+          deliverablesSubTitle: quote.deliverablesSubTitle || "",
+          deliverablesTitle: quote.deliverablesTitle || "",
+          deliverablesPrice: quote.deliverablesPrice?.toString() || "",
+          deliverablesNote: quote.deliverablesNote || "",
+        });
+        setPackages(quote.packages || []);
+        setDeliverableTasks(quote.deliverableTasks || []);
+      }
     } else {
       setEditingQuote(null);
       const savedDraft = localStorage.getItem("quoteDraft");
@@ -289,13 +337,17 @@ export function Quotes() {
   }, []);
 
   useEffect(() => {
-    if (!editingQuote && isDialogOpen) {
+    if (isDialogOpen) {
       const draft = {
         formData,
         packages,
         deliverableTasks,
       };
-      localStorage.setItem("quoteDraft", JSON.stringify(draft));
+      if (editingQuote) {
+        localStorage.setItem(`quoteDraft_${editingQuote.id}`, JSON.stringify(draft));
+      } else {
+        localStorage.setItem("quoteDraft", JSON.stringify(draft));
+      }
     }
   }, [formData, packages, deliverableTasks, editingQuote, isDialogOpen]);
 
@@ -626,7 +678,7 @@ export function Quotes() {
 
       if (editingQuote) {
         await updateQuote(editingQuote.id, quoteData);
-
+        localStorage.removeItem(`quoteDraft_${editingQuote.id}`);
         // Update associated project if it exists
         if (formData.projectId) {
           const project = projects.find((p) => p.id === formData.projectId);
@@ -2093,12 +2145,14 @@ export function Quotes() {
                     onClick={() => {
                       if (!editingQuote) {
                         localStorage.removeItem("quoteDraft");
+                      } else {
+                        localStorage.removeItem(`quoteDraft_${editingQuote.id}`);
                       }
                       setIsDialogOpen(false);
                     }}
                     className={`rounded-full px-6 w-full sm:w-auto ${!editingQuote ? "text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" : ""}`}
                   >
-                    {!editingQuote ? "Discard Draft" : "Cancel"}
+                    {!editingQuote ? "Discard Draft" : "Discard Changes"}
                   </Button>
                   <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
                     <Button

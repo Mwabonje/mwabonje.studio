@@ -187,24 +187,66 @@ export function Invoices() {
   const handleOpenDialog = (invoice?: Invoice) => {
     if (invoice) {
       setEditingInvoice(invoice);
-      setFormData({
-        quoteId: invoice.quoteId || 'none',
-        projectId: invoice.projectId,
-        clientId: invoice.clientId,
-        date: invoice.date,
-        dueDate: invoice.dueDate,
-      });
-      setLineItems(invoice.lineItems || []);
+      
+      const savedDraft = localStorage.getItem(`invoiceDraft_${invoice.id}`);
+      if (savedDraft) {
+        try {
+          const parsed = JSON.parse(savedDraft);
+          setFormData(parsed.formData || {
+            quoteId: invoice.quoteId || 'none',
+            projectId: invoice.projectId,
+            clientId: invoice.clientId,
+            date: invoice.date,
+            dueDate: invoice.dueDate,
+          });
+          setLineItems(parsed.lineItems || invoice.lineItems || []);
+        } catch (e) {
+          console.error("Failed to parse invoice draft", e);
+        }
+      } else {
+        setFormData({
+          quoteId: invoice.quoteId || 'none',
+          projectId: invoice.projectId,
+          clientId: invoice.clientId,
+          date: invoice.date,
+          dueDate: invoice.dueDate,
+        });
+        setLineItems(invoice.lineItems || []);
+      }
     } else {
       setEditingInvoice(null);
-      setFormData({
-        quoteId: 'none',
-        projectId: '',
-        clientId: '',
-        date: format(new Date(), 'yyyy-MM-dd'),
-        dueDate: format(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
-      });
-      setLineItems([]);
+      const savedDraft = localStorage.getItem("invoiceDraft");
+      if (savedDraft) {
+        try {
+          const parsed = JSON.parse(savedDraft);
+          setFormData(parsed.formData || {
+            quoteId: 'none',
+            projectId: '',
+            clientId: '',
+            date: format(new Date(), 'yyyy-MM-dd'),
+            dueDate: format(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+          });
+          setLineItems(parsed.lineItems || []);
+        } catch (e) {
+          setFormData({
+            quoteId: 'none',
+            projectId: '',
+            clientId: '',
+            date: format(new Date(), 'yyyy-MM-dd'),
+            dueDate: format(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+          });
+          setLineItems([]);
+        }
+      } else {
+        setFormData({
+          quoteId: 'none',
+          projectId: '',
+          clientId: '',
+          date: format(new Date(), 'yyyy-MM-dd'),
+          dueDate: format(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        });
+        setLineItems([]);
+      }
     }
     setIsDialogOpen(true);
   };
@@ -215,6 +257,20 @@ export function Invoices() {
       handleOpenDialog();
     }
   }, []);
+
+  useEffect(() => {
+    if (isDialogOpen) {
+      const draft = {
+        formData,
+        lineItems,
+      };
+      if (editingInvoice) {
+        localStorage.setItem(`invoiceDraft_${editingInvoice.id}`, JSON.stringify(draft));
+      } else {
+        localStorage.setItem("invoiceDraft", JSON.stringify(draft));
+      }
+    }
+  }, [formData, lineItems, editingInvoice, isDialogOpen]);
 
   const handleQuoteSelect = (quoteId: string) => {
     if (quoteId === 'none') {
@@ -251,6 +307,7 @@ export function Invoices() {
     try {
       if (editingInvoice) {
         await updateInvoice(editingInvoice.id, { ...formData, lineItems, totalAmount });
+        localStorage.removeItem(`invoiceDraft_${editingInvoice.id}`);
       } else {
         await addInvoice({
           id: crypto.randomUUID(),
@@ -261,6 +318,7 @@ export function Invoices() {
           amountPaid: 0,
           status: 'unpaid',
         });
+        localStorage.removeItem("invoiceDraft");
       }
       setIsDialogOpen(false);
     } catch (error) {
@@ -426,8 +484,15 @@ export function Invoices() {
               </div>
 
               <div className="flex justify-end space-x-2 pt-4 border-t">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
+                <Button type="button" variant="outline" onClick={() => {
+                  if (editingInvoice) {
+                    localStorage.removeItem(`invoiceDraft_${editingInvoice.id}`);
+                  } else {
+                    localStorage.removeItem("invoiceDraft");
+                  }
+                  setIsDialogOpen(false);
+                }}>
+                  {editingInvoice ? 'Discard Changes' : 'Discard Draft'}
                 </Button>
                 <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">
                   {editingInvoice ? 'Update Invoice' : 'Save Invoice'}
