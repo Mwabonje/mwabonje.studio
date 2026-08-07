@@ -106,6 +106,11 @@ export function Quotes() {
     quote: Quote;
   } | null>(null);
 
+  const OLD_SELECTION_STORAGE_TEXTS = [
+    "Client selections must be made within 14 days of receiving the proof gallery. Storage of final files is guaranteed for 6 months after delivery.",
+    "Clients are required to submit their image selections within 10 days of receiving the proof gallery. Projects without a response after 10 days will be placed on hold and rescheduled based on the photographer's current workload. If the project remains inactive for more than 21 days, a KSh 1,000 Project Reactivation Fee will be charged before work resumes."
+  ];
+
   const defaultFormData = {
     quoteNumber: "",
     projectId: "",
@@ -237,7 +242,7 @@ export function Quotes() {
             transportLogistics: quote.transportLogistics || defaultFormData.transportLogistics,
             cancellationRescheduling: quote.cancellationRescheduling || defaultFormData.cancellationRescheduling,
             weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
-            selectionAndStorage: quote.selectionAndStorage !== undefined ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
+            selectionAndStorage: quote.selectionAndStorage !== undefined && !OLD_SELECTION_STORAGE_TEXTS.includes(quote.selectionAndStorage) ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
             paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
             status: quote.status,
             date: quote.date,
@@ -285,7 +290,7 @@ export function Quotes() {
             quote.cancellationRescheduling ||
             defaultFormData.cancellationRescheduling,
           weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
-          selectionAndStorage: quote.selectionAndStorage !== undefined ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
+          selectionAndStorage: quote.selectionAndStorage !== undefined && !OLD_SELECTION_STORAGE_TEXTS.includes(quote.selectionAndStorage) ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
           paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
           status: quote.status,
           date: quote.date,
@@ -307,7 +312,11 @@ export function Quotes() {
       if (savedDraft) {
         try {
           const parsed = JSON.parse(savedDraft);
-          setFormData(parsed.formData || {
+          let draftedData = parsed.formData;
+          if (draftedData && OLD_SELECTION_STORAGE_TEXTS.includes(draftedData.selectionAndStorage)) {
+             draftedData.selectionAndStorage = defaultFormData.selectionAndStorage;
+          }
+          setFormData(draftedData || {
             ...defaultFormData,
             quoteNumber: generateQuoteNumber(),
           });
@@ -596,7 +605,7 @@ export function Quotes() {
         quote.cancellationRescheduling ||
         defaultFormData.cancellationRescheduling,
       weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
-      selectionAndStorage: quote.selectionAndStorage !== undefined ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
+      selectionAndStorage: quote.selectionAndStorage !== undefined && !OLD_SELECTION_STORAGE_TEXTS.includes(quote.selectionAndStorage) ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
       paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
       status: quote.status,
       date: quote.date,
@@ -644,7 +653,7 @@ export function Quotes() {
         quote.cancellationRescheduling ||
         defaultFormData.cancellationRescheduling,
       weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
-      selectionAndStorage: quote.selectionAndStorage !== undefined ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
+      selectionAndStorage: quote.selectionAndStorage !== undefined && !OLD_SELECTION_STORAGE_TEXTS.includes(quote.selectionAndStorage) ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
       paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
       status: "draft",
       date: format(new Date(), "yyyy-MM-dd"),
