@@ -105,6 +105,7 @@ export type Quote = {
   uid?: string;
   allocations?: Record<number, number>;
   hasCommercialLicense?: boolean;
+  selectionAndStorage?: string;
 };
 
 export type Invoice = {

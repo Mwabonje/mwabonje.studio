@@ -637,7 +637,8 @@ export function SharedQuote() {
               quote.usageRights ||
               quote.transportLogistics ||
               quote.cancellationRescheduling ||
-              quote.weatherConditions) && (
+              quote.weatherConditions ||
+              quote.selectionAndStorage) && (
               <div className="terms">
                 <div className="section-label">Terms of Engagement</div>
                 <div className="terms-grid">
@@ -688,6 +689,14 @@ export function SharedQuote() {
                       <div className="term-title">Weather & Conditions</div>
                       <div className="term-body">
                         {quote.weatherConditions}
+                      </div>
+                    </div>
+                  )}
+                  {quote.selectionAndStorage && (
+                    <div className="term-block">
+                      <div className="term-title">Selection & Storage</div>
+                      <div className="term-body">
+                        {quote.selectionAndStorage}
                       </div>
                     </div>
                   )}

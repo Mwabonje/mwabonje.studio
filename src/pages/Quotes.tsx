@@ -136,6 +136,7 @@ export function Quotes() {
     cancellationRescheduling:
       "Cancellation by client: deposit is non-refundable. Rescheduling: minimum 72 hours' notice, subject to availability. Cancellation by photographer: full refund of all payments made.",
     weatherConditions: "Mwabonje Photography shall not be held liable for delays, rescheduling, or failure to deliver services due to circumstances beyond reasonable control. These include, but are not limited to, extreme weather conditions, acts of God, government restrictions, illness, equipment failure, or other unforeseen events. In such cases, both parties will work together in good faith to reschedule the session or agree on a fair solution.",
+    selectionAndStorage: "Clients are required to submit their image selections within 10 days of receiving the proof gallery. Projects without a response after 10 days will be placed on hold and rescheduled based on the photographer's current workload. If the project remains inactive for more than 21 days, a KSh 1,000 Project Reactivation Fee will be charged before work resumes.",
     paymentDetails: settings.paymentDetails,
     status: "draft" as Quote["status"],
     date: format(new Date(), "yyyy-MM-dd"),
@@ -236,6 +237,7 @@ export function Quotes() {
             transportLogistics: quote.transportLogistics || defaultFormData.transportLogistics,
             cancellationRescheduling: quote.cancellationRescheduling || defaultFormData.cancellationRescheduling,
             weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
+            selectionAndStorage: quote.selectionAndStorage !== undefined ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
             paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
             status: quote.status,
             date: quote.date,
@@ -283,6 +285,7 @@ export function Quotes() {
             quote.cancellationRescheduling ||
             defaultFormData.cancellationRescheduling,
           weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
+          selectionAndStorage: quote.selectionAndStorage !== undefined ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
           paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
           status: quote.status,
           date: quote.date,
@@ -593,6 +596,7 @@ export function Quotes() {
         quote.cancellationRescheduling ||
         defaultFormData.cancellationRescheduling,
       weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
+      selectionAndStorage: quote.selectionAndStorage !== undefined ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
       paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
       status: quote.status,
       date: quote.date,
@@ -640,6 +644,7 @@ export function Quotes() {
         quote.cancellationRescheduling ||
         defaultFormData.cancellationRescheduling,
       weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
+      selectionAndStorage: quote.selectionAndStorage !== undefined ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
       paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
       status: "draft",
       date: format(new Date(), "yyyy-MM-dd"),
@@ -2126,6 +2131,24 @@ export function Quotes() {
                     </div>
                     <div className="space-y-2">
                       <Label
+                        htmlFor="selectionAndStorage"
+                        className="text-xs font-bold text-slate-500 uppercase"
+                      >
+                        Selection & Storage
+                      </Label>
+                      <Textarea
+                        id="selectionAndStorage"
+                        value={formData.selectionAndStorage}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            selectionAndStorage: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label
                         htmlFor="paymentDetails"
                         className="text-xs font-bold text-slate-500 uppercase"
                       >
@@ -2619,7 +2642,8 @@ export function Quotes() {
                     formData.usageRights ||
                     formData.transportLogistics ||
                     formData.cancellationRescheduling ||
-                    formData.weatherConditions) && (
+                    formData.weatherConditions ||
+                    formData.selectionAndStorage) && (
                     <div className="terms">
                       <div className="section-label">Terms of Engagement</div>
                       <div className="terms-grid">
@@ -2686,6 +2710,16 @@ export function Quotes() {
                             </div>
                             <div className="term-body">
                               {formData.weatherConditions}
+                            </div>
+                          </div>
+                        )}
+                        {formData.selectionAndStorage && (
+                          <div className="term-block">
+                            <div className="term-title">
+                              Selection & Storage
+                            </div>
+                            <div className="term-body">
+                              {formData.selectionAndStorage}
                             </div>
                           </div>
                         )}
