@@ -136,7 +136,7 @@ export function Quotes() {
     cancellationRescheduling:
       "Cancellation by client: deposit is non-refundable. Rescheduling: minimum 72 hours' notice, subject to availability. Cancellation by photographer: full refund of all payments made.",
     weatherConditions: "Mwabonje Photography shall not be held liable for delays, rescheduling, or failure to deliver services due to circumstances beyond reasonable control. These include, but are not limited to, extreme weather conditions, acts of God, government restrictions, illness, equipment failure, or other unforeseen events. In such cases, both parties will work together in good faith to reschedule the session or agree on a fair solution.",
-    selectionAndStorage: "Clients are required to submit their image selections within 10 days of receiving the proof gallery. Projects without a response after 10 days will be placed on hold and rescheduled based on the photographer's current workload. If the project remains inactive for more than 21 days, a KSh 1,000 Project Reactivation Fee will be charged before work resumes.",
+    selectionAndStorage: "Clients are required to submit their image selections within 10 days of receiving the proof gallery. Projects without a response after 10 days will be placed on hold and rescheduled based on the photographer's current workload. If the project remains inactive for more than 21 days, a Project Reactivation Fee will apply before work resumes as follows: KSh 3,000 for projects inactive for 22–60 days, KSh 5,000 for 61–90 days, and KSh 7,000 for projects inactive for more than 90 days, subject to file availability.",
     paymentDetails: settings.paymentDetails,
     status: "draft" as Quote["status"],
     date: format(new Date(), "yyyy-MM-dd"),
