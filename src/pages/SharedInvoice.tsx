@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Invoice, Project, Client, Settings } from '@/store';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Printer, Download, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { doc, getDoc } from 'firebase/firestore';
@@ -106,9 +106,9 @@ export function SharedInvoice() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#fcfcfc] p-4">
         <h1 className="text-2xl font-serif text-slate-800 mb-2">Invoice Not Found</h1>
         <p className="text-slate-500 mb-6">{error || "Loading invoice data..."}</p>
-        <Button render={<Link to="/" />} variant="outline" className="rounded-none border-slate-300">
+        <Link to="/" className={buttonVariants({ variant: "outline", className: "rounded-none border-slate-300" })}>
           Return to Dashboard
-        </Button>
+        </Link>
       </div>
     );
   }

@@ -22,27 +22,30 @@ import { FirebaseProvider } from '@/components/FirebaseProvider';
 import { AuthGuard } from '@/components/AuthGuard';
 import { ThemeProvider } from '@/components/ThemeProvider';
 
+import Landing from '@/pages/Landing';
+
 export default function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="app-ui-theme">
       <FirebaseProvider>
         <Router>
           <Routes>
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/quote/shared" element={<SharedQuote />} />
             <Route path="/invoice/shared" element={<SharedInvoice />} />
             
             <Route element={<AuthGuard />}>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="clients" element={<Clients />} />
-                <Route path="projects" element={<Projects />} />
-                <Route path="quotes" element={<Quotes />} />
-                <Route path="invoices" element={<Invoices />} />
-                <Route path="payments" element={<Payments />} />
-                <Route path="performance" element={<Performance />} />
-                <Route path="equipment" element={<Equipment />} />
-                <Route path="settings" element={<Settings />} />
+              <Route element={<Layout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/clients" element={<Clients />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/quotes" element={<Quotes />} />
+                <Route path="/invoices" element={<Invoices />} />
+                <Route path="/payments" element={<Payments />} />
+                <Route path="/performance" element={<Performance />} />
+                <Route path="/equipment" element={<Equipment />} />
+                <Route path="/settings" element={<Settings />} />
               </Route>
             </Route>
           </Routes>

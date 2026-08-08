@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Quote, Settings } from "@/store";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   CheckCircle2,
   Printer,
@@ -108,13 +108,12 @@ export function SharedQuote() {
         <p className="text-slate-500 mb-6">
           {error || "Loading quote data..."}
         </p>
-        <Button
-          render={<Link to="/" />}
-          variant="outline"
-          className="rounded-none border-slate-300"
+        <Link
+          to="/"
+          className={buttonVariants({ variant: "outline", className: "rounded-none border-slate-300" })}
         >
           Return to Dashboard
-        </Button>
+        </Link>
       </div>
     );
   }

@@ -69,7 +69,7 @@ export function Layout() {
   }, []);
 
   const navItems = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Clients', href: '/clients', icon: Users },
     { name: 'Quotes', href: '/quotes', icon: FileText },
     { name: 'Invoices', href: '/invoices', icon: Receipt, badge: invoices.filter(i => i.status !== 'paid').length > 0 ? invoices.filter(i => i.status !== 'paid').length : undefined },
@@ -121,7 +121,7 @@ export function Layout() {
         <nav className="flex-1 overflow-y-auto hide-scrollbar">
           <ul className="space-y-2">
             {navItems.map((item) => {
-              const isActive = location.pathname === item.href || (item.href !== '/' && location.pathname.startsWith(item.href));
+              const isActive = location.pathname === item.href || (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
               return (
                 <li key={item.name} className="relative px-4 lg:px-0 lg:pl-8">
                   <Link

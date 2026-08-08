@@ -336,7 +336,7 @@ export function Equipment() {
       
       <ConfirmDeleteDialog
         isOpen={itemToDelete !== null}
-        onClose={() => setItemToDelete(null)}
+        onOpenChange={(open) => { if (!open) setItemToDelete(null); }}
         onConfirm={async () => {
           if (itemToDelete) {
             await deleteEquipment(itemToDelete);
