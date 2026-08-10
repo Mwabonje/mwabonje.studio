@@ -84,7 +84,7 @@ export default function Landing() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-6xl sm:text-7xl lg:text-[5.5rem] font-semibold tracking-tight text-white mb-8 leading-[1.05]"
+            className="text-4xl sm:text-6xl lg:text-[5.5rem] font-semibold tracking-tight text-white mb-6 sm:mb-8 leading-[1.1] sm:leading-[1.05]"
           >
             Focus on the art.<br />
             We'll handle the business.
