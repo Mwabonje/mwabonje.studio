@@ -162,112 +162,105 @@ export default function Settings() {
               Your company details as they will appear on invoices and quotes.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2 opacity-50 pointer-events-none">
-              <Label>Company Logo (Coming Soon)</Label>
-              <div className="flex items-center gap-4">
-                <div className="h-20 w-20 rounded-md border flex items-center justify-center bg-slate-50 overflow-hidden">
-                  {formData.logoUrl ? (
-                    <img src={formData.logoUrl} alt="Logo" className="h-full w-full object-contain" />
-                  ) : (
-                    <ImageIcon className="h-8 w-8 text-slate-300" />
-                  )}
-                </div>
-                <div>
-                  <Input
-                    id="logo"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageUpload}
-                    disabled
-                  />
-                  <div
-                    className="cursor-not-allowed inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors border border-input bg-background shadow-sm h-9 px-4 py-2"
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Logo
-                  </div>
-                  {formData.logoUrl && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="ml-2 text-destructive"
-                      disabled
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </div>
+          <CardContent className="grid grid-cols-1 lg:grid-cols-[180px_1fr] gap-8">
+            {/* Left Column: Image/Avatar */}
+            <div className="flex flex-col items-center space-y-4 opacity-50 pointer-events-none pt-2">
+              <div className="h-32 w-32 rounded-full border border-slate-200 flex items-center justify-center bg-slate-50 overflow-hidden shadow-sm">
+                {formData.logoUrl ? (
+                  <img src={formData.logoUrl} alt="Logo" className="h-full w-full object-cover" />
+                ) : (
+                  <ImageIcon className="h-10 w-10 text-slate-300" />
+                )}
+              </div>
+              <div className="text-center">
+                <Label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
+                  Avatar / Logo
+                </Label>
+                <span className="text-[10px] text-slate-400 block">Coming Soon</span>
+              </div>
+              <div className="hidden">
+                <Input
+                  id="logo"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                  disabled
+                />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="companyName">Company Name</Label>
-              <Input
-                id="companyName"
-                name="companyName"
-                value={formData.companyName}
-                onChange={handleChange}
-                placeholder="e.g. CaptureCRM"
-              />
-            </div>
+            {/* Right Column: Primary Details */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="companyName">Company Name</Label>
+                  <Input
+                    id="companyName"
+                    name="companyName"
+                    value={formData.companyName}
+                    onChange={handleChange}
+                    placeholder="e.g. CaptureCRM"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ownerName">Owner Name / Photographer Name</Label>
+                  <Input
+                    id="ownerName"
+                    name="ownerName"
+                    value={formData.ownerName || ''}
+                    onChange={handleChange}
+                    placeholder="e.g. John Doe"
+                  />
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="ownerName">Owner Name / Photographer Name</Label>
-              <Input
-                id="ownerName"
-                name="ownerName"
-                value={formData.ownerName || ''}
-                onChange={handleChange}
-                placeholder="e.g. John Doe"
-              />
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="companyEmail">Email Address</Label>
+                  <Input
+                    id="companyEmail"
+                    name="companyEmail"
+                    type="email"
+                    value={formData.companyEmail}
+                    onChange={handleChange}
+                    placeholder="e.g. hello@capturecrm.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="companyPhone">Phone Number</Label>
+                  <Input
+                    id="companyPhone"
+                    name="companyPhone"
+                    value={formData.companyPhone}
+                    onChange={handleChange}
+                    placeholder="e.g. +254 700 000 000"
+                  />
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="companyEmail">Email Address</Label>
-              <Input
-                id="companyEmail"
-                name="companyEmail"
-                type="email"
-                value={formData.companyEmail}
-                onChange={handleChange}
-                placeholder="e.g. hello@capturecrm.com"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="companyWebsite">Website</Label>
+                <Input
+                  id="companyWebsite"
+                  name="companyWebsite"
+                  value={formData.companyWebsite}
+                  onChange={handleChange}
+                  placeholder="e.g. www.capturecrm.com"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="companyPhone">Phone Number</Label>
-              <Input
-                id="companyPhone"
-                name="companyPhone"
-                value={formData.companyPhone}
-                onChange={handleChange}
-                placeholder="e.g. +254 700 000 000"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="companyWebsite">Website</Label>
-              <Input
-                id="companyWebsite"
-                name="companyWebsite"
-                value={formData.companyWebsite}
-                onChange={handleChange}
-                placeholder="e.g. www.capturecrm.com"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="companyAddress">Address</Label>
-              <Textarea
-                id="companyAddress"
-                name="companyAddress"
-                value={formData.companyAddress}
-                onChange={handleChange}
-                placeholder="e.g. 123 Studio Lane, Nairobi"
-                rows={3}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="companyAddress">Address</Label>
+                <Textarea
+                  id="companyAddress"
+                  name="companyAddress"
+                  value={formData.companyAddress}
+                  onChange={handleChange}
+                  placeholder="e.g. 123 Studio Lane, Nairobi"
+                  rows={3}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
