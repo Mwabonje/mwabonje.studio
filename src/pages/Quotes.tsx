@@ -124,6 +124,7 @@ export function Quotes() {
     shootingTime: "",
     photographers: "",
     issueDate: format(new Date(), "yyyy-MM-dd"),
+    quoteValidity: "This quotation is valid for 7 days from the date issued.",
     eventDate: "",
     moodboardLink: "",
     note: "",
@@ -231,6 +232,7 @@ export function Quotes() {
             shootingTime: quote.shootingTime || "",
             photographers: quote.photographers || "",
             issueDate: quote.issueDate || quote.date || format(new Date(), "yyyy-MM-dd"),
+            quoteValidity: quote.quoteValidity || defaultFormData.quoteValidity,
             eventDate: quote.eventDate || "",
             moodboardLink: quote.moodboardLink || "",
             note: quote.note || "",
@@ -638,6 +640,7 @@ export function Quotes() {
       shootingTime: quote.shootingTime || "",
       photographers: quote.photographers || "",
       issueDate: format(new Date(), "yyyy-MM-dd"),
+      quoteValidity: quote.quoteValidity || defaultFormData.quoteValidity,
       eventDate: quote.eventDate || "",
       moodboardLink: quote.moodboardLink || "",
       note: quote.note || "",
@@ -1959,6 +1962,24 @@ export function Quotes() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label
+                        htmlFor="quoteValidity"
+                        className="text-xs font-bold text-slate-500 uppercase"
+                      >
+                        Quote Validity
+                      </Label>
+                      <Input
+                        id="quoteValidity"
+                        value={formData.quoteValidity}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            quoteValidity: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label
                         htmlFor="retainerClause"
                         className="text-xs font-bold text-slate-500 uppercase"
                       >
@@ -2646,7 +2667,8 @@ export function Quotes() {
                   )}
 
                   {/* TERMS */}
-                  {(formData.retainerClause ||
+                  {(formData.quoteValidity ||
+                    formData.retainerClause ||
                     formData.fulfillmentSchedule ||
                     formData.usageLicense ||
                     formData.usageRights ||
@@ -2657,6 +2679,14 @@ export function Quotes() {
                     <div className="terms">
                       <div className="section-label">Terms of Engagement</div>
                       <div className="terms-grid">
+                        {formData.quoteValidity && (
+                          <div className="term-block">
+                            <div className="term-title">Quote Validity</div>
+                            <div className="term-body">
+                              {formData.quoteValidity}
+                            </div>
+                          </div>
+                        )}
                         {formData.retainerClause && (
                           <div className="term-block">
                             <div className="term-title">

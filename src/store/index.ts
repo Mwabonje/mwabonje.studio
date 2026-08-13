@@ -36,6 +36,7 @@ export type Project = {
   title: string;
   location: string;
   date: string;
+  
   description: string;
   collaborators: CollaboratorSplit[];
   milestones?: Milestone[];
@@ -92,8 +93,10 @@ export type Quote = {
   totalAmount: number;
   status: 'draft' | 'sent' | 'approved' | 'declined';
   date: string;
+  
   selectedPackages?: string[];
   revisionOf?: string;
+  quoteValidity?: string;
   isCollaboration?: boolean;
   collaborationCut?: number;
   collaborationType?: 'percentage' | 'fixed';
@@ -118,6 +121,7 @@ export type Invoice = {
   amountPaid: number;
   status: 'unpaid' | 'partially_paid' | 'paid';
   date: string;
+  
   dueDate: string;
   uid?: string;
 };
@@ -127,6 +131,7 @@ export type Payment = {
   invoiceId: string;
   amount: number;
   date: string;
+  
   method: 'cash' | 'mpesa' | 'bank' | 'paypal';
   reference?: string;
   uid?: string;

@@ -631,7 +631,8 @@ export function SharedQuote() {
             )}
 
             {/* TERMS */}
-            {(quote.retainerClause ||
+            {(quote.quoteValidity ||
+              quote.retainerClause ||
               quote.fulfillmentSchedule ||
               quote.usageLicense ||
               quote.usageRights ||
@@ -642,6 +643,12 @@ export function SharedQuote() {
               <div className="terms">
                 <div className="section-label">Terms of Engagement</div>
                 <div className="terms-grid">
+                  {quote.quoteValidity && (
+                    <div className="term-block">
+                      <div className="term-title">Quote Validity</div>
+                      <div className="term-body">{quote.quoteValidity}</div>
+                    </div>
+                  )}
                   {quote.retainerClause && (
                     <div className="term-block">
                       <div className="term-title">Securing Your Session</div>
