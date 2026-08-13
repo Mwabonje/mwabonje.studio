@@ -2333,6 +2333,7 @@ export function Quotes() {
 
                 /* ── PACKAGES GRID ── */
                 .quote-root .packages-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+                .quote-root .packages-grid[data-count="1"] { grid-template-columns: 1fr; }
                 .quote-root .package-card { border: 1px solid var(--rule); padding: 28px 26px 22px; position: relative; background: #fff; }
                 .quote-root .package-card.featured { border-color: var(--gold); background: var(--ink); grid-column: 1 / -1; }
                 .quote-root .package-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
@@ -2568,7 +2569,7 @@ export function Quotes() {
                   {packages && packages.length > 0 && (
                     <>
                       <div className="section-label" style={{ marginTop: '50px' }}>Packages</div>
-                      <div className="packages-grid">
+                      <div className="packages-grid" data-count={packages.length}>
                         {packages.map((pkg, index) => {
                           const isFeatured = pkg.isMostPopular;
                           return (
