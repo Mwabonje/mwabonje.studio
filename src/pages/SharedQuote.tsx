@@ -333,15 +333,15 @@ export function SharedQuote() {
             .quote-root .section-label::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
 
             /* ── PACKAGES GRID ── */
-            .quote-root .packages-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-            .quote-root .packages-grid[data-count="1"] { grid-template-columns: 1fr; }
-            .quote-root .package-card { border: 1px solid var(--rule); padding: 28px 26px 22px; position: relative; background: #fff; }
-            .quote-root .package-card.featured { border-color: var(--gold); background: var(--ink); grid-column: 1 / -1; }
-            .quote-root .package-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
+            .quote-root .packages-grid { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; align-items: stretch; }
+            .quote-root .packages-grid[data-count="1"] .package-card { flex: 1 1 100%; max-width: 100%; }
+            .quote-root .package-card { flex: 1 1 calc(50% - 10px); min-width: 280px; border: 1px solid var(--rule); padding: 28px 26px 22px; position: relative; background: #fff; display: flex; flex-direction: column; }
+            .quote-root .package-card.featured { flex: 1 1 100%; border-color: var(--gold); background: var(--ink); }
+            .quote-root .package-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
             .quote-root .package-card.featured .package-header { border-bottom-color: rgba(255,255,255,0.12); }
-            .quote-root .package-tier { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--ink-soft); }
+            .quote-root .package-tier { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--ink-soft); white-space: normal; line-height: 1.5; flex-shrink: 1; }
             .quote-root .package-card.featured .package-tier { color: var(--gold-light); }
-            .quote-root .package-price { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 400; color: var(--ink); line-height: 1; }
+            .quote-root .package-price { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 400; color: var(--ink); line-height: 1; flex-shrink: 0; white-space: nowrap; text-align: right; }
             .quote-root .package-card.featured .package-price { color: #fff; }
             .quote-root .package-price span { font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 400; color: var(--ink-soft); vertical-align: middle; margin-right: 3px; border:none; padding:0; background:transparent;}
             .quote-root .package-card.featured .package-price span { color: rgba(255,255,255,0.5); }
@@ -405,7 +405,7 @@ export function SharedQuote() {
               .quote-root.theme-modern:not(.pdf-export) .studio-name { text-align: center; }
               .quote-root.theme-modern:not(.pdf-export) .header-sub { text-align: center; }
               .quote-root:not(.pdf-export) .meta { grid-template-columns: 1fr; gap: 12px; padding: 20px; margin-bottom: 32px; }
-              .quote-root:not(.pdf-export) .packages-grid { grid-template-columns: 1fr; gap: 16px; }
+              .quote-root:not(.pdf-export) .packages-grid { flex-direction: column; gap: 16px; }
               .quote-root:not(.pdf-export) .featured-body { grid-template-columns: 1fr; gap: 16px; }
               .quote-root:not(.pdf-export) .addon { flex-direction: column; align-items: flex-start; gap: 12px; }
               .quote-root:not(.pdf-export) .terms-grid { grid-template-columns: 1fr; gap: 24px; }
