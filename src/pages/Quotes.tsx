@@ -232,7 +232,7 @@ export function Quotes() {
             shootingTime: quote.shootingTime || "",
             photographers: quote.photographers || "",
             issueDate: quote.issueDate || quote.date || format(new Date(), "yyyy-MM-dd"),
-            quoteValidity: quote.quoteValidity || defaultFormData.quoteValidity,
+            quoteValidity: quote.quoteValidity !== undefined ? quote.quoteValidity : defaultFormData.quoteValidity,
             eventDate: quote.eventDate || "",
             moodboardLink: quote.moodboardLink || "",
             note: quote.note || "",
@@ -592,6 +592,7 @@ export function Quotes() {
       photographers: quote.photographers || "",
       issueDate:
         quote.issueDate || quote.date || format(new Date(), "yyyy-MM-dd"),
+      quoteValidity: quote.quoteValidity !== undefined ? quote.quoteValidity : defaultFormData.quoteValidity,
       eventDate: quote.eventDate || "",
       moodboardLink: quote.moodboardLink || "",
       note: quote.note || "",
@@ -640,7 +641,7 @@ export function Quotes() {
       shootingTime: quote.shootingTime || "",
       photographers: quote.photographers || "",
       issueDate: format(new Date(), "yyyy-MM-dd"),
-      quoteValidity: quote.quoteValidity || defaultFormData.quoteValidity,
+      quoteValidity: quote.quoteValidity !== undefined ? quote.quoteValidity : defaultFormData.quoteValidity,
       eventDate: quote.eventDate || "",
       moodboardLink: quote.moodboardLink || "",
       note: quote.note || "",
@@ -2616,24 +2617,19 @@ export function Quotes() {
                               </div>
 
                               {isFeatured ? (
-                                <div className="featured-body w-full">
-                                  <div>
-                                    <div className="inclusions-label">
-                                      Inclusions
-                                    </div>
+                                <>
+                                  <div className="inclusions-label">
+                                    Inclusions
+                                  </div>
+                                  <div className="featured-body w-full mb-auto">
                                     <ul className="inclusion-list">
                                       {pkg.inclusions.filter(inc => inc.trim() !== "").slice(0, Math.ceil(pkg.inclusions.filter(inc => inc.trim() !== "").length / 2)).map((inc, i) => (<li key={i}>{inc}</li>))}
                                     </ul>
-                                  </div>
-                                  <div>
-                                    <div className="inclusions-label">
-                                      Extras
-                                    </div>
                                     <ul className="inclusion-list">
                                       {pkg.inclusions.filter(inc => inc.trim() !== "").slice(Math.ceil(pkg.inclusions.filter(inc => inc.trim() !== "").length / 2)).map((inc, i) => (<li key={i}>{inc}</li>))}
                                     </ul>
                                   </div>
-                                </div>
+                                </>
                               ) : (
                                 <>
                                   <div className="inclusions-label">

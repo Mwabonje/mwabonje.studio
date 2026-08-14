@@ -542,24 +542,17 @@ export function SharedQuote() {
                         </div>
 
                         {isFeatured ? (
-                          <div className="featured-body w-full">
-                            <div>
-                              <div className="inclusions-label">Inclusions</div>
+                          <>
+                            <div className="inclusions-label">Inclusions</div>
+                            <div className="featured-body w-full mb-auto">
                               <ul className="inclusion-list">
                                 {pkg.inclusions.filter(inc => inc.trim() !== "").slice(0, Math.ceil(pkg.inclusions.filter(inc => inc.trim() !== "").length / 2)).map((inc, i) => (<li key={i}>{inc}</li>))}
                               </ul>
-                            </div>
-                            <div>
-                              <div className="inclusions-label">Extras</div>
                               <ul className="inclusion-list">
-                                {pkg.inclusions
-                                  .slice(Math.ceil(pkg.inclusions.length / 2))
-                                  .map((inc, i) => (
-                                    <li key={i}>{inc || "—"}</li>
-                                  ))}
+                                {pkg.inclusions.filter(inc => inc.trim() !== "").slice(Math.ceil(pkg.inclusions.filter(inc => inc.trim() !== "").length / 2)).map((inc, i) => (<li key={i}>{inc}</li>))}
                               </ul>
                             </div>
-                          </div>
+                          </>
                         ) : (
                           <>
                             <div className="inclusions-label">Inclusions</div>
@@ -631,7 +624,7 @@ export function SharedQuote() {
             )}
 
             {/* TERMS */}
-            {(quote.quoteValidity ||
+            {((quote.quoteValidity !== undefined ? quote.quoteValidity : "This quotation is valid for 7 days from the date issued.") ||
               quote.retainerClause ||
               quote.fulfillmentSchedule ||
               quote.usageLicense ||
@@ -643,10 +636,10 @@ export function SharedQuote() {
               <div className="terms">
                 <div className="section-label">Terms of Engagement</div>
                 <div className="terms-grid">
-                  {quote.quoteValidity && (
+                  {(quote.quoteValidity !== undefined ? quote.quoteValidity : "This quotation is valid for 7 days from the date issued.") && (
                     <div className="term-block">
                       <div className="term-title">Quote Validity</div>
-                      <div className="term-body">{quote.quoteValidity}</div>
+                      <div className="term-body">{quote.quoteValidity !== undefined ? quote.quoteValidity : "This quotation is valid for 7 days from the date issued."}</div>
                     </div>
                   )}
                   {quote.retainerClause && (
