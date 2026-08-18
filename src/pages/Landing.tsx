@@ -1,7 +1,61 @@
+import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { Camera, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { Camera, ArrowRight, ArrowUpRight, ChevronDown } from 'lucide-react';
 import { useStore } from '@/store';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+
+const faqs = [
+  {
+    question: "Is CaptureCRM suitable for videographers and other creatives?",
+    answer: "Absolutely. While designed with photographers in mind, our tools for quoting, invoicing, and client management work perfectly for videographers, designers, and other creative professionals."
+  },
+  {
+    question: "Can I customize the quotes and contracts with my own branding?",
+    answer: "Yes! You can upload your logo and customize colors so that all client-facing documents look like a seamless extension of your own brand."
+  },
+  {
+    question: "Is there a limit on how many clients or projects I can manage?",
+    answer: "No, CaptureCRM offers unlimited clients and projects on our standard tier, so your studio can scale without arbitrary restrictions."
+  },
+  {
+    question: "Do my clients need an account to view quotes or invoices?",
+    answer: "Not at all. Clients receive secure, private links where they can review quotes, sign contracts, and view invoices without needing to create an account or remember a password."
+  }
+];
+
+function FAQItem({ question, answer }: { question: string, answer: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className="border-b border-slate-200">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between py-6 text-left focus:outline-none"
+      >
+        <span className="text-lg font-medium text-slate-900">{question}</span>
+        <ChevronDown
+          className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <p className="pb-6 text-slate-500 leading-relaxed">
+              {answer}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function Landing() {
   const userId = useStore((state) => state.userId);
@@ -204,6 +258,20 @@ export default function Landing() {
                     </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          {/* FAQ Section */}
+          <div className="mt-32 max-w-3xl mx-auto pb-12">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4 text-black">Frequently Asked Questions</h2>
+              <p className="text-slate-500">Everything you need to know about CaptureCRM.</p>
+            </div>
+            
+            <div className="space-y-2">
+              {faqs.map((faq, i) => (
+                <FAQItem key={i} question={faq.question} answer={faq.answer} />
               ))}
             </div>
           </div>
