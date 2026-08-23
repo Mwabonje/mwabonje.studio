@@ -1,0 +1,28 @@
+--- src/pages/Invoices.tsx
++++ src/pages/Invoices.tsx
+@@ -845,6 +845,11 @@
+                       padding: 5px 0;
+                     }
+ 
++                    .invoice-root .totals-row span:last-child {
++                      white-space: nowrap;
++                      text-align: right;
++                    }
++
+                     .invoice-root .totals-row.discount { color: var(--green); }
+ 
+                     .invoice-root .totals-row.grand {
+--- src/pages/SharedInvoice.tsx
++++ src/pages/SharedInvoice.tsx
+@@ -544,6 +544,11 @@
+           padding: 5px 0;
+         }
+ 
++        .invoice-root .totals-row span:last-child {
++          white-space: nowrap;
++          text-align: right;
++        }
++
+         .invoice-root .totals-row.discount { color: var(--green); }
+ 
+         .invoice-root .totals-row.grand {

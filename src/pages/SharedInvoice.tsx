@@ -529,7 +529,7 @@ export function SharedInvoice() {
         }
 
         .invoice-root .totals-block {
-          width: 300px;
+          width: 350px;
           border-top: 1px solid var(--rule);
           padding-top: 16px;
         }
@@ -542,6 +542,11 @@ export function SharedInvoice() {
           color: var(--ink-soft);
           font-weight: 300;
           padding: 5px 0;
+        }
+
+        .invoice-root .totals-row span:last-child {
+          white-space: nowrap;
+          text-align: right;
         }
 
         .invoice-root .totals-row.discount { color: var(--green); }
