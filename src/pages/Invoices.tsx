@@ -1,3 +1,4 @@
+import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useEffect } from "react";
 import { useStore, Invoice, LineItem, Quote } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +17,7 @@ import { getResolvedTheme } from '@/lib/theme';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+
 
 export function Invoices() {
   const { invoices, quotes, projects, clients, settings, addInvoice, updateInvoice, deleteInvoice } = useStore();
@@ -349,6 +351,7 @@ export function Invoices() {
 
   return (
     <div className="space-y-6">
+      <PDFLoader isGenerating={isGeneratingPDF} />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Invoices</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

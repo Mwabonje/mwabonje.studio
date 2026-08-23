@@ -1,3 +1,4 @@
+import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef } from 'react';
 import { useStore, Payment, CollaboratorSplit } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,6 +16,7 @@ import autoTable from 'jspdf-autotable';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Payments() {
+
   const { payments, invoices, clients, projects, settings, addPayment, updatePayment, deletePayment, updateProject } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
@@ -256,6 +258,7 @@ export function Payments() {
 
   return (
     <div className="space-y-6">
+      <PDFLoader isGenerating={isGeneratingPDF} />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Payments & Receipts</h2>
         <Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto">

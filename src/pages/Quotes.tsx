@@ -1,3 +1,4 @@
+import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useEffect } from "react";
 import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from "@/store";
 import { NDA } from "@/components/NDA";
@@ -20,6 +21,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
+
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -1081,6 +1083,7 @@ export function Quotes() {
 
   return (
     <div className="space-y-6 pb-20">
+      <PDFLoader isGenerating={isGeneratingPDF || isGeneratingNDAPDF || isGeneratingContractPDF} />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Quotes</h2>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">

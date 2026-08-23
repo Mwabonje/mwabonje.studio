@@ -1,3 +1,4 @@
+import { PDFLoader } from "@/components/PDFLoader";
 import React, { useRef, useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Quote, Settings } from "@/store";
@@ -10,6 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
+
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getResolvedTheme } from "@/lib/theme";
@@ -210,6 +212,7 @@ export function SharedQuote() {
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] py-12 px-4 sm:px-6 lg:px-8 print:bg-white print:py-0 print:px-0 font-sans text-slate-800">
+      <PDFLoader isGenerating={isGeneratingPDF} />
       <div className="max-w-4xl mx-auto">
         {/* Action Bar */}
         <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-8 gap-4 print:hidden">

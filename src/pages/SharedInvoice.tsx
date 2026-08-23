@@ -1,3 +1,4 @@
+import { PDFLoader } from "@/components/PDFLoader";
 import React, { useRef, useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Invoice, Project, Client, Settings } from '@/store';
@@ -9,6 +10,7 @@ import { db } from '@/lib/firebase';
 import { getResolvedTheme } from '@/lib/theme';
 
 export function SharedInvoice() {
+
   const [searchParams] = useSearchParams();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [project, setProject] = useState<Project | null>(null);
@@ -226,6 +228,7 @@ export function SharedInvoice() {
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] py-12 px-4 sm:px-6 lg:px-8 print:bg-white print:py-0 print:px-0 font-sans text-slate-800">
+      <PDFLoader isGenerating={isGeneratingPDF} />
       <style dangerouslySetInnerHTML={{ __html: `
         .invoice-root {
           --cream: #FAF8F4;

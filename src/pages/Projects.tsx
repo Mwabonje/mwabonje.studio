@@ -1,3 +1,4 @@
+import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
 import { useStore, Project, CollaboratorSplit, Milestone } from '@/store';
@@ -16,6 +17,7 @@ import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export function Projects() {
+
   const { projects, projectTemplates, clients, invoices, quotes, addProject, updateProject, deleteProject, updateQuote, addProjectTemplate, deleteProjectTemplate } = useStore();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -275,6 +277,7 @@ export function Projects() {
 
   return (
     <div className="space-y-6">
+      <PDFLoader isGenerating={isGeneratingPDF} />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Projects</h2>
         <div className="flex space-x-2 w-full sm:w-auto">
