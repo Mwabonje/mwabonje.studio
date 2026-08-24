@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Quote, Settings } from "@/store";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   CheckCircle2,
   Printer,
@@ -133,6 +134,18 @@ export function SharedQuote() {
   };
 
   const handleDownloadPDF = async () => {
+    if (!quote) return;
+    
+    if (quote.status === 'draft') {
+      toast.error('Draft quotes cannot be downloaded. The quote must be "Sent" or "Approved" first.');
+      return;
+    }
+    
+    if (quote.status !== 'sent' && quote.status !== 'approved') {
+      toast.error(`Quotes with status "${quote.status}" cannot be downloaded. Only "Sent" or "Approved" quotes can be downloaded.`);
+      return;
+    }
+
     if (!quoteRef.current || isGeneratingPDF) return;
 
     setIsGeneratingPDF(true);

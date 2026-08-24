@@ -369,6 +369,16 @@ export function Quotes() {
   }, [formData, packages, deliverableTasks, editingQuote, isDialogOpen]);
 
   const handleDownloadPDF = async () => {
+    if (formData.status === 'draft') {
+      toast.error('Draft quotes cannot be downloaded. Please generate & save the quote as "Sent" or "Approved" first.');
+      return;
+    }
+    
+    if (formData.status !== 'sent' && formData.status !== 'approved') {
+      toast.error(`Quotes with status "${formData.status}" cannot be downloaded. Only "Sent" or "Approved" quotes can be downloaded.`);
+      return;
+    }
+
     if (!previewRef.current || isGeneratingPDF) return;
 
     setIsGeneratingPDF(true);
