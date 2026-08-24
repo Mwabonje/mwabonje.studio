@@ -273,9 +273,9 @@ export default function Landing() {
           .landing-root section{padding:60px 0;}
           .landing-root .hero{padding:40px 0 30px;}
           .landing-root .section-head{margin-bottom:32px;}
-          .landing-root .btn{padding:12px 20px;font-size:14px;white-space:nowrap;}
-          .landing-root .hero-ctas{flex-direction:column;gap:12px;width:100%;}
-          .landing-root .hero-ctas .btn{width:100%;justify-content:center;}
+          .landing-root .btn{padding:12px 16px;font-size:13px;white-space:nowrap;}
+          .landing-root .hero-ctas{flex-direction:row;gap:10px;width:100%;}
+          .landing-root .hero-ctas .btn{flex:1;justify-content:center;padding:12px 8px;}
           .landing-root .feat-grid{grid-template-columns:1fr;}
           .landing-root .foot-grid{grid-template-columns:1fr;}
           .landing-root .receipt{width:280px;}
