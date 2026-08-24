@@ -93,7 +93,7 @@ export default function Landing() {
           margin-bottom: 0;
         }
         .landing-root .eyebrow::before{content:'§';color:var(--stamp);font-weight:600;}
-        .landing-root .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:2px;font-weight:600;font-size:14px;border:1px solid transparent;cursor:pointer;transition:all .25s ease;}
+        .landing-root .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 26px;border-radius:2px;font-weight:600;font-size:14px;border:1px solid transparent;cursor:pointer;transition:all .25s ease;white-space:nowrap;}
         .landing-root .btn-primary{background:var(--ink);color:var(--paper);}
         .landing-root .btn-primary:hover{background:var(--stamp);}
         .landing-root .btn-outline{border-color:var(--line-strong);color:var(--ink);}
@@ -249,10 +249,18 @@ export default function Landing() {
         .landing-root .reveal.in{opacity:1;transform:translateY(0);}
 
         @media (max-width:960px){
-          .landing-root .nav-links, .landing-root .nav-actions .signin{display:none;}
-          .landing-root .burger{display:block;}
+          .landing-root .wrap{padding:0 24px;}
+          .landing-root section{padding:80px 0;}
+          .landing-root .hero{padding:60px 0 40px;}
+          .landing-root .nav-links{display:none;position:absolute;top:100%;left:0;right:0;background:rgba(250,246,236,0.98);backdrop-filter:blur(8px);flex-direction:column;padding:24px;border-bottom:1px solid var(--line);box-shadow:0 10px 20px rgba(0,0,0,0.05);gap:24px;align-items:center;}
+          .landing-root .nav-links.open{display:flex;}
+          .landing-root .nav-actions{display:none;}
+          .landing-root .burger{display:block;padding:8px;}
           .landing-root .hero-grid{grid-template-columns:1fr;}
-          .landing-root .receipts{height:400px;margin-top:20px;}
+          .landing-root .receipts{height:440px;margin-top:40px;}
+          .landing-root .r-1{left:10%;top:0;transform:rotate(-4deg) scale(0.95);}
+          .landing-root .r-2{left:40%;top:90px;transform:rotate(3deg) scale(0.95);}
+          .landing-root .r-3{left:15%;top:210px;transform:rotate(-1deg) scale(0.95);}
           .landing-root .cap-grid{grid-template-columns:1fr;}
           .landing-root .feat-grid{grid-template-columns:1fr 1fr;}
           .landing-root .test-grid{grid-template-columns:1fr;}
@@ -261,13 +269,20 @@ export default function Landing() {
           .landing-root .lc-row span:nth-child(3){display:none;}
         }
         @media (max-width:560px){
+          .landing-root .wrap{padding:0 16px;}
+          .landing-root section{padding:60px 0;}
+          .landing-root .hero{padding:40px 0 30px;}
+          .landing-root .section-head{margin-bottom:32px;}
+          .landing-root .btn{padding:12px 20px;font-size:14px;white-space:nowrap;}
+          .landing-root .hero-ctas{flex-direction:column;gap:12px;width:100%;}
+          .landing-root .hero-ctas .btn{width:100%;justify-content:center;}
           .landing-root .feat-grid{grid-template-columns:1fr;}
           .landing-root .foot-grid{grid-template-columns:1fr;}
-          .landing-root .receipt{width:78vw;}
-          .landing-root .r-1{left:8vw;top:0;}
-          .landing-root .r-2{left:16vw;top:150px;}
-          .landing-root .r-3{left:8vw;top:310px;}
-          .landing-root .receipts{height:540px;}
+          .landing-root .receipt{width:280px;}
+          .landing-root .receipts{height:400px;margin-top:30px;}
+          .landing-root .r-1{left:50%;margin-left:-140px;top:0;transform:rotate(-3deg) scale(0.85);}
+          .landing-root .r-2{left:50%;margin-left:-110px;top:90px;transform:rotate(4deg) scale(0.85);}
+          .landing-root .r-3{left:50%;margin-left:-145px;top:190px;transform:rotate(-1deg) scale(0.85);}
           .landing-root .voucher{padding:32px 22px;}
         }
         @media (prefers-reduced-motion: reduce){
@@ -279,11 +294,17 @@ export default function Landing() {
       <header>
         <nav>
           <Link to="/" className="logo"><span className="seal">CC</span>CaptureCRM</Link>
-          <ul className="nav-links" style={{ display: isMenuOpen ? 'flex' : '' }}>
+          <ul className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
             <li><a href="#features" onClick={() => setIsMenuOpen(false)}>Features</a></li>
             <li><a href="#testimonials" onClick={() => setIsMenuOpen(false)}>Testimonials</a></li>
             <li><a href="#pricing" onClick={() => setIsMenuOpen(false)}>Pricing</a></li>
             <li><a href="#contact" onClick={() => setIsMenuOpen(false)}>Contact</a></li>
+            {isMenuOpen && (
+              <li style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', marginTop: '12px', paddingTop: '24px', borderTop: '1px dashed var(--line)' }}>
+                <Link to="/login" className="btn btn-outline" style={{ width: '100%' }}>Sign In</Link>
+                <Link to="/login" className="btn btn-primary" style={{ width: '100%' }}>Get Started</Link>
+              </li>
+            )}
           </ul>
           <div className="nav-actions">
             <Link to="/login" className="signin">Sign In</Link>
