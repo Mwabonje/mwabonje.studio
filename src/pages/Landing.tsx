@@ -277,7 +277,10 @@ export default function Landing() {
           .landing-root .hero-ctas{flex-direction:row;gap:10px;width:100%;margin-bottom:0;}
           .landing-root .hero-ctas .btn{flex:1;justify-content:center;padding:12px 8px;}
           .landing-root .feat-grid{grid-template-columns:1fr;}
-          .landing-root .foot-grid{grid-template-columns:1fr;}
+          .landing-root .foot-grid{grid-template-columns:repeat(3, 1fr); gap:16px;}
+          .landing-root .foot-brand{grid-column: 1 / -1; margin-bottom:16px;}
+          .landing-root .foot-col h4{font-size:10px; margin-bottom:10px;}
+          .landing-root .foot-col a{font-size:12px; padding:4px 0; line-height:1.4;}
           .landing-root .receipt{width:280px;}
           .landing-root .receipts{height:400px;margin-top:-20px;}
           .landing-root .r-1{left:50%;margin-left:-140px;top:0;transform:rotate(-3deg) scale(0.85);}
