@@ -274,12 +274,12 @@ export default function Landing() {
           .landing-root .hero{padding:40px 0 30px;}
           .landing-root .section-head{margin-bottom:32px;}
           .landing-root .btn{padding:12px 16px;font-size:13px;white-space:nowrap;}
-          .landing-root .hero-ctas{flex-direction:row;gap:10px;width:100%;}
+          .landing-root .hero-ctas{flex-direction:row;gap:10px;width:100%;margin-bottom:0;}
           .landing-root .hero-ctas .btn{flex:1;justify-content:center;padding:12px 8px;}
           .landing-root .feat-grid{grid-template-columns:1fr;}
           .landing-root .foot-grid{grid-template-columns:1fr;}
           .landing-root .receipt{width:280px;}
-          .landing-root .receipts{height:400px;margin-top:30px;}
+          .landing-root .receipts{height:400px;margin-top:-20px;}
           .landing-root .r-1{left:50%;margin-left:-140px;top:0;transform:rotate(-3deg) scale(0.85);}
           .landing-root .r-2{left:50%;margin-left:-110px;top:90px;transform:rotate(4deg) scale(0.85);}
           .landing-root .r-3{left:50%;margin-left:-145px;top:190px;transform:rotate(-1deg) scale(0.85);}
