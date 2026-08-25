@@ -323,6 +323,7 @@ export function Invoices() {
         localStorage.removeItem("invoiceDraft");
       }
       setIsDialogOpen(false);
+      toast.success("Invoice Sent");
     } catch (error) {
       console.error("Error saving invoice:", error);
       alert("Failed to save invoice. Please check your connection and try again.");

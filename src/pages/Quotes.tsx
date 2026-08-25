@@ -766,6 +766,7 @@ export function Quotes() {
         }
       }
       setIsDialogOpen(false);
+      toast.success("Quote Saved");
     } catch (error) {
       console.error("Error saving quote:", error);
       alert(
