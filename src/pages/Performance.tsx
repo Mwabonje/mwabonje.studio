@@ -323,6 +323,9 @@ export function Performance() {
         
         if (c.splitType === 'fixed') {
           amount = Number(c.amount || 0);
+          if (totalFixedAmount > 0 && totalRevenue < totalFixedAmount) {
+            amount = (amount / totalFixedAmount) * totalRevenue;
+          }
           percentage = totalRevenue > 0 ? (amount / totalRevenue) * 100 : 0;
         } else {
           percentage = c.splitType === 'percentage' ? Number(c.percentage || 0) : equalPercentage;

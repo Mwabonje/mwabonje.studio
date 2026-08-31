@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useStore } from '@/store';
 
-function FAQItem({ q, a }: { q: string, a: string }) {
+const FAQItem: React.FC<{ q: string; a: string }> = ({ q, a }) => {
   const [isOpen, setIsOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   
@@ -20,7 +20,7 @@ function FAQItem({ q, a }: { q: string, a: string }) {
       </div>
     </div>
   );
-}
+};
 
 export default function Landing() {
   const userId = useStore((state) => state.userId);

@@ -262,7 +262,10 @@ export function Projects() {
       .filter(c => c.splitType !== 'transport')
       .map(c => {
       if (c.splitType === 'fixed' || c.splitType === 'transport') {
-        const amount = Number(c.amount || 0);
+        let amount = Number(c.amount || 0);
+        if (totalFixedAmount > 0 && totalRevenue < totalFixedAmount) {
+          amount = (amount / totalFixedAmount) * totalRevenue;
+        }
         const calculatedPercentage = totalRevenue > 0 ? (amount / totalRevenue) * 100 : 0;
         return { ...c, calculatedPercentage, amount };
       }
