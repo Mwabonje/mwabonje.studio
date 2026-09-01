@@ -290,12 +290,12 @@ export function Projects() {
             </Button>
           )}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
+            <DialogTrigger render={
               <Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 New Project
               </Button>
-            </DialogTrigger>
+            } />
             <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingProject ? 'Edit Project' : 'Create New Project'}</DialogTitle>

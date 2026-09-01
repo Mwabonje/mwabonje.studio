@@ -417,11 +417,11 @@ export function Dashboard() {
       {/* Quick Actions Floating Button */}
       <div className="fixed bottom-8 right-8 z-50">
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger render={
             <Button size="icon" className="w-14 h-14 rounded-full shadow-xl bg-slate-800 text-white hover:bg-slate-700 hover:scale-105 transition-all">
               <Plus className="w-6 h-6" />
             </Button>
-          </DropdownMenuTrigger>
+          } />
           <DropdownMenuContent align="end" className="w-48 mb-2 p-2">
             <DropdownMenuItem onClick={() => navigate('/clients?new=true')} className="cursor-pointer py-3">
               <UserPlus className="w-4 h-4 mr-3 text-slate-500" />
