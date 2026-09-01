@@ -360,6 +360,17 @@ export function Performance() {
     });
   }, [projects, invoices]);
 
+  const allTimeCollaboratorTotals = useMemo(() => {
+    const totals: Record<string, number> = {};
+    allSplits.forEach(split => {
+      if (!totals[split.collaboratorName]) totals[split.collaboratorName] = 0;
+      totals[split.collaboratorName] += split.amount;
+    });
+    return Object.entries(totals)
+      .map(([name, amount]) => ({ name, amount }))
+      .sort((a, b) => b.amount - a.amount);
+  }, [allSplits]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -479,8 +490,8 @@ export function Performance() {
         </Card>
       </div>
 
-      <div className="mt-8">
-        <Card className="border-slate-100 shadow-sm">
+      <div className="grid gap-6 lg:grid-cols-3 mt-8">
+        <Card className="border-slate-100 shadow-sm lg:col-span-2">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div>
@@ -555,6 +566,40 @@ export function Performance() {
                 <div className="w-3 h-3 rounded-sm bg-emerald-900"></div>
               </div>
               <span>More</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-100 shadow-sm lg:col-span-1 flex flex-col max-h-[460px]">
+          <CardHeader className="pb-4 shrink-0 border-b border-slate-100">
+            <CardTitle className="text-lg font-semibold text-slate-800">
+              Payment Summary
+            </CardTitle>
+            <p className="text-sm text-slate-500 mt-1">
+              All-time earnings by contractor
+            </p>
+          </CardHeader>
+          <CardContent className="pt-4 overflow-y-auto">
+            <div className="space-y-3">
+              {allTimeCollaboratorTotals.map((agg, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100 hover:bg-slate-100 transition-colors">
+                   <div className="flex items-center gap-3">
+                     <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold shrink-0">
+                       {agg.name.charAt(0).toUpperCase()}
+                     </div>
+                     <div className="overflow-hidden">
+                       <p className="font-semibold text-slate-800 text-sm truncate" title={agg.name}>{agg.name}</p>
+                       <p className="text-xs text-slate-500">Contractor</p>
+                     </div>
+                   </div>
+                   <div className="text-right shrink-0 ml-2">
+                     <p className="font-bold text-emerald-600 text-sm">KES {agg.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                   </div>
+                </div>
+              ))}
+              {allTimeCollaboratorTotals.length === 0 && (
+                 <div className="text-center py-8 text-slate-500 text-sm">No contractor payments recorded yet.</div>
+              )}
             </div>
           </CardContent>
         </Card>
