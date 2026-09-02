@@ -15,6 +15,7 @@ import { Plus, Edit, Trash2, Users, PieChart, LayoutList, Clock, CheckSquare, Fi
 import { format, isAfter, isBefore, isSameDay } from 'date-fns';
 import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { formatPhoneNumber } from '@/lib/utils';
 
 export function Projects() {
 
@@ -783,7 +784,7 @@ export function Projects() {
                       <div className="space-y-1 text-slate-800">
                         <p><strong>Name:</strong> {client?.name || 'Unknown Client'}</p>
                         {client?.email && <p><strong>Email:</strong> {client.email}</p>}
-                        {client?.phone && <p><strong>Phone:</strong> {client.phone}</p>}
+                        {client?.phone && <p><strong>Phone:</strong> {formatPhoneNumber(client.phone)}</p>}
                       </div>
                     </div>
                   </div>

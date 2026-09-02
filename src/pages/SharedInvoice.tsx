@@ -9,6 +9,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getResolvedTheme } from '@/lib/theme';
 
+import { formatPhoneNumber } from '@/lib/utils';
+
 export function SharedInvoice() {
 
   const [searchParams] = useSearchParams();
@@ -796,7 +798,7 @@ export function SharedInvoice() {
                 <div className="meta-block-title">Billed To</div>
                 <div className="meta-line"><strong>{client?.name || 'Client Name'}</strong></div>
                 {client?.email && <div className="meta-line">{client.email}</div>}
-                {client?.phone && <div className="meta-line">{client.phone}</div>}
+                {client?.phone && <div className="meta-line">{formatPhoneNumber(client.phone)}</div>}
                 <div className="meta-line">—</div>
               </div>
 

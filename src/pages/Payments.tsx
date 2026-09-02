@@ -14,6 +14,7 @@ import { getResolvedTheme } from '@/lib/theme';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { formatPhoneNumber } from '@/lib/utils';
 
 export function Payments() {
 
@@ -1072,7 +1073,7 @@ export function Payments() {
                           <div className="meta-block accent">
                             <div className="meta-block-title">Received From</div>
                             <div className="meta-line"><strong>{client?.name || 'Client'}</strong></div>
-                            {(client?.phone || client?.email) && <div className="meta-line">{client.phone || client.email}</div>}
+                            {(client?.phone || client?.email) && <div className="meta-line">{formatPhoneNumber(client?.phone || '') || client?.email}</div>}
                           </div>
 
                           <div className="meta-block">

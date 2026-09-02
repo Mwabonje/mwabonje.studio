@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useStore, Client } from "@/store";
+import { formatPhoneNumber } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -283,6 +284,9 @@ export function Clients() {
                       onChange={(e) =>
                         setFormData({ ...formData, phone: e.target.value })
                       }
+                      onBlur={(e) =>
+                        setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })
+                      }
                     />
                   </div>
                   <div className="space-y-2">
@@ -490,7 +494,7 @@ export function Clients() {
                         {client.name}
                       </TableCell>
                       <TableCell>{client.email}</TableCell>
-                      <TableCell>{client.phone}</TableCell>
+                      <TableCell>{formatPhoneNumber(client.phone)}</TableCell>
                       <TableCell>{client.nationality || "-"}</TableCell>
                       <TableCell>{client.leadSource || "-"}</TableCell>
                       <TableCell className="max-w-[200px] truncate">

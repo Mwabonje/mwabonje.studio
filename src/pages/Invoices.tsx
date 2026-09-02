@@ -17,7 +17,7 @@ import { getResolvedTheme } from '@/lib/theme';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
-
+import { formatPhoneNumber } from '@/lib/utils';
 
 export function Invoices() {
   const { invoices, quotes, projects, clients, settings, addInvoice, updateInvoice, deleteInvoice } = useStore();
@@ -1079,7 +1079,7 @@ export function Invoices() {
                           <div className="meta-block-title">Billed To</div>
                           <div className="meta-line"><strong>{client?.name || 'Client Name'}</strong></div>
                           {client?.email && <div className="meta-line">{client.email}</div>}
-                          {client?.phone && <div className="meta-line">{client.phone}</div>}
+                          {client?.phone && <div className="meta-line">{formatPhoneNumber(client.phone)}</div>}
                           <div className="meta-line">—</div>
                         </div>
 
