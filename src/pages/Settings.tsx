@@ -154,116 +154,118 @@ export default function Settings() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Company Profile</CardTitle>
-            <CardDescription>
-              Your company details as they will appear on invoices and quotes.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 lg:grid-cols-[180px_1fr] gap-8">
-            {/* Left Column: Image/Avatar */}
-            <div className="flex flex-col items-center space-y-4 opacity-50 pointer-events-none pt-2">
-              <div className="h-32 w-32 rounded-full border border-slate-200 flex items-center justify-center bg-slate-50 overflow-hidden shadow-sm">
-                {formData.logoUrl ? (
-                  <img src={formData.logoUrl} alt="Logo" className="h-full w-full object-cover" />
-                ) : (
-                  <ImageIcon className="h-10 w-10 text-slate-300" />
-                )}
-              </div>
-              <div className="text-center">
-                <Label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
-                  Avatar / Logo
-                </Label>
-                <span className="text-[10px] text-slate-400 block">Coming Soon</span>
-              </div>
-              <div className="hidden">
-                <Input
-                  id="logo"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                  disabled
-                />
-              </div>
-            </div>
-
-            {/* Right Column: Primary Details */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="companyName">Company Name</Label>
-                  <Input
-                    id="companyName"
-                    name="companyName"
-                    value={formData.companyName}
-                    onChange={handleChange}
-                    placeholder="e.g. CaptureCRM"
-                  />
+      <div className="grid gap-6 lg:grid-cols-[1fr_1fr] max-w-6xl">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Company Profile</CardTitle>
+              <CardDescription>
+                Your company details as they will appear on invoices and quotes.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row gap-8">
+              {/* Left Column: Image/Avatar */}
+              <div className="flex flex-col items-center space-y-4 opacity-50 pointer-events-none pt-2 sm:w-40 shrink-0">
+                <div className="h-32 w-32 rounded-full border border-slate-200 flex items-center justify-center bg-slate-50 overflow-hidden shadow-sm">
+                  {formData.logoUrl ? (
+                    <img src={formData.logoUrl} alt="Logo" className="h-full w-full object-cover" />
+                  ) : (
+                    <ImageIcon className="h-10 w-10 text-slate-300" />
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ownerName">Owner Name / Photographer Name</Label>
+                <div className="text-center">
+                  <Label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
+                    Avatar / Logo
+                  </Label>
+                  <span className="text-[10px] text-slate-400 block">Coming Soon</span>
+                </div>
+                <div className="hidden">
                   <Input
-                    id="ownerName"
-                    name="ownerName"
-                    value={formData.ownerName || ''}
-                    onChange={handleChange}
-                    placeholder="e.g. John Doe"
+                    id="logo"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                    disabled
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Right Column: Primary Details */}
+              <div className="space-y-4 flex-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName">Company Name</Label>
+                    <Input
+                      id="companyName"
+                      name="companyName"
+                      value={formData.companyName}
+                      onChange={handleChange}
+                      placeholder="e.g. CaptureCRM"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ownerName">Owner Name / Photographer Name</Label>
+                    <Input
+                      id="ownerName"
+                      name="ownerName"
+                      value={formData.ownerName || ''}
+                      onChange={handleChange}
+                      placeholder="e.g. John Doe"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="companyEmail">Email Address</Label>
+                    <Input
+                      id="companyEmail"
+                      name="companyEmail"
+                      type="email"
+                      value={formData.companyEmail}
+                      onChange={handleChange}
+                      placeholder="e.g. hello@capturecrm.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="companyPhone">Phone Number</Label>
+                    <Input
+                      id="companyPhone"
+                      name="companyPhone"
+                      value={formData.companyPhone}
+                      onChange={handleChange}
+                      placeholder="e.g. +254 700 000 000"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="companyEmail">Email Address</Label>
+                  <Label htmlFor="companyWebsite">Website</Label>
                   <Input
-                    id="companyEmail"
-                    name="companyEmail"
-                    type="email"
-                    value={formData.companyEmail}
+                    id="companyWebsite"
+                    name="companyWebsite"
+                    value={formData.companyWebsite}
                     onChange={handleChange}
-                    placeholder="e.g. hello@capturecrm.com"
+                    placeholder="e.g. www.capturecrm.com"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="companyPhone">Phone Number</Label>
-                  <Input
-                    id="companyPhone"
-                    name="companyPhone"
-                    value={formData.companyPhone}
+                  <Label htmlFor="companyAddress">Address</Label>
+                  <Textarea
+                    id="companyAddress"
+                    name="companyAddress"
+                    value={formData.companyAddress}
                     onChange={handleChange}
-                    placeholder="e.g. +254 700 000 000"
+                    placeholder="e.g. 123 Studio Lane, Nairobi"
+                    rows={3}
                   />
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="companyWebsite">Website</Label>
-                <Input
-                  id="companyWebsite"
-                  name="companyWebsite"
-                  value={formData.companyWebsite}
-                  onChange={handleChange}
-                  placeholder="e.g. www.capturecrm.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="companyAddress">Address</Label>
-                <Textarea
-                  id="companyAddress"
-                  name="companyAddress"
-                  value={formData.companyAddress}
-                  onChange={handleChange}
-                  placeholder="e.g. 123 Studio Lane, Nairobi"
-                  rows={3}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="space-y-6">
           <Card>
@@ -299,6 +301,74 @@ export default function Settings() {
             </CardContent>
           </Card>
 
+          <Card>
+            <CardHeader>
+              <CardTitle>Document Preferences</CardTitle>
+              <CardDescription>
+                Choose the visual theme for your generated quotes and invoices.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Theme</Label>
+                  <Select 
+                    value={getResolvedTheme(formData.documentTheme, formData.companyEmail)} 
+                    onValueChange={(val) => handleSelectChange('documentTheme', val)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a theme..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(auth.currentUser?.email === 'ringa.michael@gmail.com' || formData.companyEmail === 'ringa.michael@gmail.com') && (
+                        <SelectItem value="classic">Classic</SelectItem>
+                      )}
+                      <SelectItem value="modern">Modern Light</SelectItem>
+                      <SelectItem value="minimal">Minimalist Monochrome</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500 mt-2">
+                    This will apply globally. Try out different themes by viewing a Quote or Invoice!
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>App Theme</CardTitle>
+              <CardDescription>
+                Choose the color mode for the application interface.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Color Mode</Label>
+                  <Select 
+                    value={theme} 
+                    onValueChange={(val: any) => setTheme(val)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a color mode..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="light">Light</SelectItem>
+                      <SelectItem value="dark">Dark</SelectItem>
+                      <SelectItem value="system">System</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500 mt-2">
+                    This setting is saved to your browser and applies instantly.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Payment Details</CardTitle>
@@ -377,76 +447,6 @@ export default function Settings() {
             </CardContent>
           </Card>
         </div>
-      </div>
-
-      <div className="max-w-4xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>App Theme</CardTitle>
-            <CardDescription>
-              Choose the color mode for the application interface.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 max-w-sm">
-              <div className="space-y-2">
-                <Label>Color Mode</Label>
-                <Select 
-                  value={theme} 
-                  onValueChange={(val: any) => setTheme(val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a color mode..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="light">Light</SelectItem>
-                    <SelectItem value="dark">Dark</SelectItem>
-                    <SelectItem value="system">System</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-slate-500 mt-2">
-                  This setting is saved to your browser and applies instantly.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="max-w-4xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Document Preferences</CardTitle>
-            <CardDescription>
-              Choose the visual theme for your generated quotes and invoices.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 max-w-sm">
-              <div className="space-y-2">
-                <Label>Theme</Label>
-                <Select 
-                  value={getResolvedTheme(formData.documentTheme, formData.companyEmail)} 
-                  onValueChange={(val) => handleSelectChange('documentTheme', val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a theme..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(auth.currentUser?.email === 'ringa.michael@gmail.com' || formData.companyEmail === 'ringa.michael@gmail.com') && (
-                      <SelectItem value="classic">Classic</SelectItem>
-                    )}
-                    <SelectItem value="modern">Modern Light</SelectItem>
-                    <SelectItem value="minimal">Minimalist Monochrome</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-slate-500 mt-2">
-                  This will apply globally. Try out different themes by viewing a Quote or Invoice!
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="flex justify-end">
