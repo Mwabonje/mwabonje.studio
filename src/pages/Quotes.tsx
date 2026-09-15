@@ -53,6 +53,8 @@ import {
   Eye,
   XCircle,
   Download,
+  History,
+  RotateCcw,
   Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -109,6 +111,24 @@ export function Quotes() {
   useEffect(() => {
     editingQuoteRef.current = editingQuote;
   }, [editingQuote]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [sessionVersions, setSessionVersions] = useState<{
+    id: string;
+    timestamp: Date;
+    label: string;
+    data: { formData: any; packages: any; deliverableTasks: any };
+  }[]>([]);
+  const lastCaptureRef = useRef<number>(0);
+  
+  const revertToVersion = (version: any) => {
+    if (window.confirm("Are you sure you want to revert to this version? Any unsaved changes since will be overwritten.")) {
+      setFormData(version.data.formData);
+      setPackages(version.data.packages);
+      setDeliverableTasks(version.data.deliverableTasks);
+      toast.success("Reverted to previous version");
+    }
+  };
+
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -368,6 +388,9 @@ export function Quotes() {
       isFirstRender.current = true;
       setAutoSaveStatus('idle');
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      setShowHistory(false);
+      setSessionVersions([]);
+      lastCaptureRef.current = 0;
       return;
     }
 
@@ -381,6 +404,16 @@ export function Quotes() {
 
     if (isFirstRender.current) {
       isFirstRender.current = false;
+      
+      // Capture initial state for version history
+      setSessionVersions([{
+        id: crypto.randomUUID(),
+        timestamp: new Date(),
+        label: "Initial Version (Opened)",
+        data: JSON.parse(JSON.stringify(draft)) // deep copy
+      }]);
+      lastCaptureRef.current = Date.now();
+      
       return; // Do not auto-save to DB on the very first render of the dialog
     }
 
@@ -421,6 +454,21 @@ export function Quotes() {
           setAutoSaveStatus('saved');
           localStorage.removeItem("quoteDraft");
           localStorage.setItem(`quoteDraft_${newQuoteId}`, JSON.stringify(draft));
+        }
+
+        // Version History Capture (throttle to 1 min)
+        const now = Date.now();
+        if (now - lastCaptureRef.current > 60000) {
+          setSessionVersions(prev => [
+            {
+              id: crypto.randomUUID(),
+              timestamp: new Date(),
+              label: "Auto-save",
+              data: JSON.parse(JSON.stringify(draft))
+            },
+            ...prev
+          ].slice(0, 30)); // keep last 30
+          lastCaptureRef.current = now;
         }
       } catch (error) {
         console.error("Auto-save failed", error);
@@ -1263,13 +1311,25 @@ export function Quotes() {
                   </span>
                 )}
               </div>
+              {editingQuote && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowHistory(!showHistory)}
+                  className={`ml-4 transition-colors ${showHistory ? 'bg-slate-100 border-slate-300' : ''}`}
+                >
+                  <History className="w-4 h-4 mr-2" />
+                  Version History
+                </Button>
+              )}
             </div>
 
-            <div className="overflow-y-auto flex-1">
-              <form
-                onSubmit={handleSubmit}
-                className="p-4 sm:p-6 space-y-6 sm:space-y-8"
-              >
+            <div className="flex flex-1 overflow-hidden relative">
+              <div className={`overflow-y-auto flex-1 transition-all ${showHistory ? 'pr-72' : ''}`}>
+                <form
+                  onSubmit={handleSubmit}
+                  className="p-4 sm:p-6 space-y-6 sm:space-y-8"
+                >
                 {/* Client Information & Quote Details Card */}
                 <div className="bg-white p-4 sm:p-6 rounded-xl border shadow-sm space-y-6 sm:space-y-8">
                   {/* Client Information */}
@@ -2427,8 +2487,48 @@ export function Quotes() {
                 </div>
               </form>
             </div>
-          </DialogContent>
-        </Dialog>
+
+            {/* Version History Sidebar */}
+            {showHistory && (
+              <div className="absolute top-0 right-0 bottom-0 w-72 bg-slate-50 border-l border-slate-200 shadow-xl overflow-y-auto p-5 shrink-0 flex flex-col z-20 animate-in slide-in-from-right-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-semibold text-sm uppercase tracking-wider text-slate-500">Version History</h3>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setShowHistory(false)}>
+                    <XCircle className="w-4 h-4 text-slate-400" />
+                  </Button>
+                </div>
+                
+                <div className="space-y-4">
+                  {sessionVersions.map((v, i) => (
+                    <div key={v.id} className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm relative group hover:border-primary/30 transition-colors">
+                      {i === 0 && <Badge className="absolute -top-2 -right-2 bg-green-500 hover:bg-green-600">Latest</Badge>}
+                      <div className="text-sm font-bold text-slate-800">{v.label}</div>
+                      <div className="text-xs text-slate-500 mb-4">{v.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</div>
+                      
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="w-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700" 
+                        onClick={() => revertToVersion(v)}
+                        disabled={i === 0}
+                      >
+                        <RotateCcw className="w-3 h-3 mr-2" /> 
+                        {i === 0 ? 'Current Version' : 'Revert to this'}
+                      </Button>
+                    </div>
+                  ))}
+                  
+                  {sessionVersions.length === 0 && (
+                    <div className="text-sm text-slate-500 text-center py-8">
+                      No versions saved yet.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
         <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
           <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50 flex flex-col">
