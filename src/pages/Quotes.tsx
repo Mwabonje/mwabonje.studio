@@ -62,6 +62,13 @@ import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 
 export function Quotes() {
   const quoteRef = useRef<HTMLDivElement>(null);
+  
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isFirstRender = useRef(true);
+  const editingQuoteRef = useRef<Quote | null>(null);
+
   const {
     quotes,
     clients,
@@ -99,6 +106,9 @@ export function Quotes() {
   const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
   const [depositPercentage, setDepositPercentage] = useState<number>(65);
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
+  useEffect(() => {
+    editingQuoteRef.current = editingQuote;
+  }, [editingQuote]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -354,19 +364,74 @@ export function Quotes() {
   }, []);
 
   useEffect(() => {
-    if (isDialogOpen) {
-      const draft = {
-        formData,
-        packages,
-        deliverableTasks,
-      };
-      if (editingQuote) {
-        localStorage.setItem(`quoteDraft_${editingQuote.id}`, JSON.stringify(draft));
-      } else {
-        localStorage.setItem("quoteDraft", JSON.stringify(draft));
-      }
+    if (!isDialogOpen) {
+      isFirstRender.current = true;
+      setAutoSaveStatus('idle');
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      return;
     }
-  }, [formData, packages, deliverableTasks, editingQuote, isDialogOpen]);
+
+    // Keep the local storage draft backup synchronously
+    const draft = { formData, packages, deliverableTasks };
+    if (editingQuoteRef.current) {
+      localStorage.setItem(`quoteDraft_${editingQuoteRef.current.id}`, JSON.stringify(draft));
+    } else {
+      localStorage.setItem("quoteDraft", JSON.stringify(draft));
+    }
+
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return; // Do not auto-save to DB on the very first render of the dialog
+    }
+
+    setAutoSaveStatus('saving');
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = setTimeout(async () => {
+      try {
+        const totalAmount = packages.reduce((sum, pkg) => sum + (Number(pkg.settlement) || 0), 0);
+        const quoteData = {
+          ...formData,
+          deliverablesPrice: formData.deliverablesPrice
+            ? Number(formData.deliverablesPrice)
+            : undefined,
+          packages,
+          deliverableTasks,
+          totalAmount,
+        };
+
+        if (editingQuoteRef.current) {
+          await updateQuote(editingQuoteRef.current.id, quoteData);
+          setLastSaved(new Date());
+          setAutoSaveStatus('saved');
+        } else {
+          // New quote auto-save
+          const newQuoteId = crypto.randomUUID();
+          const newQuote = {
+            id: newQuoteId,
+            ...quoteData,
+            status: quoteData.status || 'draft',
+          } as Quote;
+          await addQuote(newQuote);
+          setEditingQuote(newQuote);
+          setLastSaved(new Date());
+          setAutoSaveStatus('saved');
+          localStorage.removeItem("quoteDraft");
+          localStorage.setItem(`quoteDraft_${newQuoteId}`, JSON.stringify(draft));
+        }
+      } catch (error) {
+        console.error("Auto-save failed", error);
+        setAutoSaveStatus('idle');
+      }
+    }, 1500);
+
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [formData, packages, deliverableTasks, isDialogOpen, updateQuote, addQuote]);
 
   const handleDownloadPDF = async () => {
     if (formData.status === 'draft') {
@@ -1184,9 +1249,20 @@ export function Quotes() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-slate-50 flex flex-col">
             <div className="sticky top-0 z-10 bg-white border-b px-4 sm:px-6 py-4 flex justify-between items-center shrink-0">
-              <DialogTitle className="text-xl font-bold">
-                {editingQuote ? "Edit Quote" : "Create New Quote"}
-              </DialogTitle>
+              <div className="flex items-center gap-3">
+                <DialogTitle className="text-xl font-bold">
+                  {editingQuote ? "Edit Quote" : "Create New Quote"}
+                </DialogTitle>
+                {autoSaveStatus !== 'idle' && (
+                  <span className="text-xs text-slate-500 flex items-center">
+                    {autoSaveStatus === 'saving' ? (
+                      <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Auto-saving...</>
+                    ) : (
+                      <><CheckCircle2 className="w-3 h-3 mr-1 text-green-500" /> Saved {lastSaved?.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</>
+                    )}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="overflow-y-auto flex-1">
