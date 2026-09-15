@@ -902,6 +902,43 @@ export function Quotes() {
     );
   };
 
+  const addBreakdownItem = (packageId: string) => {
+    setPackages(
+      packages.map((pkg) => {
+        if (pkg.id === packageId) {
+          return { ...pkg, breakdown: [...(pkg.breakdown || []), { description: "", amount: 0 }] };
+        }
+        return pkg;
+      }),
+    );
+  };
+
+  const updateBreakdownItem = (packageId: string, index: number, field: 'description' | 'amount', value: any) => {
+    setPackages(
+      packages.map((pkg) => {
+        if (pkg.id === packageId) {
+          const newBreakdown = [...(pkg.breakdown || [])];
+          newBreakdown[index] = { ...newBreakdown[index], [field]: value };
+          return { ...pkg, breakdown: newBreakdown };
+        }
+        return pkg;
+      }),
+    );
+  };
+
+  const removeBreakdownItem = (packageId: string, index: number) => {
+    setPackages(
+      packages.map((pkg) => {
+        if (pkg.id === packageId) {
+          const newBreakdown = [...(pkg.breakdown || [])];
+          newBreakdown.splice(index, 1);
+          return { ...pkg, breakdown: newBreakdown };
+        }
+        return pkg;
+      }),
+    );
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
@@ -1871,6 +1908,70 @@ export function Quotes() {
                           ))}
                         </div>
 
+                        <div className="space-y-3 pt-4 border-t">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-xs font-bold text-slate-500 uppercase">
+                              Investment Breakdown (Optional)
+                            </Label>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addBreakdownItem(pkg.id)}
+                              className="h-7 text-xs rounded-full"
+                            >
+                              <Plus className="w-3 h-3 mr-1" /> Add Breakdown
+                            </Button>
+                          </div>
+                          {pkg.breakdown?.map((bItem, bIndex) => (
+                            <div
+                              key={bIndex}
+                              className="flex items-center gap-2"
+                            >
+                              <Input
+                                placeholder="Description (e.g., Access & conservation fee)"
+                                value={bItem.description}
+                                onChange={(e) =>
+                                  updateBreakdownItem(
+                                    pkg.id,
+                                    bIndex,
+                                    'description',
+                                    e.target.value,
+                                  )
+                                }
+                                className="flex-1"
+                              />
+                              <div className="relative w-32 shrink-0">
+                                <span className="absolute left-3 top-2.5 text-slate-500 text-sm">
+                                  Ksh
+                                </span>
+                                <Input
+                                  type="number"
+                                  className="pl-10"
+                                  value={bItem.amount || ""}
+                                  onChange={(e) =>
+                                    updateBreakdownItem(
+                                      pkg.id,
+                                      bIndex,
+                                      'amount',
+                                      Number(e.target.value),
+                                    )
+                                  }
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeBreakdownItem(pkg.id, bIndex)}
+                                className="text-slate-400 hover:text-destructive shrink-0"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+
                         <div className="flex justify-between items-end pt-4 border-t">
                           <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
                             <div className="flex items-center space-x-3">
@@ -2396,6 +2497,16 @@ export function Quotes() {
                 /* ── FEATURED 2-COL BODY ── */
                 .quote-root .featured-body { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px;}
 
+                /* ── BREAKDOWN ── */
+                .quote-root .breakdown-container { margin-top: 24px; margin-bottom: 16px; padding-top: 20px; border-top: 1px solid var(--rule); }
+                .quote-root .package-card.featured .breakdown-container { border-top-color: rgba(255,255,255,0.12); }
+                .quote-root .breakdown-list { display: flex; flex-direction: column; gap: 12px; }
+                .quote-root .breakdown-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; font-size: 13px; }
+                .quote-root .breakdown-desc { font-weight: 300; color: var(--ink-mid); line-height: 1.4; }
+                .quote-root .package-card.featured .breakdown-desc { color: rgba(255,255,255,0.75); }
+                .quote-root .breakdown-amount { font-weight: 500; color: var(--ink); white-space: nowrap; }
+                .quote-root .package-card.featured .breakdown-amount { color: #fff; }
+
                 /* ── ADD-ON ── */
                 .quote-root .addon { margin-top: 20px; padding: 20px 26px; border: 1px dashed var(--gold); background: var(--warm-white); display: flex; justify-content: space-between; align-items: center; gap: 24px; }
                 .quote-root .addon-label { font-size: 10px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
@@ -2655,7 +2766,23 @@ export function Quotes() {
                                 </>
                               )}
 
-                              <div className="total-row w-full mt-auto">
+                              {pkg.breakdown && pkg.breakdown.length > 0 && (
+                                <div className="breakdown-container w-full mt-auto">
+                                  <div className="inclusions-label">Investment Breakdown</div>
+                                  <div className="breakdown-list">
+                                    {pkg.breakdown.map((item, idx) => (
+                                      <div key={idx} className="breakdown-item">
+                                        <span className="breakdown-desc">{item.description}</span>
+                                        <span className="breakdown-amount">
+                                          Ksh {item.amount.toLocaleString()}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              <div className={`total-row w-full ${(!pkg.breakdown || pkg.breakdown.length === 0) ? 'mt-auto' : ''}`}>
                                 <span>Total Investment</span>
                                 <span className="total-amount">
                                   Ksh {pkg.settlement.toLocaleString()}

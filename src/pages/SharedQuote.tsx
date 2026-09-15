@@ -377,6 +377,16 @@ export function SharedQuote() {
             /* ── FEATURED 2-COL BODY ── */
             .quote-root .featured-body { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px;}
 
+            /* ── BREAKDOWN ── */
+            .quote-root .breakdown-container { margin-top: 24px; margin-bottom: 16px; padding-top: 20px; border-top: 1px solid var(--rule); }
+            .quote-root .package-card.featured .breakdown-container { border-top-color: rgba(255,255,255,0.12); }
+            .quote-root .breakdown-list { display: flex; flex-direction: column; gap: 12px; }
+            .quote-root .breakdown-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; font-size: 13px; }
+            .quote-root .breakdown-desc { font-weight: 300; color: var(--ink-mid); line-height: 1.4; }
+            .quote-root .package-card.featured .breakdown-desc { color: rgba(255,255,255,0.75); }
+            .quote-root .breakdown-amount { font-weight: 500; color: var(--ink); white-space: nowrap; }
+            .quote-root .package-card.featured .breakdown-amount { color: #fff; }
+
             /* ── ADD-ON ── */
             .quote-root .addon { margin-top: 20px; padding: 20px 26px; border: 1px dashed var(--gold); background: var(--warm-white); display: flex; justify-content: space-between; align-items: center; gap: 24px; }
             .quote-root .addon-label { font-size: 10px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
@@ -578,7 +588,23 @@ export function SharedQuote() {
                           </>
                         )}
 
-                        <div className="total-row w-full mt-auto">
+                        {pkg.breakdown && pkg.breakdown.length > 0 && (
+                          <div className="breakdown-container w-full mt-auto">
+                            <div className="inclusions-label">Investment Breakdown</div>
+                            <div className="breakdown-list">
+                              {pkg.breakdown.map((item, idx) => (
+                                <div key={idx} className="breakdown-item">
+                                  <span className="breakdown-desc">{item.description}</span>
+                                  <span className="breakdown-amount">
+                                    Ksh {item.amount.toLocaleString()}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className={`total-row w-full ${(!pkg.breakdown || pkg.breakdown.length === 0) ? 'mt-auto' : ''}`}>
                           <span>Total Investment</span>
                           <span className="total-amount">
                             Ksh {pkg.settlement.toLocaleString()}

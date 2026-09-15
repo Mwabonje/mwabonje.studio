@@ -50,10 +50,16 @@ export type LineItem = {
   price: number;
 };
 
+export type QuotePackageBreakdownItem = {
+  description: string;
+  amount: number;
+};
+
 export type QuotePackage = {
   id: string;
   name: string;
   inclusions: string[];
+  breakdown?: QuotePackageBreakdownItem[];
   settlement: number;
   isMostPopular?: boolean;
 };
