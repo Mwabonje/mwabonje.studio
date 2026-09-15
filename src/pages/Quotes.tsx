@@ -2498,14 +2498,15 @@ export function Quotes() {
                 .quote-root .featured-body { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px;}
 
                 /* ── BREAKDOWN ── */
-                .quote-root .breakdown-container { margin-top: 24px; margin-bottom: 16px; padding-top: 20px; border-top: 1px solid var(--rule); }
-                .quote-root .package-card.featured .breakdown-container { border-top-color: rgba(255,255,255,0.12); }
-                .quote-root .breakdown-list { display: flex; flex-direction: column; gap: 12px; }
+                .quote-root .breakdown-container { margin-top: 24px; margin-bottom: 24px; padding: 24px 26px; border-top: 1px solid #3a3a3a; border-bottom: 1px solid #3a3a3a; background-color: #3a3a3a; margin-left: -26px; margin-right: -26px; }
+                .quote-root .package-card.featured .breakdown-container { border-color: rgba(255,255,255,0.12); background-color: rgba(255,255,255,0.03); }
+                .quote-root .breakdown-list { display: flex; flex-direction: column; gap: 16px; }
                 .quote-root .breakdown-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; font-size: 13px; }
-                .quote-root .breakdown-desc { font-weight: 300; color: var(--ink-mid); line-height: 1.4; }
+                .quote-root .breakdown-desc { font-weight: 300; color: rgba(255,255,255,0.85); line-height: 1.4; }
                 .quote-root .package-card.featured .breakdown-desc { color: rgba(255,255,255,0.75); }
-                .quote-root .breakdown-amount { font-weight: 500; color: var(--ink); white-space: nowrap; }
+                .quote-root .breakdown-amount { font-weight: 500; color: #fff; white-space: nowrap; }
                 .quote-root .package-card.featured .breakdown-amount { color: #fff; }
+                .quote-root .breakdown-container .inclusions-label { color: rgba(255,255,255,0.5); }
 
                 /* ── ADD-ON ── */
                 .quote-root .addon { margin-top: 20px; padding: 20px 26px; border: 1px dashed var(--gold); background: var(--warm-white); display: flex; justify-content: space-between; align-items: center; gap: 24px; }
@@ -2767,7 +2768,7 @@ export function Quotes() {
                               )}
 
                               {pkg.breakdown && pkg.breakdown.length > 0 && (
-                                <div className="breakdown-container w-full mt-auto">
+                                <div className="breakdown-container mt-auto">
                                   <div className="inclusions-label">Investment Breakdown</div>
                                   <div className="breakdown-list">
                                     {pkg.breakdown.map((item, idx) => (
