@@ -784,7 +784,7 @@ export function Quotes() {
       clientPhone: quote.clientPhone || "",
       clientNationality: quote.clientNationality || "",
       clientLeadSource: quote.clientLeadSource || "",
-      projectTitle: `${quote.projectTitle || ""} (Revision)`,
+      projectTitle: quote.projectTitle || "",
       location: quote.location || "",
       shootingTime: quote.shootingTime || "",
       photographers: quote.photographers || "",
