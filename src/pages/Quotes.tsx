@@ -1,5 +1,5 @@
 import { PDFLoader } from "@/components/PDFLoader";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from "@/store";
 import { NDA } from "@/components/NDA";
 import { Contract } from "@/components/Contract";
@@ -56,8 +56,31 @@ import {
   History,
   RotateCcw,
   Loader2,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import { format } from "date-fns";
+
+const checkIsExpired = (quote: any) => {
+  if (quote.status === 'approved' || quote.status === 'declined') return false;
+  
+  const validityString = quote.quoteValidity || "7 days";
+  const daysMatch = validityString.match(/(\d+)\s*days?/i);
+  if (!daysMatch) return false;
+  
+  const days = parseInt(daysMatch[1], 10);
+  const issueDateStr = quote.issueDate || quote.date;
+  if (!issueDateStr) return false;
+  
+  const issueDate = new Date(issueDateStr);
+  const expiryDate = new Date(issueDate.getTime() + days * 24 * 60 * 60 * 1000);
+  
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  expiryDate.setHours(0, 0, 0, 0);
+  
+  return now > expiryDate;
+};
 import { getResolvedTheme } from '@/lib/theme';
 import { toast } from "sonner";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
@@ -1052,7 +1075,19 @@ export function Quotes() {
     );
   };
 
-  const getStatusBadge = (status: string) => {
+  const expiredQuotesCount = useMemo(() => {
+    return quotes.filter(checkIsExpired).length;
+  }, [quotes]);
+
+  const getStatusBadge = (status: string, isExpired: boolean = false) => {
+    if (isExpired && (status === 'sent' || status === 'draft')) {
+      return (
+        <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100 border-orange-200">
+          <Clock className="w-3 h-3 mr-1" /> Expired
+        </Badge>
+      );
+    }
+    
     switch (status) {
       case "approved":
         return (
@@ -1245,6 +1280,19 @@ export function Quotes() {
   return (
     <div className="space-y-6 pb-20">
       <PDFLoader isGenerating={isGeneratingPDF || isGeneratingNDAPDF || isGeneratingContractPDF} />
+      
+      {expiredQuotesCount > 0 && (
+        <div className="bg-orange-50 border border-orange-200 text-orange-800 rounded-xl p-4 flex items-start sm:items-center gap-3 shadow-sm animate-in fade-in zoom-in-95">
+          <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5 sm:mt-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium">
+              You have {expiredQuotesCount} expired {expiredQuotesCount === 1 ? 'quote' : 'quotes'} waiting for review. 
+              The validity period has passed based on their issue date.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Quotes</h2>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -3336,7 +3384,7 @@ export function Quotes() {
                             <span className="text-slate-400 text-xs">-</span>
                           )}
                         </TableCell>
-                        <TableCell>{getStatusBadge(quote.status)}</TableCell>
+                        <TableCell>{getStatusBadge(quote.status, checkIsExpired(quote))}</TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="ghost"
