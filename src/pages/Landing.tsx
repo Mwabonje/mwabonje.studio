@@ -75,7 +75,7 @@ export default function Landing() {
 
           background:var(--paper);
           color:var(--ink);
-          font-family:'Inter',sans-serif;
+          font-family:'Poppins', sans-serif;
           -webkit-font-smoothing:antialiased;
           overflow-x:hidden;
           min-height: 100vh;
@@ -85,10 +85,10 @@ export default function Landing() {
         .landing-root ul{list-style:none;}
         .landing-root img, .landing-root svg{display:block;}
         .landing-root .wrap{max-width:1180px;margin:0 auto;padding:0 32px;}
-        .landing-root h1, .landing-root h2, .landing-root h3{font-family:'Newsreader',serif;font-weight:500;letter-spacing:-0.01em;}
+        .landing-root h1, .landing-root h2, .landing-root h3{font-family:'Poppins', sans-serif;font-weight:500;letter-spacing:-0.01em;}
         .landing-root em{font-style:italic;color:var(--stamp);}
         .landing-root .eyebrow{
-          font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+          font-family:'Poppins', sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
           color:var(--ledger-deep);display:flex;align-items:center;gap:10px;
           margin-bottom: 0;
         }
@@ -107,8 +107,8 @@ export default function Landing() {
         /* ---------- header ---------- */
         .landing-root header{position:sticky;top:0;z-index:50;background:rgba(250,246,236,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
         .landing-root nav{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;max-width:1180px;margin:0 auto;}
-        .landing-root .logo{display:flex;align-items:center;gap:10px;font-family:'Newsreader',serif;font-size:20px;}
-        .landing-root .seal{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--stamp);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--stamp);flex:none;transform:rotate(-8deg);}
+        .landing-root .logo{display:flex;align-items:center;gap:10px;font-family:'Poppins', sans-serif;font-size:20px;}
+        .landing-root .seal{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--stamp);display:flex;align-items:center;justify-content:center;font-family:'Poppins', sans-serif;font-size:10px;color:var(--stamp);flex:none;transform:rotate(-8deg);}
         .landing-root .nav-links{display:flex;gap:34px;font-size:14px;color:var(--muted); margin:0;}
         .landing-root .nav-links a:hover{color:var(--ink);}
         .landing-root .nav-actions{display:flex;align-items:center;gap:22px;font-size:14px;}
@@ -125,7 +125,7 @@ export default function Landing() {
 
         .landing-root .ledger-row-wrap{overflow:hidden;border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);padding:14px 0;}
         .landing-root .ledger-row{display:flex;gap:0;white-space:nowrap;width:max-content;animation:ledger-scroll 26s linear infinite;}
-        .landing-root .ledger-row span{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);padding:0 18px;border-right:1px solid var(--line);}
+        .landing-root .ledger-row span{font-family:'Poppins', sans-serif;font-size:12px;color:var(--muted);padding:0 18px;border-right:1px solid var(--line);}
         @keyframes ledger-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
 
         /* ---------- receipt stack ---------- */
@@ -139,13 +139,13 @@ export default function Landing() {
           background-image:radial-gradient(circle, var(--paper) 3.5px, transparent 3.6px);
           background-size:16px 10px;background-position:0 -5px;
         }
-        .landing-root .r-head{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:14px;letter-spacing:.04em;}
-        .landing-root .r-title{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;}
-        .landing-root .r-client{font-family:'Newsreader',serif;font-size:19px;margin-bottom:14px;}
+        .landing-root .r-head{display:flex;justify-content:space-between;font-family:'Poppins', sans-serif;font-size:10px;color:var(--muted);margin-bottom:14px;letter-spacing:.04em;}
+        .landing-root .r-title{font-family:'Poppins', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;}
+        .landing-root .r-client{font-family:'Poppins', sans-serif;font-size:19px;margin-bottom:14px;}
         .landing-root .r-line{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2);padding:6px 0;border-top:1px dashed var(--line-strong);}
-        .landing-root .r-total{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:16px;margin-top:8px;padding-top:10px;border-top:1px solid var(--ink);}
+        .landing-root .r-total{display:flex;justify-content:space-between;font-family:'Poppins', sans-serif;font-size:16px;margin-top:8px;padding-top:10px;border-top:1px solid var(--ink);}
         .landing-root .stamp-mark{
-          position:absolute;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.1em;
+          position:absolute;font-family:'Poppins', sans-serif;font-size:12px;letter-spacing:.1em;
           border:2px solid var(--stamp);color:var(--stamp);padding:4px 12px;border-radius:3px;
           transform:rotate(-11deg);opacity:.85;
         }
@@ -166,11 +166,11 @@ export default function Landing() {
         .landing-root .cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center;}
         .landing-root .cap-grid p{color:var(--ink-2);line-height:1.75;font-size:16px;margin:22px 0 30px;max-width:460px;}
         .landing-root .ledger-card{background:#fffdf6;border:1px solid var(--line-strong);box-shadow:0 18px 40px rgba(29,36,32,0.1);}
-        .landing-root .ledger-card .lc-head{display:flex;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--ink);font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+        .landing-root .ledger-card .lc-head{display:flex;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--ink);font-family:'Poppins', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
         .landing-root .lc-row{display:grid;grid-template-columns:1.3fr 1fr 0.8fr 0.8fr;gap:10px;padding:13px 22px;border-bottom:1px dashed var(--line-strong);font-size:13px;align-items:center;}
         .landing-root .lc-row:last-child{border-bottom:none;}
-        .landing-root .lc-row.hd{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;border-bottom:1px solid var(--ink);}
-        .landing-root .lc-row .amt{font-family:'IBM Plex Mono',monospace;text-align:right;}
+        .landing-root .lc-row.hd{font-family:'Poppins', sans-serif;font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;border-bottom:1px solid var(--ink);}
+        .landing-root .lc-row .amt{font-family:'Poppins', sans-serif;text-align:right;}
         .landing-root .status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px;}
         .landing-root .status-dot.paid{background:var(--ledger);}
         .landing-root .status-dot.pending{background:var(--mustard);}
@@ -186,7 +186,7 @@ export default function Landing() {
         .landing-root .feat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
         .landing-root .feat-card{background:#fffdf6;border:1px solid var(--line-strong);border-top:4px solid var(--tab,var(--stamp));padding:26px 22px 24px;transition:transform .25s ease, box-shadow .25s ease;}
         .landing-root .feat-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(29,36,32,0.12);}
-        .landing-root .feat-card .tab-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px;}
+        .landing-root .feat-card .tab-label{font-family:'Poppins', sans-serif;font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px;}
         .landing-root .feat-icon{width:32px;height:32px;margin-bottom:18px;color:var(--tab,var(--stamp));}
         .landing-root .feat-card h3{font-size:19px;margin-bottom:10px;font-weight:500;}
         .landing-root .feat-card p{font-size:14px;color:var(--ink-2);line-height:1.6;margin-bottom:16px;}
@@ -195,8 +195,8 @@ export default function Landing() {
         /* ---------- testimonials ---------- */
         .landing-root .test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
         .landing-root .test-card{background:var(--paper-2);border:1px solid var(--line);padding:30px 26px;}
-        .landing-root .test-card p{font-family:'Newsreader',serif;font-style:italic;font-size:18px;line-height:1.55;margin-bottom:22px; margin-top: 0;}
-        .landing-root .test-card .who{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.03em;text-transform:uppercase;padding-top:14px;border-top:1px solid var(--line-strong);}
+        .landing-root .test-card p{font-family:'Poppins', sans-serif;font-style:italic;font-size:18px;line-height:1.55;margin-bottom:22px; margin-top: 0;}
+        .landing-root .test-card .who{font-family:'Poppins', sans-serif;font-size:11px;color:var(--muted);letter-spacing:.03em;text-transform:uppercase;padding-top:14px;border-top:1px solid var(--line-strong);}
 
         /* ---------- pricing (single free voucher) ---------- */
         .landing-root .voucher-wrap{display:flex;justify-content:center;}
@@ -210,11 +210,11 @@ export default function Landing() {
         .landing-root .voucher::before{left:-13px;}
         .landing-root .voucher::after{right:-13px;}
         .landing-root .voucher .v-stamp{
-          display:inline-block;border:2px solid var(--ledger);color:var(--ledger-deep);font-family:'IBM Plex Mono',monospace;
+          display:inline-block;border:2px solid var(--ledger);color:var(--ledger-deep);font-family:'Poppins', sans-serif;
           font-size:13px;letter-spacing:.12em;padding:6px 16px;border-radius:3px;transform:rotate(-6deg);margin-bottom:22px;
         }
-        .landing-root .voucher h3{font-size:15px;font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
-        .landing-root .voucher .amt{font-family:'Newsreader',serif;font-size:52px;margin-bottom:6px;}
+        .landing-root .voucher h3{font-size:15px;font-family:'Poppins', sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+        .landing-root .voucher .amt{font-family:'Poppins', sans-serif;font-size:52px;margin-bottom:6px;}
         .landing-root .voucher .per{font-size:13px;color:var(--muted);margin-bottom:26px;}
         .landing-root .voucher ul{margin:0; margin-bottom:28px;}
         .landing-root .voucher li{font-size:14px;color:var(--ink-2);padding:9px 0;border-top:1px dashed var(--line-strong);}
@@ -225,8 +225,8 @@ export default function Landing() {
         .landing-root .faq-list{max-width:760px;}
         .landing-root .faq-item{border-top:1px solid var(--line-strong);}
         .landing-root .faq-item:last-child{border-bottom:1px solid var(--line-strong);}
-        .landing-root .faq-q{width:100%;text-align:left;background:none;border:none;color:var(--ink);font-family:'Newsreader',serif;font-size:19px;padding:26px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px;}
-        .landing-root .faq-q .plus{font-family:'IBM Plex Mono',monospace;color:var(--stamp);font-size:20px;transition:transform .25s ease;flex:none;}
+        .landing-root .faq-q{width:100%;text-align:left;background:none;border:none;color:var(--ink);font-family:'Poppins', sans-serif;font-size:19px;padding:26px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px;}
+        .landing-root .faq-q .plus{font-family:'Poppins', sans-serif;color:var(--stamp);font-size:20px;transition:transform .25s ease;flex:none;}
         .landing-root .faq-item.open .plus{transform:rotate(45deg);}
         .landing-root .faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;}
         .landing-root .faq-a p{color:var(--ink-2);font-size:15px;line-height:1.65;padding-bottom:26px;max-width:600px; margin: 0;}
@@ -240,10 +240,10 @@ export default function Landing() {
         .landing-root .foot-social{display:flex;gap:14px;}
         .landing-root .foot-social a{width:32px;height:32px;border:1px solid rgba(250,246,236,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#c7cbc4;}
         .landing-root .foot-social a:hover{border-color:var(--mustard);color:var(--mustard);}
-        .landing-root .foot-col h4{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#a9ada4;margin-bottom:18px;}
+        .landing-root .foot-col h4{font-family:'Poppins', sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#a9ada4;margin-bottom:18px;}
         .landing-root .foot-col a{display:block;color:#c7cbc4;font-size:14px;padding:7px 0;}
         .landing-root .foot-col a:hover{color:var(--paper);}
-        .landing-root .foot-bottom{padding:26px 32px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8b8f85;max-width:1180px;margin:0 auto;}
+        .landing-root .foot-bottom{padding:26px 32px;text-align:center;font-family:'Poppins', sans-serif;font-size:12px;color:#8b8f85;max-width:1180px;margin:0 auto;}
 
         .landing-root .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease, transform .6s ease;}
         .landing-root .reveal.in{opacity:1;transform:translateY(0);}

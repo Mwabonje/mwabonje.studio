@@ -245,7 +245,7 @@ export function SharedInvoice() {
           --green: #2E7D52;
           background: var(--cream);
           color: var(--ink);
-          font-family: 'Jost', sans-serif;
+          font-family: 'Poppins', sans-serif;
           font-weight: 300;
           line-height: 1.6;
           text-align: left;
@@ -262,12 +262,12 @@ export function SharedInvoice() {
           --rule: #E2E8F0;
           --red: #EF4444;
           --green: #22C55E;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Poppins', sans-serif;
         }
         .invoice-root.theme-modern .header { align-items: flex-end; padding-bottom: 24px; border-bottom: 2px solid var(--rule); }
-        .invoice-root.theme-modern .header-left .studio-name { font-family: 'Inter', sans-serif; font-weight: 700; letter-spacing: -0.5px; text-transform: none; font-size: 24px; }
+        .invoice-root.theme-modern .header-left .studio-name { font-family: 'Poppins', sans-serif; font-weight: 700; letter-spacing: -0.5px; text-transform: none; font-size: 24px; }
         .invoice-root.theme-modern .header-right { text-align: right; }
-        .invoice-root.theme-modern .invoice-label { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 36px; letter-spacing: -1px; margin-bottom: 4px; }
+        .invoice-root.theme-modern .invoice-label { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 36px; letter-spacing: -1px; margin-bottom: 4px; }
         .invoice-root.theme-modern .invoice-label em { font-style: normal; color: var(--gold); }
         .invoice-root.theme-modern .meta-wrap { background: var(--warm-white); border-radius: 8px; border: 1px solid var(--rule); padding: 16px; margin-bottom: 40px; }
         .invoice-root.theme-modern .meta-block { padding: 12px; border: none; }
@@ -278,10 +278,10 @@ export function SharedInvoice() {
         .invoice-root.theme-modern .items-table tbody tr:last-child { border-bottom: none; }
         .invoice-root.theme-modern .items-table thead th { padding: 16px 20px; }
         .invoice-root.theme-modern .items-table tbody td { padding: 16px 20px; }
-        .invoice-root.theme-modern .item-name { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; }
-        .invoice-root.theme-modern .items-table tbody td:last-child { font-family: 'Inter', sans-serif; font-weight: 600; }
+        .invoice-root.theme-modern .item-name { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 14px; }
+        .invoice-root.theme-modern .items-table tbody td:last-child { font-family: 'Poppins', sans-serif; font-weight: 600; }
         .invoice-root.theme-modern .totals-block { border-top: 2px solid var(--rule); }
-        .invoice-root.theme-modern .totals-row.grand .amount { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 24px; }
+        .invoice-root.theme-modern .totals-row.grand .amount { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 24px; }
         .invoice-root.theme-minimal {
           --cream: #FFFFFF;
           --warm-white: #F0F0F0;
@@ -293,11 +293,11 @@ export function SharedInvoice() {
           --rule: #000000;
           --red: #000000;
           --green: #000000;
-          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          font-family: 'Poppins', sans-serif;
         }
         .invoice-root.theme-minimal .header { flex-direction: column; border-bottom: none; gap: 24px; padding-bottom: 0; margin-bottom: 48px; }
         .invoice-root.theme-minimal .header-right { text-align: left; }
-        .invoice-root.theme-minimal .invoice-label { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 400; font-size: 24px; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px;}
+        .invoice-root.theme-minimal .invoice-label { font-family: 'Poppins', sans-serif; font-weight: 400; font-size: 24px; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px;}
         .invoice-root.theme-minimal .invoice-label em { font-style: normal; font-weight: 700; color: var(--ink); }
         .invoice-root.theme-minimal .header-left .studio-name { font-weight: 700; margin-bottom: 0; color: var(--ink); }
         .invoice-root.theme-minimal .meta-wrap { grid-template-columns: 1fr 1fr; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 24px 0; gap: 24px; margin-bottom: 48px; }
@@ -310,11 +310,11 @@ export function SharedInvoice() {
         .invoice-root.theme-minimal .items-table tbody tr { border-bottom: 1px solid var(--rule); }
         .invoice-root.theme-minimal .items-table thead th { padding: 12px 0; }
         .invoice-root.theme-minimal .items-table tbody td { padding: 12px 0; }
-        .invoice-root.theme-minimal .item-name { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 700; text-transform: uppercase; font-size: 12px; }
-        .invoice-root.theme-minimal .items-table tbody td:last-child { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        .invoice-root.theme-minimal .item-name { font-family: 'Poppins', sans-serif; font-weight: 700; text-transform: uppercase; font-size: 12px; }
+        .invoice-root.theme-minimal .items-table tbody td:last-child { font-family: 'Poppins', sans-serif; }
         .invoice-root.theme-minimal .totals-block { border-top: none; }
         .invoice-root.theme-minimal .totals-row.grand { border-top: 1px solid var(--ink); border-bottom: 1px double var(--ink); padding: 12px 0; margin-top: 8px; }
-        .invoice-root.theme-minimal .totals-row.grand .amount { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 700; font-size: 18px; }
+        .invoice-root.theme-minimal .totals-row.grand .amount { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 18px; }
         .invoice-root.theme-minimal .note { background: transparent; padding: 16px 0; border-left: none; border-top: 1px solid var(--ink); margin-top: 48px; }
 
         .invoice-root * { box-sizing: border-box; }
@@ -337,7 +337,7 @@ export function SharedInvoice() {
         }
 
         .invoice-root .header-left .studio-name {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Poppins', sans-serif;
           font-size: 22px;
           font-weight: 400;
           letter-spacing: 3px;
@@ -361,7 +361,7 @@ export function SharedInvoice() {
         }
 
         .invoice-root .invoice-label {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Poppins', sans-serif;
           font-size: 42px;
           font-weight: 300;
           color: var(--ink);
@@ -566,7 +566,7 @@ export function SharedInvoice() {
         }
 
         .invoice-root .totals-row.grand .amount {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Poppins', sans-serif;
           font-size: 28px;
           font-weight: 400;
           color: var(--ink);
@@ -583,7 +583,7 @@ export function SharedInvoice() {
         }
 
         .invoice-root .totals-row.deposit-due .amount {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Poppins', sans-serif;
           font-size: 20px;
           font-weight: 400;
           color: var(--gold);
@@ -703,7 +703,7 @@ export function SharedInvoice() {
         }
 
         .invoice-root .footer-name {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Poppins', sans-serif;
           font-size: 16px;
           font-weight: 400;
           letter-spacing: 3px;
@@ -744,8 +744,8 @@ export function SharedInvoice() {
           .invoice-root:not(.pdf-export) .items-table td:nth-child(1) { padding-bottom: 12px; }
           .invoice-root:not(.pdf-export) .items-table td:nth-child(2)::before { content: "Qty: "; color: var(--ink-soft); font-size: 13px; margin-right: 4px; }
           .invoice-root:not(.pdf-export) .items-table td:nth-child(3)::before { content: "Price: "; color: var(--ink-soft); font-size: 13px; margin-right: 4px; }
-          .invoice-root:not(.pdf-export) .items-table td:nth-child(4) { margin-top: 8px; padding-top: 12px; border-top: 1px dashed var(--rule) !important; font-weight: 500; font-size: 15px; font-family: 'Cormorant Garamond', serif; }
-          .invoice-root:not(.pdf-export) .items-table td:nth-child(4)::before { content: "Total "; font-family: 'Jost', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--ink-soft); margin-right: 8px; font-weight: 600; }
+          .invoice-root:not(.pdf-export) .items-table td:nth-child(4) { margin-top: 8px; padding-top: 12px; border-top: 1px dashed var(--rule) !important; font-weight: 500; font-size: 15px; font-family: 'Poppins', sans-serif; }
+          .invoice-root:not(.pdf-export) .items-table td:nth-child(4)::before { content: "Total "; font-family: 'Poppins', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--ink-soft); margin-right: 8px; font-weight: 600; }
           
           .invoice-root:not(.pdf-export) .totals-wrap { justify-content: flex-start; }
           .invoice-root:not(.pdf-export) .totals-block { width: 100%; border-top: none; padding-top: 12px; }
