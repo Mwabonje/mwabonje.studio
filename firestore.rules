@@ -113,6 +113,17 @@ service cloud.firestore {
              data.uid == request.auth.uid;
     }
 
+    function isValidExpense() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.date is string && data.date.size() > 0 && data.date.size() < 100 &&
+             data.amount is number && data.amount > 0 &&
+             data.category is string && data.category.size() > 0 && data.category.size() < 100 &&
+             data.vendor is string && data.vendor.size() > 0 && data.vendor.size() < 200 &&
+             isValidOptionalString('description', 0, 5000) &&
+             data.uid == request.auth.uid;
+    }
+
     function isValidSettings() {
       return isValidOptionalString('logoUrl', 0, 2000) &&
              isValidOptionalString('companyName', 0, 200) &&
@@ -184,6 +195,13 @@ service cloud.firestore {
         allow read: if isOwner(userId);
         allow create: if isOwner(userId) && isValidEquipment();
         allow update: if isOwner(userId) && isValidEquipment() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isOwner(userId);
+      }
+
+      match /expenses/{expenseId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidExpense();
+        allow update: if isOwner(userId) && isValidExpense() && request.resource.data.uid == resource.data.uid;
         allow delete: if isOwner(userId);
       }
 

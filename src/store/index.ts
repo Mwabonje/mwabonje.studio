@@ -181,6 +181,16 @@ export type Equipment = {
   uid?: string;
 };
 
+export type Expense = {
+  id: string;
+  date: string;
+  amount: number;
+  category: string;
+  vendor: string;
+  description?: string;
+  uid?: string;
+};
+
 type AppState = {
   clients: Client[];
   projects: Project[];
@@ -189,6 +199,7 @@ type AppState = {
   invoices: Invoice[];
   payments: Payment[];
   equipment: Equipment[];
+  expenses: Expense[];
   settings: Settings;
   isSettingsLoaded: boolean;
   isAuthReady: boolean;
@@ -224,6 +235,10 @@ type AppState = {
   addEquipment: (equipment: Equipment) => Promise<void>;
   updateEquipment: (id: string, equipment: Partial<Equipment>) => Promise<void>;
   deleteEquipment: (id: string) => Promise<void>;
+
+  addExpense: (expense: Expense) => Promise<void>;
+  updateExpense: (id: string, expense: Partial<Expense>) => Promise<void>;
+  deleteExpense: (id: string) => Promise<void>;
 
   updateSettings: (settings: Partial<Settings>) => Promise<void>;
 };
@@ -262,6 +277,7 @@ export const useStore = create<AppState>((set, get) => ({
   invoices: [],
   payments: [],
   equipment: [],
+  expenses: [],
   settings: defaultSettings,
   isSettingsLoaded: false,
   isAuthReady: false,
@@ -473,6 +489,25 @@ export const useStore = create<AppState>((set, get) => ({
     const uid = auth.currentUser?.uid;
     if (!uid) return;
     await deleteDoc(doc(db, `users/${uid}/equipment`, id));
+  },
+
+  addExpense: async (expense) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const data = cleanData({ ...expense, uid });
+    await setDoc(doc(db, `users/${uid}/expenses`, expense.id), data);
+  },
+  updateExpense: async (id, expense) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const existing = get().expenses.find((e) => e.id === id);
+    if (!existing) return;
+    await setDoc(doc(db, `users/${uid}/expenses`, id), cleanData({ ...existing, ...expense, uid }));
+  },
+  deleteExpense: async (id) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    await deleteDoc(doc(db, `users/${uid}/expenses`, id));
   },
 
   updateSettings: async (updatedSettings) => {

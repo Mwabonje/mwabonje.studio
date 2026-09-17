@@ -1,0 +1,324 @@
+--- src/pages/Expenses.tsx
++++ src/pages/Expenses.tsx
+@@ -107,6 +107,12 @@
+       groups[label].push(e);
+     });
+ 
++  const categoryTotals: Record<string, number> = {};
++  filtered.forEach((e) => {
++    categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount;
++  });
++  const categorySummary = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
++
+   return (
+     <>
+       <style>{`
+-        .expenses-page {
++        .expenses-theme {
+           --bg: transparent;
+           --text-primary: #1C1B19;
+           --text-secondary: #6B6862;
+@@ -115,22 +121,24 @@
+           --border-strong: #D2CEC3;
+           --font-sans: 'Poppins', sans-serif;
+           --font-mono: "SF Mono", "IBM Plex Mono", Consolas, "Courier New", monospace;
+           --radius: 8px;
+-          background: var(--bg);
+           color: var(--text-primary);
+           font-family: var(--font-sans);
+-          padding: 24px 0;
+-          width: 100%;
+         }
+ 
+-        :global(.dark) .expenses-page {
++        :global(.dark) .expenses-theme {
+           --text-primary: #EDEBE6;
+           --text-secondary: #A5A199;
+           --text-muted: #726E67;
+           --border: #2C2A26;
+           --border-strong: #3D3A34;
+         }
+ 
+-        .expenses-page * { box-sizing: border-box; }
++        .expenses-theme * { box-sizing: border-box; }
++
++        .expenses-page {
++          padding: 24px 0;
++          width: 100%;
++        }
+ 
+-        .expenses-page .eyebrow {
++        .expenses-theme .eyebrow {
+           font-size: 14px;
+           color: var(--text-secondary);
+           margin: 0 0 4px;
+         }
+ 
+-        .expenses-page .hero {
++        .expenses-theme .hero {
+           display: flex;
+           align-items: baseline;
+           gap: 10px;
+@@ -141,5 +149,5 @@
+         }
+ 
+-        .expenses-page .hero-amount {
++        .expenses-theme .hero-amount {
+           font-family: var(--font-mono);
+           font-size: 40px;
+           font-weight: 500;
+           letter-spacing: -0.5px;
+         }
+ 
+-        .expenses-page .hero-caption {
++        .expenses-theme .hero-caption {
+           font-size: 13px;
+           color: var(--text-muted);
+         }
+ 
+-        .expenses-page .toolbar {
++        .expenses-theme .toolbar {
+           display: flex;
+           gap: 8px;
+           margin-bottom: 32px;
+           flex-wrap: wrap;
+         }
+ 
+-        .expenses-page .search-wrap {
++        .expenses-theme .search-wrap {
+           position: relative;
+           flex: 1;
+           min-width: 180px;
+         }
+ 
+-        .expenses-page .search-wrap svg {
++        .expenses-theme .search-wrap svg {
+           position: absolute;
+           left: 10px;
+           top: 50%;
+@@ -171,6 +179,6 @@
+         }
+ 
+-        .expenses-page input.toolbar-input, .expenses-page select.toolbar-select {
++        .expenses-theme input.toolbar-input, .expenses-theme select.toolbar-select {
+           font-family: var(--font-sans);
+           font-size: 14px;
+@@ -183,15 +191,15 @@
+         }
+         
+-        .expenses-page select.toolbar-select {
++        .expenses-theme select.toolbar-select {
+           appearance: auto;
+         }
+ 
+-        .expenses-page input.toolbar-input::placeholder { color: var(--text-muted); }
++        .expenses-theme input.toolbar-input::placeholder { color: var(--text-muted); }
+ 
+-        .expenses-page .search-wrap input.toolbar-input { width: 100%; padding-left: 32px; }
++        .expenses-theme .search-wrap input.toolbar-input { width: 100%; padding-left: 32px; }
+ 
+-        .expenses-page select.toolbar-select { width: 160px; }
++        .expenses-theme select.toolbar-select { width: 160px; }
+ 
+-        .expenses-page .log-btn {
++        .expenses-theme .log-btn {
+           display: flex;
+           align-items: center;
+           gap: 6px;
+@@ -207,11 +215,11 @@
+         }
+ 
+-        .expenses-page .log-btn:hover { border-color: var(--text-muted); }
++        .expenses-theme .log-btn:hover { border-color: var(--text-muted); }
+ 
+-        .expenses-page .group-label {
++        .expenses-theme .group-label {
+           font-size: 12px;
+           color: var(--text-muted);
+           margin: 0 0 10px;
+           padding-bottom: 6px;
+           border-bottom: 0.5px solid var(--border);
+         }
+ 
+-        .expenses-page .group + .group { margin-top: 24px; }
++        .expenses-theme .group + .group { margin-top: 24px; }
+ 
+-        .expenses-page .row {
++        .expenses-theme .row {
+           display: flex;
+           align-items: flex-start;
+           justify-content: space-between;
+           padding: 10px 0;
+           border-bottom: 0.5px solid var(--border);
+         }
+ 
+-        .expenses-page .row-left {
++        .expenses-theme .row-left {
+           display: flex;
+           gap: 10px;
+         }
+ 
+-        .expenses-page .dot {
++        .expenses-theme .dot {
+           width: 6px;
+           height: 6px;
+           border-radius: 50%;
+@@ -242,10 +250,10 @@
+         }
+ 
+-        .expenses-page .vendor { margin: 0; font-weight: 500; font-size: 14px; }
+-        .expenses-page .description { margin: 2px 0 0; font-size: 13px; color: var(--text-secondary); }
++        .expenses-theme .vendor { margin: 0; font-weight: 500; font-size: 14px; }
++        .expenses-theme .description { margin: 2px 0 0; font-size: 13px; color: var(--text-secondary); }
+ 
+-        .expenses-page .row-right { text-align: right; }
++        .expenses-theme .row-right { text-align: right; }
+ 
+-        .expenses-page .amount {
++        .expenses-theme .amount {
+           margin: 0;
+           font-family: var(--font-mono);
+           font-size: 14px;
+@@ -256,7 +264,7 @@
+         }
+ 
+-        .expenses-page .category { margin: 2px 0 0; font-size: 12px; color: var(--text-muted); }
++        .expenses-theme .category { margin: 2px 0 0; font-size: 12px; color: var(--text-muted); }
+ 
+-        .expenses-page .row-actions {
++        .expenses-theme .row-actions {
+           display: flex;
+           gap: 4px;
+@@ -267,6 +275,6 @@
+         }
+ 
+-        .expenses-page .icon-btn {
++        .expenses-theme .icon-btn {
+           background: none;
+           border: none;
+           padding: 4px;
+@@ -278,9 +286,9 @@
+         }
+ 
+-        .expenses-page .icon-btn:hover { color: var(--text-primary); }
+-        .expenses-page .icon-btn.danger:hover { color: #C0392B; }
+-        .expenses-page .icon-btn svg { width: 15px; height: 15px; }
++        .expenses-theme .icon-btn:hover { color: var(--text-primary); }
++        .expenses-theme .icon-btn.danger:hover { color: #C0392B; }
++        .expenses-theme .icon-btn svg { width: 15px; height: 15px; }
+ 
+-        .expenses-page .total-row {
++        .expenses-theme .total-row {
+           display: flex;
+           justify-content: space-between;
+@@ -292,7 +300,7 @@
+         }
+ 
+-        .expenses-page .total-label {
++        .expenses-theme .total-label {
+           margin: 0;
+           font-size: 13px;
+           font-weight: 500;
+@@ -303,7 +311,7 @@
+         }
+ 
+-        .expenses-page .total-amount {
++        .expenses-theme .total-amount {
+           margin: 0;
+           font-family: var(--font-mono);
+           font-size: 14px;
+@@ -314,7 +322,7 @@
+         }
+ 
+-        .expenses-page .empty {
++        .expenses-theme .empty {
+           padding: 32px 0;
+           text-align: center;
+           color: var(--text-muted);
+@@ -324,8 +332,59 @@
+         }
++
++        .expenses-theme .sidebar-card {
++          border: 0.5px solid var(--border-strong);
++          border-radius: var(--radius);
++          padding: 20px;
++          margin-bottom: 24px;
++          background: transparent;
++        }
++
++        .expenses-theme .sidebar-title {
++          font-size: 14px;
++          font-weight: 500;
++          margin: 0 0 16px;
++          color: var(--text-primary);
++        }
++
++        .expenses-theme .cat-row {
++          display: flex;
++          justify-content: space-between;
++          align-items: center;
++          padding: 8px 0;
++          border-bottom: 0.5px solid var(--border);
++        }
++        .expenses-theme .cat-row:last-child {
++          border-bottom: none;
++          padding-bottom: 0;
++        }
++
++        .expenses-theme .cat-name {
++          font-size: 13px;
++          color: var(--text-secondary);
++          margin: 0;
++        }
++
++        .expenses-theme .cat-amount {
++          font-size: 13px;
++          font-family: var(--font-mono);
++          font-weight: 500;
++          margin: 0;
++        }
+       `}</style>
+ 
+-      <div className="expenses-page pb-20">
+-        <p className="eyebrow">Expenses</p>
+-        <div className="hero">
+-          <span className="hero-amount">{formatKES(total)}</span>
+-          <span className="hero-caption">spent in total</span>
+-        </div>
++      <div className="expenses-theme pb-20 flex flex-col lg:flex-row gap-8 lg:gap-16 max-w-6xl mx-auto px-4 lg:px-8">
++        
++        {/* Left Side: Main Ledger */}
++        <div className="expenses-page flex-1 max-w-3xl">
++          <p className="eyebrow">Expenses</p>
++          <div className="hero">
++            <span className="hero-amount">{formatKES(total)}</span>
++            <span className="hero-caption">spent in total</span>
++          </div>
+ 
+           <div className="toolbar">
+@@ -394,6 +453,24 @@
+           </div>
+         </div>
++
++        {/* Right Side: Category Breakdown */}
++        <div className="hidden lg:block w-80 shrink-0 pt-6">
++          <div className="sticky top-24">
++             <div className="sidebar-card">
++               <h3 className="sidebar-title">Spending by Category</h3>
++               {categorySummary.length === 0 ? (
++                 <p className="empty" style={{ padding: '16px 0' }}>No spending data yet.</p>
++               ) : (
++                 categorySummary.map(([cat, amt]) => (
++                   <div className="cat-row" key={cat}>
++                     <p className="cat-name">{cat}</p>
++                     <p className="cat-amount">{amt.toLocaleString("en-KE")}</p>
++                   </div>
++                 ))
++               )}
++             </div>
++          </div>
++        </div>
++
++      </div>
+ 
+       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
