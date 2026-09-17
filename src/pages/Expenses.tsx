@@ -23,6 +23,7 @@ import {
 
 const EXPENSE_CATEGORIES = [
   "Insurance",
+  "Health Insurance",
   "Equipment",
   "Software & Subscriptions",
   "Travel & Transport",
@@ -36,6 +37,7 @@ const EXPENSE_CATEGORIES = [
 // Tailwind color palette for categories
 const CATEGORY_COLORS: Record<string, string> = {
   "Insurance": "#3b82f6", // blue-500
+  "Health Insurance": "#0ea5e9", // sky-500
   "Equipment": "#8b5cf6", // violet-500
   "Software & Subscriptions": "#ec4899", // pink-500
   "Travel & Transport": "#f59e0b", // amber-500
