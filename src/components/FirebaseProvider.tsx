@@ -95,6 +95,14 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       console.error("Firebase expenses error:", error);
     });
 
+    
+    const unsubReminders = onSnapshot(query(collection(db, `users/${userId}/reminders`)), (snapshot) => {
+      const reminders = snapshot.docs.map((doc) => doc.data() as any);
+      useStore.setState({ reminders });
+    }, (error) => {
+      console.error("Firebase reminders error:", error);
+    });
+
     const unsubSettings = onSnapshot(doc(db, `users/${userId}/settings/profile`), (docSnap) => {
       if (docSnap.exists()) {
         useStore.setState({ settings: docSnap.data() as Settings, isSettingsLoaded: true });
@@ -115,6 +123,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       unsubPayments();
       unsubEquipment();
       unsubExpenses();
+      unsubReminders();
       unsubSettings();
     };
   }, [userId]);

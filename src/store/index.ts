@@ -181,6 +181,20 @@ export type Equipment = {
   uid?: string;
 };
 
+
+export type Reminder = {
+  id: string;
+  title: string;
+  description?: string;
+  dueDate: string; // ISO format
+  amount?: number;
+  category?: string;
+  isRecurring?: boolean;
+  recurringInterval?: 'monthly' | 'yearly';
+  status: 'pending' | 'paid' | 'dismissed';
+  uid?: string;
+};
+
 export type Expense = {
   id: string;
   date: string;
@@ -200,6 +214,7 @@ type AppState = {
   payments: Payment[];
   equipment: Equipment[];
   expenses: Expense[];
+  reminders: Reminder[];
   settings: Settings;
   isSettingsLoaded: boolean;
   isAuthReady: boolean;
@@ -239,6 +254,9 @@ type AppState = {
   addExpense: (expense: Expense) => Promise<void>;
   updateExpense: (id: string, expense: Partial<Expense>) => Promise<void>;
   deleteExpense: (id: string) => Promise<void>;
+  addReminder: (reminder: Reminder) => Promise<void>;
+  updateReminder: (id: string, reminder: Partial<Reminder>) => Promise<void>;
+  deleteReminder: (id: string) => Promise<void>;
 
   updateSettings: (settings: Partial<Settings>) => Promise<void>;
 };
@@ -278,6 +296,7 @@ export const useStore = create<AppState>((set, get) => ({
   payments: [],
   equipment: [],
   expenses: [],
+  reminders: [],
   settings: defaultSettings,
   isSettingsLoaded: false,
   isAuthReady: false,
@@ -508,6 +527,26 @@ export const useStore = create<AppState>((set, get) => ({
     const uid = auth.currentUser?.uid;
     if (!uid) return;
     await deleteDoc(doc(db, `users/${uid}/expenses`, id));
+  },
+
+  
+  addReminder: async (reminder) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const data = cleanData({ ...reminder, uid });
+    await setDoc(doc(db, `users/${uid}/reminders`, reminder.id), data);
+  },
+  updateReminder: async (id, reminder) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const existing = get().reminders.find((r) => r.id === id);
+    if (!existing) return;
+    await setDoc(doc(db, `users/${uid}/reminders`, id), cleanData({ ...existing, ...reminder, uid }));
+  },
+  deleteReminder: async (id) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    await deleteDoc(doc(db, `users/${uid}/reminders`, id));
   },
 
   updateSettings: async (updatedSettings) => {

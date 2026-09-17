@@ -124,6 +124,15 @@ service cloud.firestore {
              data.uid == request.auth.uid;
     }
 
+    function isValidReminder() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.dueDate is string && data.dueDate.size() > 0 && data.dueDate.size() < 100 &&
+             data.status in ['pending', 'paid', 'dismissed'] &&
+             data.uid == request.auth.uid;
+    }
+
     function isValidSettings() {
       return isValidOptionalString('logoUrl', 0, 2000) &&
              isValidOptionalString('companyName', 0, 200) &&
@@ -202,6 +211,13 @@ service cloud.firestore {
         allow read: if isOwner(userId);
         allow create: if isOwner(userId) && isValidExpense();
         allow update: if isOwner(userId) && isValidExpense() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isOwner(userId);
+      }
+
+      match /reminders/{reminderId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidReminder();
+        allow update: if isOwner(userId) && isValidReminder() && request.resource.data.uid == resource.data.uid;
         allow delete: if isOwner(userId);
       }
 

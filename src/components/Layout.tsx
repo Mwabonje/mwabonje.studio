@@ -6,6 +6,7 @@ import { useStore } from '@/store';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { GlobalSearch } from '@/components/GlobalSearch';
+import { ReminderPopup } from '@/components/ReminderPopup';
 
 export function Layout() {
   const location = useLocation();
@@ -186,6 +187,7 @@ export function Layout() {
       <main className="flex-1 flex flex-col overflow-hidden z-10 pt-16 lg:pt-0">
         <div className="flex-1 overflow-y-auto flex flex-col px-4 sm:px-8 lg:px-12 pt-6 lg:pt-12 pb-12">
           <Outlet />
+          <ReminderPopup />
         </div>
       </main>
     </div>
