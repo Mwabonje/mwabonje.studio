@@ -202,6 +202,7 @@ export type Expense = {
   category: string;
   vendor: string;
   description?: string;
+  mpesaReference?: string;
   uid?: string;
 };
 

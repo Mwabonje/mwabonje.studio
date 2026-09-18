@@ -121,6 +121,7 @@ service cloud.firestore {
              data.category is string && data.category.size() > 0 && data.category.size() < 100 &&
              data.vendor is string && data.vendor.size() > 0 && data.vendor.size() < 200 &&
              isValidOptionalString('description', 0, 5000) &&
+             isValidOptionalString('mpesaReference', 0, 100) &&
              data.uid == request.auth.uid;
     }
 

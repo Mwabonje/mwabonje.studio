@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useStore, Expense } from "@/store";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
-import { Search, Plus, Edit2, Trash2, ShieldCheck, HeartPulse, Bell, CheckCircle2, Clock } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, ShieldCheck, HeartPulse, Bell, CheckCircle2, Clock, Smartphone } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -22,9 +22,10 @@ import {
 } from "recharts";
 
 const EXPENSE_CATEGORIES = [
-  "Insurance",
+  "House Rent",
   "Health Insurance",
   "NSSF",
+  "Insurance",
   "Equipment",
   "Software & Subscriptions",
   "Travel & Transport",
@@ -37,9 +38,10 @@ const EXPENSE_CATEGORIES = [
 
 // Tailwind color palette for categories
 const CATEGORY_COLORS: Record<string, string> = {
-  "Insurance": "#3b82f6", // blue-500
+  "House Rent": "#f97316", // orange-500
   "Health Insurance": "#0ea5e9", // sky-500
   "NSSF": "#16a34a", // green-600 (NSSF Kenya classic brand green)
+  "Insurance": "#3b82f6", // blue-500
   "Equipment": "#8b5cf6", // violet-500
   "Software & Subscriptions": "#ec4899", // pink-500
   "Travel & Transport": "#f59e0b", // amber-500
@@ -49,6 +51,26 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Meals & Entertainment": "#14b8a6", // teal-500
   "Other": "#94a3b8" // slate-400
 };
+
+// Common vendor/payee presets for Kenya and creative/freelance businesses
+const COMMON_VENDORS = [
+  "House Rent / Landlord",
+  "NSSF Kenya",
+  "Social Health Authority (SHA) / NHIF",
+  "Kenya Revenue Authority (KRA)",
+  "Safaricom / M-Pesa",
+  "Airtel Kenya",
+  "Kenya Power (KPLC)",
+  "Nairobi Water / Water Bill",
+  "Adobe Creative Cloud",
+  "Google Workspace",
+  "Apple",
+  "Microsoft 365",
+  "HostPinnacle / Web Hosting",
+  "Uber / Bolt",
+  "Camera & Production Store",
+  "Office Supplies & Printing"
+];
 
 function groupLabel(isoDate: string) {
   const date = new Date(isoDate);
@@ -81,6 +103,7 @@ export function Expenses() {
     category: "",
     vendor: "",
     description: "",
+    mpesaReference: "",
   };
   
   const [formData, setFormData] = useState<any>(defaultForm);
@@ -89,6 +112,14 @@ export function Expenses() {
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [isCustomVendor, setIsCustomVendor] = useState(false);
+  const [showMpesaInput, setShowMpesaInput] = useState(false);
+
+  // Dynamic vendor list combining presets + all existing vendors from history
+  const vendorOptions = useMemo(() => {
+    const fromExpenses = expenses.map((e) => e.vendor?.trim()).filter(Boolean);
+    return Array.from(new Set([...COMMON_VENDORS, ...fromExpenses]));
+  }, [expenses]);
 
   const handleOpenDialog = (item?: Expense) => {
     if (item) {
@@ -96,10 +127,15 @@ export function Expenses() {
       setFormData({
         ...item,
         amount: item.amount.toString(),
+        mpesaReference: item.mpesaReference || "",
       });
+      setIsCustomVendor(Boolean(item.vendor && !vendorOptions.includes(item.vendor)));
+      setShowMpesaInput(Boolean(item.mpesaReference));
     } else {
       setEditingItem(null);
       setFormData(defaultForm);
+      setIsCustomVendor(false);
+      setShowMpesaInput(false);
     }
     setIsDialogOpen(true);
   };
@@ -108,6 +144,7 @@ export function Expenses() {
     const expenseData = {
       ...formData,
       amount: parseFloat(formData.amount) || 0,
+      mpesaReference: formData.mpesaReference?.trim() || "",
     };
 
     if (editingItem) {
@@ -352,14 +389,14 @@ export function Expenses() {
              <h3 className="text-[15px] font-medium text-foreground mb-6">6-Month Trend</h3>
              <div className="h-full min-h-[300px] w-full flex items-end text-[13px]">
                 <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-                  <BarChart data={barData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
+                  <BarChart data={barData} margin={{ top: 20, right: 10, left: -20, bottom: 24 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                     <XAxis 
                       dataKey="name" 
                       axisLine={false} 
                       tickLine={false} 
                       tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} 
-                      dy={16}
+                      dy={8}
                     />
                     <YAxis 
                       axisLine={false} 
@@ -584,7 +621,14 @@ export function Expenses() {
                       <div className="flex items-center gap-4">
                         <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: CATEGORY_COLORS[e.category] || CATEGORY_COLORS["Other"] }}></div>
                         <div>
-                          <p className="m-0 font-medium text-[15px]">{e.vendor}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="m-0 font-medium text-[15px]">{e.vendor}</p>
+                            {e.mpesaReference && (
+                              <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-medium">
+                                M-Pesa: {e.mpesaReference}
+                              </span>
+                            )}
+                          </div>
                           <p className="mt-1 mb-0 text-sm text-muted-foreground">{e.description || "No description"}</p>
                         </div>
                       </div>
@@ -618,18 +662,19 @@ export function Expenses() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-[95vw] sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-7">
           <DialogHeader>
-            <DialogTitle>{editingItem ? "Edit Expense" : "Log Expense"}</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">{editingItem ? "Edit Expense" : "Log Expense"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4 py-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Date</Label>
                 <Input
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  className="h-10"
                 />
               </div>
               <div className="space-y-2">
@@ -639,35 +684,158 @@ export function Expenses() {
                   placeholder="0.00"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  className="h-10"
                 />
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label>Vendor / Payee</Label>
-              <Input
-                placeholder="e.g. Health Insurance Corp, Apple Store"
-                value={formData.vendor}
-                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-              />
+              <div className="flex items-center justify-between">
+                <Label>Vendor / Payee</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = !isCustomVendor;
+                    setIsCustomVendor(next);
+                    if (!next && !vendorOptions.includes(formData.vendor)) {
+                      setFormData({ ...formData, vendor: "" });
+                    }
+                  }}
+                  className="text-xs text-primary hover:underline font-medium"
+                >
+                  {isCustomVendor ? "Choose from list" : "+ Type custom vendor"}
+                </button>
+              </div>
+
+              {!isCustomVendor ? (
+                <Select
+                  value={formData.vendor}
+                  onValueChange={(val) => {
+                    if (val === "__custom__") {
+                      setIsCustomVendor(true);
+                      setFormData({ ...formData, vendor: "" });
+                      return;
+                    }
+
+                    // Smart auto-fill for category & recurring amounts
+                    let autoCategory = formData.category;
+                    let autoAmount = formData.amount;
+                    if (val.includes("House Rent") || val.toLowerCase().includes("rent")) {
+                      if (!autoCategory) autoCategory = "House Rent";
+                      setShowMpesaInput(true);
+                    } else if (val === "NSSF Kenya") {
+                      if (!autoCategory) autoCategory = "NSSF";
+                      if (!autoAmount) autoAmount = "500";
+                    } else if (val.includes("Social Health Authority") || val.includes("SHA")) {
+                      if (!autoCategory) autoCategory = "Health Insurance";
+                      if (!autoAmount) autoAmount = "1188";
+                    } else if (val === "Kenya Revenue Authority (KRA)") {
+                      if (!autoCategory) autoCategory = "Other";
+                    } else if (val.includes("Safaricom") || val.includes("Airtel") || val.includes("Kenya Power") || val.includes("Water")) {
+                      if (!autoCategory) autoCategory = "Rent & Utilities";
+                    } else if (val.includes("Adobe") || val.includes("Google") || val.includes("Microsoft") || val.includes("Hosting")) {
+                      if (!autoCategory) autoCategory = "Software & Subscriptions";
+                    } else if (val.includes("Uber") || val.includes("Bolt")) {
+                      if (!autoCategory) autoCategory = "Travel & Transport";
+                    } else if (val.includes("Camera") || val.includes("Production")) {
+                      if (!autoCategory) autoCategory = "Equipment";
+                    } else if (val.includes("Office Supplies")) {
+                      if (!autoCategory) autoCategory = "Office Supplies";
+                    }
+
+                    setFormData({
+                      ...formData,
+                      vendor: val,
+                      category: autoCategory,
+                      amount: autoAmount,
+                    });
+                  }}
+                >
+                  <SelectTrigger className="w-full h-10">
+                    <SelectValue placeholder="Select vendor / payee" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full min-w-[340px] max-h-[280px]">
+                    {vendorOptions.map((v) => (
+                      <SelectItem key={v} value={v}>
+                        {v}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="__custom__" className="text-primary font-medium">
+                      + Enter other vendor...
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  placeholder="Type vendor or payee name..."
+                  value={formData.vendor}
+                  onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+                  className="h-10"
+                  autoFocus
+                />
+              )}
             </div>
 
             <div className="space-y-2">
               <Label>Category</Label>
               <Select
                 value={formData.category}
-                onValueChange={(val) => setFormData({ ...formData, category: val })}
+                onValueChange={(val) => {
+                  setFormData({ ...formData, category: val });
+                  if (val === "House Rent" || val.toLowerCase().includes("rent")) {
+                    setShowMpesaInput(true);
+                  }
+                }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full h-10">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="w-full min-w-[280px] max-h-[280px]">
                   {EXPENSE_CATEGORIES.map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+
+            {/* M-Pesa Transaction Reference Input (Auto-shown when House Rent is selected) */}
+            {(formData.category === "House Rent" ||
+              formData.vendor?.toLowerCase().includes("rent") ||
+              showMpesaInput ||
+              Boolean(formData.mpesaReference)) ? (
+              <div className="space-y-2.5 p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-950/20 transition-all">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <Label className="text-xs sm:text-sm font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>M-Pesa Reference / Transaction Code</span>
+                  </Label>
+                  <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 whitespace-nowrap">
+                    Payment Receipt
+                  </span>
+                </div>
+                <Input
+                  placeholder="e.g. QK89XY452Z"
+                  value={formData.mpesaReference || ""}
+                  onChange={(e) => setFormData({ ...formData, mpesaReference: e.target.value.toUpperCase().trim() })}
+                  className="bg-background border-emerald-500/30 focus-visible:ring-emerald-500 font-mono tracking-widest text-sm font-semibold uppercase placeholder:font-normal placeholder:tracking-normal placeholder:capitalize h-11"
+                  autoFocus={formData.category === "House Rent" && !formData.mpesaReference}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter the Safaricom M-Pesa confirmation code as proof of your rent transfer.
+                </p>
+              </div>
+            ) : (
+              <div className="pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setShowMpesaInput(true)}
+                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 font-medium transition-colors"
+                >
+                  <Smartphone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  + Add M-Pesa transaction reference
+                </button>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Description (Optional)</Label>
@@ -679,11 +847,11 @@ export function Expenses() {
               />
             </div>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="outline" className="px-5 h-10" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!formData.amount || !formData.vendor || !formData.category}>
+            <Button className="px-6 h-10" onClick={handleSave} disabled={!formData.amount || !formData.vendor || !formData.category}>
               Save Expense
             </Button>
           </div>
