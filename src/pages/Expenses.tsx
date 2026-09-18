@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
-import { Search, Plus, Edit2, Trash2 } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, ShieldCheck, HeartPulse, Bell, CheckCircle2, Clock } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -24,6 +24,7 @@ import {
 const EXPENSE_CATEGORIES = [
   "Insurance",
   "Health Insurance",
+  "NSSF",
   "Equipment",
   "Software & Subscriptions",
   "Travel & Transport",
@@ -38,6 +39,7 @@ const EXPENSE_CATEGORIES = [
 const CATEGORY_COLORS: Record<string, string> = {
   "Insurance": "#3b82f6", // blue-500
   "Health Insurance": "#0ea5e9", // sky-500
+  "NSSF": "#16a34a", // green-600 (NSSF Kenya classic brand green)
   "Equipment": "#8b5cf6", // violet-500
   "Software & Subscriptions": "#ec4899", // pink-500
   "Travel & Transport": "#f59e0b", // amber-500
@@ -69,7 +71,7 @@ function formatKES(amount: number) {
 }
 
 export function Expenses() {
-  const { expenses, addExpense, updateExpense, deleteExpense } = useStore();
+  const { expenses, reminders, addExpense, updateExpense, deleteExpense, updateReminder, addReminder } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Expense | null>(null);
   
@@ -115,8 +117,61 @@ export function Expenses() {
         ...expenseData,
         id: Math.random().toString(36).substr(2, 9),
       });
+
+      // If user logs an NSSF expense, advance the pending NSSF reminder automatically
+      if (expenseData.category === "NSSF") {
+        const pendingNssf = reminders.find(
+          (r) => (r.category === "NSSF" || r.title?.toLowerCase().includes("nssf")) && r.status === "pending"
+        );
+        if (pendingNssf) {
+          await updateReminder(pendingNssf.id, { status: "paid" });
+          const currentDue = new Date(pendingNssf.dueDate);
+          const nextDue = new Date(currentDue);
+          nextDue.setMonth(nextDue.getMonth() + 1);
+          const nextMonthName = nextDue.toLocaleString("default", { month: "long", year: "numeric" });
+          await addReminder({
+            ...pendingNssf,
+            id: Math.random().toString(36).substr(2, 9),
+            title: "NSSF Monthly Contribution",
+            description: `${nextMonthName} statutory contribution (KES 500)`,
+            dueDate: nextDue.toISOString().split("T")[0],
+            status: "pending",
+          });
+        }
+      }
     }
     setIsDialogOpen(false);
+  };
+
+  const handlePayNssfMonth = async (monthName: string, dueDateStr: string) => {
+    const newId = Math.random().toString(36).substr(2, 9);
+    await addExpense({
+      id: newId,
+      date: new Date().toISOString().split("T")[0],
+      amount: 500,
+      category: "NSSF",
+      vendor: "NSSF Kenya",
+      description: `${monthName} statutory contribution (Paid)`,
+    });
+
+    const pendingNssf = reminders.find(
+      (r) => (r.category === "NSSF" || r.title?.toLowerCase().includes("nssf")) && r.status === "pending"
+    );
+    if (pendingNssf) {
+      await updateReminder(pendingNssf.id, { status: "paid" });
+      const currentDue = new Date(pendingNssf.dueDate);
+      const nextDue = new Date(currentDue);
+      nextDue.setMonth(nextDue.getMonth() + 1);
+      const nextMonthName = nextDue.toLocaleString("default", { month: "long", year: "numeric" });
+      await addReminder({
+        ...pendingNssf,
+        id: Math.random().toString(36).substr(2, 9),
+        title: "NSSF Monthly Contribution",
+        description: `${nextMonthName} statutory contribution (KES 500)`,
+        dueDate: nextDue.toISOString().split("T")[0],
+        status: "pending",
+      });
+    }
   };
 
   const confirmDelete = (id: string) => {
@@ -161,6 +216,27 @@ export function Expenses() {
   const pieData = Object.entries(categoryTotals)
     .sort((a, b) => b[1] - a[1])
     .map(([name, value]) => ({ name, value }));
+
+  // Statutory contribution tracking calculations
+  const nssfExpenses = expenses
+    .filter((e) => e.category === "NSSF")
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const hasSeptemberNssf = nssfExpenses.some(
+    (e) => e.date.startsWith("2026-09") || e.description?.toLowerCase().includes("september")
+  );
+
+  const hasOctoberNssf = nssfExpenses.some(
+    (e) => e.date.startsWith("2026-10") || e.description?.toLowerCase().includes("october")
+  );
+
+  const nssfReminder = reminders.find(
+    (r) => (r.category === "NSSF" || r.title?.toLowerCase().includes("nssf")) && r.status === "pending"
+  );
+
+  const healthReminder = reminders.find(
+    (r) => (r.category === "Health Insurance" || r.title?.toLowerCase().includes("health insurance")) && r.status === "pending"
+  );
 
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
@@ -297,6 +373,171 @@ export function Expenses() {
                 </ResponsiveContainer>
              </div>
            </div>
+        </div>
+
+        {/* Monthly Statutory & Recurring Contributions Tracker */}
+        <div className="border border-border rounded-xl p-6 bg-card shadow-sm mb-12">
+          <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+            <div>
+              <h3 className="text-base font-medium text-foreground">Monthly Statutory & Insurance Tracker</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Automated tracking and payment reminders for statutory deductions and recurring health coverage.
+              </p>
+            </div>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-muted font-medium text-muted-foreground border border-border">
+              Auto-Reminder Active
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* NSSF Card */}
+            <div className="p-4 rounded-xl border border-border bg-background/50 hover:border-emerald-500/30 transition-colors">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      NSSF Contribution
+                      <span className="text-[11px] font-normal px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                        KES 500 / month
+                      </span>
+                    </h4>
+                    <p className="text-xs text-muted-foreground">National Social Security Fund (Kenya)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly breakdown status */}
+              <div className="mt-4 space-y-2 pt-3 border-t border-border/60">
+                {/* September status */}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    September 2026:
+                  </span>
+                  <span className="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    ✓ Paid (KES 500)
+                  </span>
+                </div>
+
+                {/* October status */}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    {hasOctoberNssf ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    ) : (
+                      <Clock className="w-3.5 h-3.5 text-amber-500" />
+                    )}
+                    October 2026:
+                  </span>
+                  {hasOctoberNssf ? (
+                    <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                      ✓ Paid (KES 500)
+                    </span>
+                  ) : (
+                    <span className="font-medium text-amber-500">
+                      Due Oct 9, 2026 (Pending)
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/60">
+                {!hasOctoberNssf && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-xs font-medium border-emerald-600/30 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400"
+                    onClick={() => handlePayNssfMonth("October 2026", "2026-10-09")}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                    Mark Oct Paid
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    const nssfRem = reminders.find(
+                      (r) => r.category === "NSSF" || r.title?.toLowerCase().includes("nssf")
+                    );
+                    window.dispatchEvent(
+                      new CustomEvent("preview-reminder", { detail: { reminderId: nssfRem?.id } })
+                    );
+                  }}
+                >
+                  <Bell className="w-3.5 h-3.5 mr-1.5" />
+                  Test Reminder Alert
+                </Button>
+              </div>
+            </div>
+
+            {/* Health Insurance Card */}
+            <div className="p-4 rounded-xl border border-border bg-background/50 hover:border-sky-500/30 transition-colors">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">
+                    <HeartPulse className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      Health Insurance (SHA)
+                      <span className="text-[11px] font-normal px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                        KES 1,188 / month
+                      </span>
+                    </h4>
+                    <p className="text-xs text-muted-foreground">Social Health Authority / NHIF</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status details */}
+              <div className="mt-4 space-y-2 pt-3 border-t border-border/60">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                    Coverage Status:
+                  </span>
+                  <span className="font-medium text-sky-600 dark:text-sky-400">
+                    Paid 4 months in advance
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                    Next Renewal Date:
+                  </span>
+                  <span className="font-medium text-foreground">
+                    February 10, 2027
+                  </span>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/60">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    const healthRem = reminders.find(
+                      (r) => r.category === "Health Insurance" || r.title?.toLowerCase().includes("health insurance")
+                    );
+                    window.dispatchEvent(
+                      new CustomEvent("preview-reminder", { detail: { reminderId: healthRem?.id } })
+                    );
+                  }}
+                >
+                  <Bell className="w-3.5 h-3.5 mr-1.5" />
+                  Preview Reminder
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Ledger Section */}
