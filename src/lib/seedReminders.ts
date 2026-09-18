@@ -1,5 +1,5 @@
 import { auth, db } from '../lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { Reminder, Expense } from '../store';
 
 export const seedHealthInsuranceReminder = async () => {
@@ -36,22 +36,15 @@ export const seedStatutoryReminders = async (expenses: Expense[], reminders: Rem
     await seedHealthInsuranceReminder();
   }
 
-  // 2. Ensure September 2026 NSSF contribution is recorded as an expense (since user already paid it)
-  const hasSeptNssfExpense = expenses.some(
-    (e) => e.category === "NSSF" && (e.date.startsWith("2026-09") || e.description?.toLowerCase().includes("september"))
-  );
-  if (!hasSeptNssfExpense) {
-    const septExpenseId = "nssf-exp-sept-2026";
-    await setDoc(doc(db, `users/${uid}/expenses`, septExpenseId), {
-      id: septExpenseId,
-      date: "2026-09-10",
-      amount: 500,
-      category: "NSSF",
-      vendor: "NSSF Kenya",
-      description: "September 2026 contribution (Paid)",
-      uid
-    });
-    console.log("Seeded September 2026 NSSF expense");
+  // 2. Clean up duplicate auto-seeded NSSF expense if the user already has their own NSSF expense
+  const nssfExpenses = expenses.filter((e) => e.category === "NSSF");
+  const autoSeeded = nssfExpenses.find((e) => e.id === "nssf-exp-sept-2026");
+  const userNssfExpenses = nssfExpenses.filter((e) => e.id !== "nssf-exp-sept-2026");
+
+  if (autoSeeded && userNssfExpenses.length > 0) {
+    // User already logged their own Ksh 500 NSSF contribution; delete the duplicate auto-seeded one!
+    await deleteDoc(doc(db, `users/${uid}/expenses`, "nssf-exp-sept-2026"));
+    console.log("Removed duplicate auto-seeded NSSF expense");
   }
 
   // 3. Ensure NSSF monthly recurring reminder is scheduled starting with October 2026
@@ -75,3 +68,4 @@ export const seedStatutoryReminders = async (expenses: Expense[], reminders: Rem
     console.log("Seeded NSSF monthly reminder for October 2026");
   }
 };
+
