@@ -9,6 +9,7 @@ import { Dashboard } from '@/pages/Dashboard';
 import { Clients } from '@/pages/Clients';
 import { Projects } from '@/pages/Projects';
 import { Quotes } from '@/pages/Quotes';
+import { Contracts } from '@/pages/Contracts';
 import { Invoices } from '@/pages/Invoices';
 import { Payments } from '@/pages/Payments';
 import { Performance } from '@/pages/Performance';
@@ -42,6 +43,7 @@ export default function App() {
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/quotes" element={<Quotes />} />
+                <Route path="/contracts" element={<Contracts />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/payments" element={<Payments />} />
                 <Route path="/performance" element={<Performance />} />

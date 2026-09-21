@@ -1,6 +1,6 @@
 import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useEffect } from "react";
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useStore, Project, CollaboratorSplit, Milestone } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Users, PieChart, LayoutList, Clock, CheckSquare, FileText, Download, Loader2, MoreHorizontal } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, PieChart, LayoutList, Clock, CheckSquare, FileText, Download, Loader2, MoreHorizontal, FileSignature } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,7 @@ export function Projects() {
 
   const { projects, projectTemplates, clients, invoices, quotes, addProject, updateProject, deleteProject, updateQuote, addProjectTemplate, deleteProjectTemplate } = useStore();
   const location = useLocation();
+  const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const highlightedId = searchParams.get('highlight');
   
@@ -710,6 +711,13 @@ export function Projects() {
                                   >
                                     <PieChart className="w-4 h-4 mr-2.5 text-slate-600" />
                                     Collaborator Split
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => navigate('/contracts')}
+                                    className="cursor-pointer py-2"
+                                  >
+                                    <FileSignature className="w-4 h-4 mr-2.5 text-primary" />
+                                    Contracts & NDAs
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator className="my-1" />
                                   <DropdownMenuItem

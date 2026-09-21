@@ -1,5 +1,6 @@
 import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from "@/store";
 import { NDA } from "@/components/NDA";
 import { Contract } from "@/components/Contract";
@@ -121,6 +122,7 @@ export function Quotes() {
   } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [activePreviewQuote, setActivePreviewQuote] = useState<Quote | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const [isNDADialogOpen, setIsNDADialogOpen] = useState(false);
@@ -734,6 +736,7 @@ export function Quotes() {
   };
 
   const handleOpenPreview = (quote: Quote) => {
+    setActivePreviewQuote(quote);
     setFormData({
       quoteNumber: quote.quoteNumber || "",
       projectId: quote.projectId || "",
@@ -1341,6 +1344,16 @@ export function Quotes() {
               <Trash2 className="h-4 w-4 text-muted-foreground" />
             </Button>
           )}
+          <Button
+            asChild
+            variant="outline"
+            className="border-slate-300 hover:bg-slate-100 text-slate-700 w-full sm:w-auto"
+          >
+            <Link to="/contracts">
+              <FileSignature className="w-4 h-4 mr-2 text-primary" />
+              Contracts & NDAs
+            </Link>
+          </Button>
           <Button
             onClick={() => handleOpenDialog()}
             className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
@@ -2592,24 +2605,56 @@ export function Quotes() {
               <DialogTitle className="text-xl font-bold">
                 Quote Preview
               </DialogTitle>
-              <Button
-                onClick={handleDownloadPDF}
-                disabled={isGeneratingPDF}
-                variant="outline"
-                size="sm"
-                className="bg-slate-900 border-none text-white hover:bg-slate-800 hover:text-white"
-              >
-                {isGeneratingPDF ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4 mr-2" /> Download Document
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => {
+                    if (activePreviewQuote) {
+                      setIsPreviewOpen(false);
+                      handleOpenContract(activePreviewQuote);
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="border-slate-300 hover:bg-slate-100 text-slate-700"
+                  title="Generate Service Agreement (Contract)"
+                >
+                  <FileSignature className="w-4 h-4 mr-1.5 text-primary" />
+                  Generate Contract
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (activePreviewQuote) {
+                      setIsPreviewOpen(false);
+                      handleOpenNDA(activePreviewQuote);
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="border-slate-300 hover:bg-slate-100 text-slate-700"
+                  title="Generate Confidentiality Agreement (NDA)"
+                >
+                  <FileText className="w-4 h-4 mr-1.5 text-sky-600" />
+                  Generate NDA
+                </Button>
+                <Button
+                  onClick={handleDownloadPDF}
+                  disabled={isGeneratingPDF}
+                  variant="outline"
+                  size="sm"
+                  className="bg-slate-900 border-none text-white hover:bg-slate-800 hover:text-white"
+                >
+                  {isGeneratingPDF ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" /> Download Document
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
             <div className="w-full bg-[#FAF8F4] overflow-x-auto">
@@ -3298,7 +3343,7 @@ export function Quotes() {
                 <TableHead className="whitespace-nowrap">Total Amount</TableHead>
                 <TableHead className="whitespace-nowrap">My Cut</TableHead>
                 <TableHead className="whitespace-nowrap">Status</TableHead>
-                <TableHead className="text-right sticky right-0 bg-white/95 dark:bg-card/95 backdrop-blur z-20 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4 min-w-[150px]">
+                <TableHead className="text-right sticky right-0 bg-white/95 dark:bg-card/95 backdrop-blur z-20 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4 min-w-[210px]">
                   Actions
                 </TableHead>
               </TableRow>
@@ -3419,6 +3464,28 @@ export function Quotes() {
                               <Eye className="w-4 h-4" />
                             </Button>
 
+                            {/* Visible Document action: CONTRACT */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenContract(quote)}
+                              title="Generate Service Agreement (Contract)"
+                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                            >
+                              <FileSignature className="w-4 h-4 text-primary" />
+                            </Button>
+
+                            {/* Visible Document action: NDA */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenNDA(quote)}
+                              title="Generate Confidentiality Agreement (NDA)"
+                              className="text-slate-700 hover:text-sky-600 hover:bg-slate-100"
+                            >
+                              <FileText className="w-4 h-4 text-sky-600" />
+                            </Button>
+
                             {/* Quick Approve / Decline buttons if pending review */}
                             {quote.status !== "approved" &&
                               quote.status !== "declined" && (
@@ -3462,7 +3529,7 @@ export function Quotes() {
                                   </Button>
                                 }
                               />
-                              <DropdownMenuContent align="end" className="w-56 p-1.5 shadow-lg bg-white">
+                              <DropdownMenuContent align="end" className="w-60 p-1.5 shadow-lg bg-white">
                                 <DropdownMenuItem
                                   onClick={() => handleOpenDialog(quote)}
                                   className="cursor-pointer py-2 font-medium"
@@ -3476,6 +3543,20 @@ export function Quotes() {
                                 >
                                   <Eye className="w-4 h-4 mr-2.5 text-slate-600" />
                                   Preview Quote
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleOpenContract(quote)}
+                                  className="cursor-pointer py-2 font-medium text-slate-800"
+                                >
+                                  <FileSignature className="w-4 h-4 mr-2.5 text-primary" />
+                                  Generate Contract
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleOpenNDA(quote)}
+                                  className="cursor-pointer py-2 font-medium text-slate-800"
+                                >
+                                  <FileText className="w-4 h-4 mr-2.5 text-sky-600" />
+                                  Generate NDA
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleCopyLink(quote.id)}
@@ -3495,26 +3576,6 @@ export function Quotes() {
                                   <Copy className="w-4 h-4 mr-2.5 text-slate-600" />
                                   Create Revision
                                 </DropdownMenuItem>
-
-                                {(quote.status === "sent" || quote.status === "approved") && (
-                                  <>
-                                    <DropdownMenuSeparator className="my-1" />
-                                    <DropdownMenuItem
-                                      onClick={() => handleOpenContract(quote)}
-                                      className="cursor-pointer py-2"
-                                    >
-                                      <FileSignature className="w-4 h-4 mr-2.5 text-slate-600" />
-                                      Generate Contract
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      onClick={() => handleOpenNDA(quote)}
-                                      className="cursor-pointer py-2"
-                                    >
-                                      <FileText className="w-4 h-4 mr-2.5 text-slate-600" />
-                                      Generate NDA
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
 
                                 {quote.status !== "approved" && quote.status !== "declined" && (
                                   <>
