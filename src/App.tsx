@@ -19,6 +19,7 @@ import { SharedQuote } from '@/pages/SharedQuote';
 import { SharedInvoice } from '@/pages/SharedInvoice';
 import Settings from '@/pages/Settings';
 import Login from '@/pages/Login';
+import { ManualGuide } from '@/pages/ManualGuide';
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { FirebaseProvider } from '@/components/FirebaseProvider';
@@ -52,6 +53,8 @@ export default function App() {
                   <Route path="/equipment" element={<Equipment />} />
                   <Route path="/expenses" element={<Expenses />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="/guide" element={<ManualGuide />} />
+                  <Route path="/manual" element={<ManualGuide />} />
                 </Route>
               </Route>
             </Routes>

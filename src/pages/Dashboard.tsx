@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/store';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays } from 'date-fns';
-import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2, Activity, CreditCard, FileText, UserPlus, FileCheck, ArrowUpRight, Receipt } from 'lucide-react';
+import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2, Activity, CreditCard, FileText, UserPlus, FileCheck, ArrowUpRight, Receipt, BookOpen, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -313,6 +313,31 @@ export function Dashboard() {
           </div>
         </div>
 
+        {/* System Manual Guide Card */}
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 bg-white/10 rounded-lg text-accent">
+                <BookOpen className="w-4 h-4" />
+              </span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">System Manual</span>
+            </div>
+            <Link to="/guide?tour=true" className="text-[11px] font-semibold text-accent hover:underline flex items-center">
+              2-Min Tour <ArrowRight className="w-3 h-3 ml-1" />
+            </Link>
+          </div>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Need help with Quotes, Legal Contracts, Invoicing, or M-Pesa receipts? Read our step-by-step workflow guide.
+          </p>
+          <div className="flex gap-2 pt-1">
+            <Link to="/guide" className="flex-1">
+              <Button size="sm" variant="secondary" className="w-full text-xs font-semibold bg-white text-slate-900 hover:bg-slate-100 h-8">
+                Explore Manual Guide
+              </Button>
+            </Link>
+          </div>
+        </div>
+
         {/* Upcoming Shoots */}
         <div>
           <div className="flex justify-between items-center mb-6">
@@ -445,6 +470,10 @@ export function Dashboard() {
             <DropdownMenuItem onClick={() => navigate('/invoices?new=true')} className="cursor-pointer py-3">
               <Receipt className="w-4 h-4 mr-3 text-slate-500" />
               <span className="font-medium text-slate-700">New Invoice</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/guide?tour=true')} className="cursor-pointer py-3 border-t border-slate-100">
+              <BookOpen className="w-4 h-4 mr-3 text-primary" />
+              <span className="font-medium text-slate-700">Manual & Tour</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -1,5 +1,8 @@
 {
   "name": "CaptureCRM",
   "description": "A modern, high-end web application for a professional photography business to manage clients, projects, quotes, invoices, and revenue splitting.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

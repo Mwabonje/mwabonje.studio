@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings, Users, Camera, Wallet, FileSignature } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings, Users, Camera, Wallet, FileSignature, BookOpen, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 import { auth } from '@/lib/firebase';
@@ -79,6 +79,7 @@ export function Layout() {
     { name: 'Expenses', href: '/expenses', icon: Wallet },
     { name: 'Performance', href: '/performance', icon: PieChart },
     { name: 'Equipment', href: '/equipment', icon: Camera },
+    { name: 'System Guide', href: '/guide', icon: BookOpen },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
@@ -88,10 +89,15 @@ export function Layout() {
     <div className="flex h-screen overflow-hidden bg-slate-50">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-primary text-primary-foreground flex items-center justify-between px-4 z-30 shadow-md">
-        <h1 className="text-xl font-bold tracking-widest text-white truncate pr-4">{settings?.companyName?.toUpperCase() || 'STUDIO'}</h1>
-        <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 -mr-2 text-white shrink-0">
-          <Menu className="w-6 h-6" />
-        </button>
+        <h1 className="text-xl font-bold tracking-widest text-white truncate pr-2">{settings?.companyName?.toUpperCase() || 'STUDIO'}</h1>
+        <div className="flex items-center gap-1 shrink-0">
+          <Link to="/guide" className="p-2 text-white/80 hover:text-white" title="User Manual & Guide">
+            <HelpCircle className="w-5 h-5" />
+          </Link>
+          <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 -mr-2 text-white">
+            <Menu className="w-6 h-6" />
+          </button>
+        </div>
       </div>
 
       {/* Mobile Overlay */}
