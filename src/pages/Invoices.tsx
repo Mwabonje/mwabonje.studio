@@ -25,6 +25,7 @@ import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { formatPhoneNumber } from '@/lib/utils';
+import { ActionTooltip } from '@/components/ui/tooltip';
 
 export function Invoices() {
   const { invoices, quotes, projects, clients, settings, addInvoice, updateInvoice, deleteInvoice } = useStore();
@@ -474,9 +475,11 @@ export function Invoices() {
                           required
                         />
                       </div>
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removeLineItem(item.id)}>
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
+                      <ActionTooltip content="Remove Line Item">
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeLineItem(item.id)}>
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </ActionTooltip>
                     </div>
                   ))}
                   {lineItems.length === 0 && (
@@ -518,16 +521,20 @@ export function Invoices() {
             <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
               <DialogTitle className="text-xl font-bold">Invoice Preview</DialogTitle>
               <div className="flex space-x-2">
-                <Button variant="outline" size="sm" onClick={handleCopyLink}>
-                  <Copy className="w-4 h-4 mr-2" /> Copy Link
-                </Button>
-                <Button size="sm" onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
-                  {isGeneratingPDF ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
-                  ) : (
-                    <><Download className="w-4 h-4 mr-2" /> Download PDF</>
-                  )}
-                </Button>
+                <ActionTooltip content="Copy Public Invoice Link">
+                  <Button variant="outline" size="sm" onClick={handleCopyLink}>
+                    <Copy className="w-4 h-4 mr-2" /> Copy Link
+                  </Button>
+                </ActionTooltip>
+                <ActionTooltip content="Download Invoice PDF">
+                  <Button size="sm" onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
+                    {isGeneratingPDF ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
+                    ) : (
+                      <><Download className="w-4 h-4 mr-2" /> Download PDF</>
+                    )}
+                  </Button>
+                </ActionTooltip>
               </div>
             </div>
             
@@ -1291,26 +1298,28 @@ export function Invoices() {
                       <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
                         <div className="flex items-center justify-end gap-1">
                           {/* Primary visible action: EDIT */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenDialog(invoice)}
-                            title="Edit Invoice"
-                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
+                          <ActionTooltip content="Edit Invoice Details">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenDialog(invoice)}
+                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </ActionTooltip>
 
                           {/* Quick Preview button */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenPreview(invoice)}
-                            title="Preview Invoice"
-                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </Button>
+                          <ActionTooltip content="Preview & Share Invoice">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenPreview(invoice)}
+                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </Button>
+                          </ActionTooltip>
 
                           {/* More options dropdown */}
                           <DropdownMenu>

@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Edit, Trash2, Search, Download } from "lucide-react";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 export function Equipment() {
   const { equipment, addEquipment, updateEquipment, deleteEquipment } = useStore();
@@ -133,10 +134,12 @@ export function Equipment() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Equipment Inventory</h2>
         <div className="flex gap-2 w-full sm:w-auto">
-          <Button variant="outline" onClick={handleExportCSV}>
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
+          <ActionTooltip content="Export Equipment Inventory as CSV">
+            <Button variant="outline" onClick={handleExportCSV}>
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+          </ActionTooltip>
           <Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 sm:flex-none">
             <Plus className="w-4 h-4 mr-2" />
             Add Equipment
@@ -312,23 +315,25 @@ export function Equipment() {
                       <TableCell className="text-right tabular-nums whitespace-nowrap">{formatCurrency(item.purchasePrice)}</TableCell>
                       <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
                         <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenDialog(item)}
-                            title="Edit Equipment"
-                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setItemToDelete(item.id)}
-                            title="Delete Equipment"
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
+                          <ActionTooltip content="Edit Equipment Details">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenDialog(item)}
+                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </ActionTooltip>
+                          <ActionTooltip content="Delete Equipment Item">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setItemToDelete(item.id)}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </ActionTooltip>
                         </div>
                       </TableCell>
                     </TableRow>

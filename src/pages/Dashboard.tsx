@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ActionTooltip } from '@/components/ui/tooltip';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -265,9 +266,13 @@ export function Dashboard() {
               ))}
             </div>
             <div className="flex items-center space-x-3 text-slate-400 font-medium shrink-0">
-              <button onClick={prevMonth} className="p-1 hover:bg-slate-100 rounded-full transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+              <ActionTooltip content="Previous Month">
+                <button onClick={prevMonth} aria-label="Previous Month" className="p-1 hover:bg-slate-100 rounded-full transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+              </ActionTooltip>
               <span className="text-slate-600 font-bold">{format(currentDate, 'yyyy')}</span>
-              <button onClick={nextMonth} className="p-1 hover:bg-slate-100 rounded-full transition-colors"><ChevronRight className="w-4 h-4" /></button>
+              <ActionTooltip content="Next Month">
+                <button onClick={nextMonth} aria-label="Next Month" className="p-1 hover:bg-slate-100 rounded-full transition-colors"><ChevronRight className="w-4 h-4" /></button>
+              </ActionTooltip>
             </div>
           </div>
 
@@ -417,11 +422,13 @@ export function Dashboard() {
       {/* Quick Actions Floating Button */}
       <div className="fixed bottom-8 right-8 z-50">
         <DropdownMenu>
-          <DropdownMenuTrigger render={
-            <Button size="icon" className="w-14 h-14 rounded-full shadow-xl bg-slate-800 text-white hover:bg-slate-700 hover:scale-105 transition-all">
-              <Plus className="w-6 h-6" />
-            </Button>
-          } />
+          <ActionTooltip content="Quick Creation Menu" side="left">
+            <DropdownMenuTrigger render={
+              <Button size="icon" aria-label="Quick Creation Menu" className="w-14 h-14 rounded-full shadow-xl bg-slate-800 text-white hover:bg-slate-700 hover:scale-105 transition-all">
+                <Plus className="w-6 h-6" />
+              </Button>
+            } />
+          </ActionTooltip>
           <DropdownMenuContent align="end" className="w-48 mb-2 p-2">
             <DropdownMenuItem onClick={() => navigate('/clients?new=true')} className="cursor-pointer py-3">
               <UserPlus className="w-4 h-4 mr-3 text-slate-500" />

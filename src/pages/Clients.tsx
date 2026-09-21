@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Edit, Trash2, Search, Download } from "lucide-react";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 export function Clients() {
   const { clients, addClient, updateClient, deleteClient } = useStore();
@@ -226,14 +227,16 @@ export function Clients() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button
-            onClick={handleExportCSV}
-            variant="outline"
-            className="w-full sm:w-auto"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
+          <ActionTooltip content="Export Clients as CSV" side="bottom">
+            <Button
+              onClick={handleExportCSV}
+              variant="outline"
+              className="w-full sm:w-auto"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
+            </Button>
+          </ActionTooltip>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger
               render={
@@ -504,23 +507,25 @@ export function Clients() {
                       </TableCell>
                       <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
                         <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenDialog(client)}
-                            title="Edit Client"
-                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setClientToDelete(client.id)}
-                            title="Delete Client"
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
+                          <ActionTooltip content="Edit Client Details">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenDialog(client)}
+                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </ActionTooltip>
+                          <ActionTooltip content="Delete Client Record">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setClientToDelete(client.id)}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </ActionTooltip>
                         </div>
                       </TableCell>
                     </TableRow>

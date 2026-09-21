@@ -69,6 +69,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { format } from "date-fns";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 const checkIsExpired = (quote: any) => {
   if (quote.status === 'approved' || quote.status === 'declined') return false;
@@ -1334,26 +1335,29 @@ export function Quotes() {
             placeholder="Filter by date"
           />
           {dateFilter && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDateFilter("")}
-              className="shrink-0"
-              title="Clear date filter"
-            >
-              <Trash2 className="h-4 w-4 text-muted-foreground" />
-            </Button>
+            <ActionTooltip content="Clear Date Filter">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setDateFilter("")}
+                className="shrink-0"
+              >
+                <Trash2 className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </ActionTooltip>
           )}
-          <Button
-            asChild
-            variant="outline"
-            className="border-slate-300 hover:bg-slate-100 text-slate-700 w-full sm:w-auto"
-          >
-            <Link to="/contracts">
-              <FileSignature className="w-4 h-4 mr-2 text-primary" />
-              Contracts & NDAs
-            </Link>
-          </Button>
+          <ActionTooltip content="View & Generate Contracts & NDAs" side="bottom">
+            <Button
+              asChild
+              variant="outline"
+              className="border-slate-300 hover:bg-slate-100 text-slate-700 w-full sm:w-auto"
+            >
+              <Link to="/contracts">
+                <FileSignature className="w-4 h-4 mr-2 text-primary" />
+                Contracts & NDAs
+              </Link>
+            </Button>
+          </ActionTooltip>
           <Button
             onClick={() => handleOpenDialog()}
             className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
@@ -2606,54 +2610,58 @@ export function Quotes() {
                 Quote Preview
               </DialogTitle>
               <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => {
-                    if (activePreviewQuote) {
-                      setIsPreviewOpen(false);
-                      handleOpenContract(activePreviewQuote);
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="border-slate-300 hover:bg-slate-100 text-slate-700"
-                  title="Generate Service Agreement (Contract)"
-                >
-                  <FileSignature className="w-4 h-4 mr-1.5 text-primary" />
-                  Generate Contract
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (activePreviewQuote) {
-                      setIsPreviewOpen(false);
-                      handleOpenNDA(activePreviewQuote);
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="border-slate-300 hover:bg-slate-100 text-slate-700"
-                  title="Generate Confidentiality Agreement (NDA)"
-                >
-                  <FileText className="w-4 h-4 mr-1.5 text-sky-600" />
-                  Generate NDA
-                </Button>
-                <Button
-                  onClick={handleDownloadPDF}
-                  disabled={isGeneratingPDF}
-                  variant="outline"
-                  size="sm"
-                  className="bg-slate-900 border-none text-white hover:bg-slate-800 hover:text-white"
-                >
-                  {isGeneratingPDF ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4 mr-2" /> Download Document
-                    </>
-                  )}
-                </Button>
+                <ActionTooltip content="Generate Service Agreement (Contract)">
+                  <Button
+                    onClick={() => {
+                      if (activePreviewQuote) {
+                        setIsPreviewOpen(false);
+                        handleOpenContract(activePreviewQuote);
+                      }
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="border-slate-300 hover:bg-slate-100 text-slate-700"
+                  >
+                    <FileSignature className="w-4 h-4 mr-1.5 text-primary" />
+                    Generate Contract
+                  </Button>
+                </ActionTooltip>
+                <ActionTooltip content="Generate Confidentiality Agreement (NDA)">
+                  <Button
+                    onClick={() => {
+                      if (activePreviewQuote) {
+                        setIsPreviewOpen(false);
+                        handleOpenNDA(activePreviewQuote);
+                      }
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="border-slate-300 hover:bg-slate-100 text-slate-700"
+                  >
+                    <FileText className="w-4 h-4 mr-1.5 text-sky-600" />
+                    Generate NDA
+                  </Button>
+                </ActionTooltip>
+                <ActionTooltip content="Download Quote PDF">
+                  <Button
+                    onClick={handleDownloadPDF}
+                    disabled={isGeneratingPDF}
+                    variant="outline"
+                    size="sm"
+                    className="bg-slate-900 border-none text-white hover:bg-slate-800 hover:text-white"
+                  >
+                    {isGeneratingPDF ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4 mr-2" /> Download Document
+                      </>
+                    )}
+                  </Button>
+                </ActionTooltip>
               </div>
             </div>
 
@@ -3443,75 +3451,81 @@ export function Quotes() {
                         <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
                           <div className="flex items-center justify-end gap-1">
                             {/* Primary visible action: EDIT */}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenDialog(quote)}
-                              title="Edit Quote"
-                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
+                            <ActionTooltip content="Edit Quote Details">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenDialog(quote)}
+                                className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </ActionTooltip>
 
                             {/* Secondary visible action: PREVIEW */}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenPreview(quote)}
-                              title="Preview Quote"
-                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
+                            <ActionTooltip content="Preview Quote Document">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenPreview(quote)}
+                                className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </ActionTooltip>
 
                             {/* Visible Document action: CONTRACT */}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenContract(quote)}
-                              title="Generate Service Agreement (Contract)"
-                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                            >
-                              <FileSignature className="w-4 h-4 text-primary" />
-                            </Button>
+                            <ActionTooltip content="Generate Service Agreement (Contract)">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenContract(quote)}
+                                className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                              >
+                                <FileSignature className="w-4 h-4 text-primary" />
+                              </Button>
+                            </ActionTooltip>
 
                             {/* Visible Document action: NDA */}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenNDA(quote)}
-                              title="Generate Confidentiality Agreement (NDA)"
-                              className="text-slate-700 hover:text-sky-600 hover:bg-slate-100"
-                            >
-                              <FileText className="w-4 h-4 text-sky-600" />
-                            </Button>
+                            <ActionTooltip content="Generate Confidentiality Agreement (NDA)">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenNDA(quote)}
+                                className="text-slate-700 hover:text-sky-600 hover:bg-slate-100"
+                              >
+                                <FileText className="w-4 h-4 text-sky-600" />
+                              </Button>
+                            </ActionTooltip>
 
                             {/* Quick Approve / Decline buttons if pending review */}
                             {quote.status !== "approved" &&
                               quote.status !== "declined" && (
                                 <>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                      setPendingAction({ type: "approve", quote })
-                                    }
-                                    title="Approve & Create Invoice"
-                                    className="hover:bg-green-50"
-                                  >
-                                    <CheckSquare className="w-4 h-4 text-green-600 hover:text-green-700" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                      setPendingAction({ type: "decline", quote })
-                                    }
-                                    title="Mark as Declined"
-                                    className="hover:bg-red-50"
-                                  >
-                                    <XCircle className="w-4 h-4 text-red-500 hover:text-red-700" />
-                                  </Button>
+                                  <ActionTooltip content="Approve Quote & Create Invoice">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() =>
+                                        setPendingAction({ type: "approve", quote })
+                                      }
+                                      className="hover:bg-green-50"
+                                    >
+                                      <CheckSquare className="w-4 h-4 text-green-600 hover:text-green-700" />
+                                    </Button>
+                                  </ActionTooltip>
+                                  <ActionTooltip content="Mark Quote as Declined">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() =>
+                                        setPendingAction({ type: "decline", quote })
+                                      }
+                                      className="hover:bg-red-50"
+                                    >
+                                      <XCircle className="w-4 h-4 text-red-500 hover:text-red-700" />
+                                    </Button>
+                                  </ActionTooltip>
                                 </>
                               )}
 

@@ -23,6 +23,7 @@ import { format, isAfter, isBefore, isSameDay } from 'date-fns';
 import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { formatPhoneNumber } from '@/lib/utils';
+import { ActionTooltip } from '@/components/ui/tooltip';
 
 export function Projects() {
 
@@ -294,9 +295,11 @@ export function Projects() {
         <h2 className="text-2xl font-semibold tracking-tight">Projects</h2>
         <div className="flex space-x-2 w-full sm:w-auto">
           {projectTemplates.length > 0 && (
-            <Button variant="outline" onClick={() => setIsTemplatesDialogOpen(true)}>
-              Manage Templates
-            </Button>
+            <ActionTooltip content="Manage Project Templates" side="bottom">
+              <Button variant="outline" onClick={() => setIsTemplatesDialogOpen(true)}>
+                Manage Templates
+              </Button>
+            </ActionTooltip>
           )}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger render={
@@ -644,37 +647,40 @@ export function Projects() {
                           <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
                             <div className="flex items-center justify-end gap-1">
                               {/* Primary visible action: EDIT */}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleOpenDialog(project)}
-                                title="Edit Project"
-                                className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
+                              <ActionTooltip content="Edit Project Details">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleOpenDialog(project)}
+                                  className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                              </ActionTooltip>
 
                               {/* Quick Report button */}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleOpenPreview(project)}
-                                title="View Report"
-                                className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                              >
-                                <FileText className="w-4 h-4" />
-                              </Button>
+                              <ActionTooltip content="View Project Report">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleOpenPreview(project)}
+                                  className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                </Button>
+                              </ActionTooltip>
 
                               {/* Quick Split button */}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleOpenSplitDialog(project)}
-                                title="Collaborator Split"
-                                className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                              >
-                                <PieChart className="w-4 h-4" />
-                              </Button>
+                              <ActionTooltip content="Collaborator Revenue Split">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleOpenSplitDialog(project)}
+                                  className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                                >
+                                  <PieChart className="w-4 h-4" />
+                                </Button>
+                              </ActionTooltip>
 
                               {/* More options dropdown */}
                               <DropdownMenu>
@@ -794,15 +800,21 @@ export function Projects() {
                                {project.collaborators?.length || 0}
                              </div>
                              <div className="flex items-center space-x-1 sm:justify-end ml-auto sm:ml-0">
-                               <Button variant="ghost" size="icon" onClick={() => handleOpenSplitDialog(project)}>
-                                 <PieChart className="w-4 h-4 text-slate-500" />
-                               </Button>
-                               <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(project)}>
-                                 <Edit className="w-4 h-4 text-slate-500" />
-                               </Button>
-                               <Button variant="ghost" size="icon" onClick={() => setProjectToDelete(project.id)}>
-                                 <Trash2 className="w-4 h-4 text-destructive" />
-                               </Button>
+                               <ActionTooltip content="Collaborator Revenue Split">
+                                 <Button variant="ghost" size="icon" onClick={() => handleOpenSplitDialog(project)}>
+                                   <PieChart className="w-4 h-4 text-slate-500" />
+                                 </Button>
+                               </ActionTooltip>
+                               <ActionTooltip content="Edit Project Details">
+                                 <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(project)}>
+                                   <Edit className="w-4 h-4 text-slate-500" />
+                                 </Button>
+                               </ActionTooltip>
+                               <ActionTooltip content="Delete Project">
+                                 <Button variant="ghost" size="icon" onClick={() => setProjectToDelete(project.id)}>
+                                   <Trash2 className="w-4 h-4 text-destructive" />
+                                 </Button>
+                               </ActionTooltip>
                              </div>
                           </div>
                         </div>
@@ -973,18 +985,20 @@ export function Projects() {
                       <p className="font-medium">{template.name}</p>
                       <p className="text-xs text-muted-foreground">{template.collaborators?.length || 0} collaborators</p>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={async () => {
-                      if (confirm('Are you sure you want to delete this template?')) {
-                        try {
-                          await deleteProjectTemplate(template.id);
-                          toast.success('Template deleted');
-                        } catch (e) {
-                          toast.error('Failed to delete template');
+                    <ActionTooltip content="Delete Template">
+                      <Button variant="ghost" size="icon" onClick={async () => {
+                        if (confirm('Are you sure you want to delete this template?')) {
+                          try {
+                            await deleteProjectTemplate(template.id);
+                            toast.success('Template deleted');
+                          } catch (e) {
+                            toast.error('Failed to delete template');
+                          }
                         }
-                      }
-                    }}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                      }}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </ActionTooltip>
                   </div>
                 ))}
               </div>

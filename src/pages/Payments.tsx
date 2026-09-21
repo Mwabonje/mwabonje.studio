@@ -15,6 +15,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { formatPhoneNumber } from '@/lib/utils';
+import { ActionTooltip } from '@/components/ui/tooltip';
 
 export function Payments() {
 
@@ -1389,41 +1390,45 @@ export function Payments() {
                       </TableCell>
                       <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
                         <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenDialog(payment)}
-                            title="Edit Payment"
-                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => generateReceipt(payment, 'preview')}
-                            title="Preview Receipt"
-                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => generateReceipt(payment, 'download')}
-                            title="Download Receipt"
-                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
-                          >
-                            <Download className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setPaymentToDelete(payment.id)}
-                            title="Delete Payment"
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
+                          <ActionTooltip content="Edit Payment Record">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenDialog(payment)}
+                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </ActionTooltip>
+                          <ActionTooltip content="Preview Payment Receipt">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => generateReceipt(payment, 'preview')}
+                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </ActionTooltip>
+                          <ActionTooltip content="Download Receipt PDF">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => generateReceipt(payment, 'download')}
+                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </ActionTooltip>
+                          <ActionTooltip content="Delete Payment Record">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setPaymentToDelete(payment.id)}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </ActionTooltip>
                         </div>
                       </TableCell>
                     </TableRow>

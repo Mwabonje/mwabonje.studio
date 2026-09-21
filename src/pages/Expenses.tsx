@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import { Search, Plus, Edit2, Trash2, ShieldCheck, HeartPulse, Bell, CheckCircle2, Clock, Smartphone } from "lucide-react";
 import {
   BarChart,
@@ -638,12 +639,16 @@ export function Expenses() {
                           <p className="mt-1 mb-0 text-[13px] text-muted-foreground">{e.category}</p>
                         </div>
                         <div className="flex gap-2 ml-6">
-                          <button className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-border transition-all" aria-label="Edit expense" onClick={() => handleOpenDialog(e)}>
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all" aria-label="Delete expense" onClick={() => confirmDelete(e.id)}>
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <ActionTooltip content="Edit Expense Details">
+                            <button className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-border transition-all" aria-label="Edit expense" onClick={() => handleOpenDialog(e)}>
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          </ActionTooltip>
+                          <ActionTooltip content="Delete Expense Record">
+                            <button className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all" aria-label="Delete expense" onClick={() => confirmDelete(e.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </ActionTooltip>
                         </div>
                       </div>
                     </div>

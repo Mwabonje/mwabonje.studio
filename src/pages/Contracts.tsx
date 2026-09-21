@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { Contract } from '@/components/Contract';
 import { NDA } from '@/components/NDA';
 import { PDFLoader } from '@/components/PDFLoader';
+import { ActionTooltip } from '@/components/ui/tooltip';
 
 export function Contracts() {
   const { quotes, settings } = useStore();
@@ -424,41 +425,44 @@ export function Contracts() {
                       <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
                         <div className="flex items-center justify-end gap-2">
                           {/* Generate Service Contract Button */}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenContract(quote)}
-                            className="text-xs font-medium border-slate-300 hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors text-slate-700 h-8 px-2.5"
-                            title="Generate Service Agreement (Contract)"
-                          >
-                            <FileSignature className="w-3.5 h-3.5 mr-1.5 text-primary" />
-                            Contract
-                          </Button>
+                          <ActionTooltip content="Generate Service Agreement (Contract)">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenContract(quote)}
+                              className="text-xs font-medium border-slate-300 hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors text-slate-700 h-8 px-2.5"
+                            >
+                              <FileSignature className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                              Contract
+                            </Button>
+                          </ActionTooltip>
 
                           {/* Generate NDA Button */}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenNDA(quote)}
-                            className="text-xs font-medium border-slate-300 hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors text-slate-700 h-8 px-2.5"
-                            title="Generate Non-Disclosure Agreement (NDA)"
-                          >
-                            <FileText className="w-3.5 h-3.5 mr-1.5 text-sky-600" />
-                            NDA
-                          </Button>
+                          <ActionTooltip content="Generate Non-Disclosure Agreement (NDA)">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenNDA(quote)}
+                              className="text-xs font-medium border-slate-300 hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors text-slate-700 h-8 px-2.5"
+                            >
+                              <FileText className="w-3.5 h-3.5 mr-1.5 text-sky-600" />
+                              NDA
+                            </Button>
+                          </ActionTooltip>
 
                           {/* View Quote Link */}
-                          <Button
-                            asChild
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-slate-500 hover:text-slate-800"
-                            title="View Quote in Quotes manager"
-                          >
-                            <Link to="/quotes">
-                              <Eye className="w-4 h-4" />
-                            </Link>
-                          </Button>
+                          <ActionTooltip content="View Quote in Quotes Manager">
+                            <Button
+                              asChild
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-slate-500 hover:text-slate-800"
+                            >
+                              <Link to="/quotes">
+                                <Eye className="w-4 h-4" />
+                              </Link>
+                            </Button>
+                          </ActionTooltip>
                         </div>
                       </TableCell>
                     </TableRow>
