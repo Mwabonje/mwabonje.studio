@@ -1346,18 +1346,6 @@ export function Quotes() {
               </Button>
             </ActionTooltip>
           )}
-          <ActionTooltip content="View & Generate Contracts & NDAs" side="bottom">
-            <Button
-              asChild
-              variant="outline"
-              className="border-slate-300 hover:bg-slate-100 text-slate-700 w-full sm:w-auto"
-            >
-              <Link to="/contracts">
-                <FileSignature className="w-4 h-4 mr-2 text-primary" />
-                Contracts & NDAs
-              </Link>
-            </Button>
-          </ActionTooltip>
           <Button
             onClick={() => handleOpenDialog()}
             className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
