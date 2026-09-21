@@ -457,17 +457,19 @@ export function Clients() {
       )}
 
       <Card>
-        <CardContent className="p-0 overflow-x-auto">
+        <CardContent className="p-0">
           <Table className="min-w-[800px]">
             <TableHeader>
-              <TableRow>
+              <TableRow className="hover:bg-transparent">
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Nationality</TableHead>
                 <TableHead>Source</TableHead>
                 <TableHead>Notes</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right sticky right-0 bg-white/95 dark:bg-card/95 backdrop-blur z-20 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4 min-w-[110px]">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -488,33 +490,38 @@ export function Clients() {
                   .map((client) => (
                     <TableRow 
                       key={client.id}
-                      className={highlightedId === client.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}
+                      className={`group hover:bg-slate-50/80 transition-colors ${highlightedId === client.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}`}
                     >
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium max-w-[160px] truncate" title={client.name}>
                         {client.name}
                       </TableCell>
-                      <TableCell>{client.email}</TableCell>
-                      <TableCell>{formatPhoneNumber(client.phone)}</TableCell>
+                      <TableCell className="max-w-[180px] truncate" title={client.email}>{client.email}</TableCell>
+                      <TableCell className="whitespace-nowrap">{formatPhoneNumber(client.phone)}</TableCell>
                       <TableCell>{client.nationality || "-"}</TableCell>
                       <TableCell>{client.leadSource || "-"}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">
+                      <TableCell className="max-w-[200px] truncate" title={client.notes}>
                         {client.notes}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenDialog(client)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setClientToDelete(client.id)}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
+                      <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenDialog(client)}
+                            title="Edit Client"
+                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setClientToDelete(client.id)}
+                            title="Delete Client"
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

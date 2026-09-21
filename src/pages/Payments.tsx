@@ -1299,12 +1299,12 @@ export function Payments() {
       </div>
 
       <Card>
-        <CardContent className="p-0 overflow-x-auto">
+        <CardContent className="p-0">
           <Table className="min-w-[800px]">
             <TableHeader>
-              <TableRow>
-                <TableHead>Receipt No</TableHead>
-                <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort('date')}>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="whitespace-nowrap">Receipt No</TableHead>
+                <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors whitespace-nowrap" onClick={() => handleSort('date')}>
                   <div className="flex items-center gap-1">
                     Date
                     {sortField === 'date' ? (
@@ -1316,7 +1316,7 @@ export function Payments() {
                 </TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Project</TableHead>
-                <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort('method')}>
+                <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors whitespace-nowrap" onClick={() => handleSort('method')}>
                   <div className="flex items-center gap-1">
                     Method
                     {sortField === 'method' ? (
@@ -1326,8 +1326,8 @@ export function Payments() {
                     )}
                   </div>
                 </TableHead>
-                <TableHead>Reference</TableHead>
-                <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort('amount')}>
+                <TableHead className="whitespace-nowrap">Reference</TableHead>
+                <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors whitespace-nowrap" onClick={() => handleSort('amount')}>
                   <div className="flex items-center gap-1">
                     Amount
                     {sortField === 'amount' ? (
@@ -1337,7 +1337,7 @@ export function Payments() {
                     )}
                   </div>
                 </TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right sticky right-0 bg-white/95 dark:bg-card/95 backdrop-blur z-20 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4 min-w-[150px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1371,31 +1371,60 @@ export function Payments() {
                   const client = clients.find(c => c.id === invoice?.clientId);
                   
                   return (
-                    <TableRow key={payment.id}>
-                      <TableCell className="font-mono text-xs text-muted-foreground">
+                    <TableRow key={payment.id} className="group hover:bg-slate-50/80 transition-colors">
+                      <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
                         RCT-{payment.id.substring(0, 6).toUpperCase()}
                       </TableCell>
-                      <TableCell>{format(new Date(payment.date), 'MMM d, yyyy')}</TableCell>
-                      <TableCell className="font-medium">{client?.name || 'Unknown Client'}</TableCell>
-                      <TableCell>{project?.title || 'Unknown Project'}</TableCell>
-                      <TableCell className="capitalize">{payment.method}</TableCell>
-                      <TableCell className="font-mono text-xs">{payment.reference || '-'}</TableCell>
-                      <TableCell className="font-semibold text-green-600">
+                      <TableCell className="whitespace-nowrap">{format(new Date(payment.date), 'MMM d, yyyy')}</TableCell>
+                      <TableCell className="font-medium max-w-[160px] truncate" title={client?.name || 'Unknown Client'}>
+                        {client?.name || 'Unknown Client'}
+                      </TableCell>
+                      <TableCell className="max-w-[180px] truncate" title={project?.title || 'Unknown Project'}>
+                        {project?.title || 'Unknown Project'}
+                      </TableCell>
+                      <TableCell className="capitalize whitespace-nowrap">{payment.method}</TableCell>
+                      <TableCell className="font-mono text-xs whitespace-nowrap">{payment.reference || '-'}</TableCell>
+                      <TableCell className="font-semibold text-green-600 whitespace-nowrap">
                         KES {payment.amount.toLocaleString()}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(payment)} title="Edit Payment">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => generateReceipt(payment, 'preview')} title="Preview Receipt">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => generateReceipt(payment, 'download')} title="Download Receipt">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setPaymentToDelete(payment.id)} title="Delete Payment">
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
+                      <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenDialog(payment)}
+                            title="Edit Payment"
+                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => generateReceipt(payment, 'preview')}
+                            title="Preview Receipt"
+                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => generateReceipt(payment, 'download')}
+                            title="Download Receipt"
+                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setPaymentToDelete(payment.id)}
+                            title="Delete Payment"
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );

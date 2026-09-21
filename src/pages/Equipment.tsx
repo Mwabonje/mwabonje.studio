@@ -283,18 +283,18 @@ export function Equipment() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="hover:bg-transparent">
                     <TableHead>Item Name</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Serial No.</TableHead>
                     <TableHead>Condition</TableHead>
                     <TableHead className="text-right">Value (Ksh)</TableHead>
-                    <TableHead className="w-[100px]"></TableHead>
+                    <TableHead className="text-right sticky right-0 bg-white/95 dark:bg-card/95 backdrop-blur z-20 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4 min-w-[110px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredEquipment.map((item) => (
-                    <TableRow key={item.id}>
+                    <TableRow key={item.id} className="group hover:bg-slate-50/80 transition-colors">
                       <TableCell className="font-medium">{item.name}</TableCell>
                       <TableCell>{item.category || '-'}</TableCell>
                       <TableCell className="text-muted-foreground">{item.serialNumber || '-'}</TableCell>
@@ -310,13 +310,26 @@ export function Equipment() {
                         </span>
                       </TableCell>
                       <TableCell className="text-right tabular-nums whitespace-nowrap">{formatCurrency(item.purchasePrice)}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setItemToDelete(item.id)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
+                      <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenDialog(item)}
+                            title="Edit Equipment"
+                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setItemToDelete(item.id)}
+                            title="Delete Equipment"
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -325,7 +338,7 @@ export function Equipment() {
                   <TableRow>
                     <TableCell colSpan={4} className="text-right font-bold">Total Value</TableCell>
                     <TableCell className="text-right font-bold tabular-nums whitespace-nowrap">{formatCurrency(totalValue)}</TableCell>
-                    <TableCell></TableCell>
+                    <TableCell className="sticky right-0 bg-slate-50 dark:bg-muted/30 z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4"></TableCell>
                   </TableRow>
                 </TableFooter>
               </Table>

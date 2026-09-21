@@ -9,7 +9,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle, ExternalLink, Download, Copy, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, CheckCircle2, AlertCircle, ExternalLink, Download, Copy, Loader2, MoreHorizontal } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
 import { useLocation } from 'react-router-dom';
 import { getResolvedTheme } from '@/lib/theme';
@@ -1219,18 +1226,20 @@ export function Invoices() {
       </div>
 
       <Card>
-        <CardContent className="p-0 overflow-x-auto">
+        <CardContent className="p-0">
           <Table className="min-w-[800px]">
             <TableHeader>
-              <TableRow>
-                <TableHead>Invoice ID</TableHead>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="whitespace-nowrap">Invoice ID</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Project</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Balance</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="whitespace-nowrap">Due Date</TableHead>
+                <TableHead className="whitespace-nowrap">Amount</TableHead>
+                <TableHead className="whitespace-nowrap">Balance</TableHead>
+                <TableHead className="whitespace-nowrap">Status</TableHead>
+                <TableHead className="text-right sticky right-0 bg-white/95 dark:bg-card/95 backdrop-blur z-20 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4 min-w-[130px]">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1262,32 +1271,95 @@ export function Invoices() {
                   return (
                     <TableRow 
                       key={invoice.id} 
-                      className={highlightedId === invoice.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}
+                      className={`group hover:bg-slate-50/80 transition-colors ${highlightedId === invoice.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}`}
                     >
-                      <TableCell className="font-mono text-xs text-muted-foreground">
+                      <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
                         {invoice.quoteId ? (quotes.find(q => q.id === invoice.quoteId)?.quoteNumber || invoice.quoteId.substring(0, 8).toUpperCase()) : invoice.id.substring(0, 8).toUpperCase()}
                       </TableCell>
-                      <TableCell className="font-medium">{client?.name || 'Unknown Client'}</TableCell>
-                      <TableCell>{project?.title || 'Unknown Project'}</TableCell>
-                      <TableCell>{format(new Date(invoice.dueDate), 'MMM d, yyyy')}</TableCell>
-                      <TableCell className="font-semibold">KES {invoice.totalAmount.toLocaleString()}</TableCell>
-                      <TableCell className="font-medium text-red-600">
+                      <TableCell className="font-medium max-w-[180px] truncate" title={client?.name || 'Unknown Client'}>
+                        {client?.name || 'Unknown Client'}
+                      </TableCell>
+                      <TableCell className="max-w-[180px] truncate" title={project?.title || 'Unknown Project'}>
+                        {project?.title || 'Unknown Project'}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">{format(new Date(invoice.dueDate), 'MMM d, yyyy')}</TableCell>
+                      <TableCell className="font-semibold whitespace-nowrap">KES {invoice.totalAmount.toLocaleString()}</TableCell>
+                      <TableCell className="font-medium text-red-600 whitespace-nowrap">
                         {balance > 0 ? `KES ${balance.toLocaleString()}` : '-'}
                       </TableCell>
-                      <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenPreview(invoice)} title="Preview Invoice">
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'duplicate', invoice })} title="Duplicate Invoice">
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setPendingAction({ type: 'edit', invoice })} title="Edit Invoice">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setInvoiceToDelete(invoice.id)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
+                      <TableCell className="whitespace-nowrap">{getStatusBadge(invoice.status)}</TableCell>
+                      <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
+                        <div className="flex items-center justify-end gap-1">
+                          {/* Primary visible action: EDIT */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenDialog(invoice)}
+                            title="Edit Invoice"
+                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+
+                          {/* Quick Preview button */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenPreview(invoice)}
+                            title="Preview Invoice"
+                            className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+
+                          {/* More options dropdown */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              render={
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  title="More options"
+                                  className="text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                                >
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                              }
+                            />
+                            <DropdownMenuContent align="end" className="w-48 p-1.5 shadow-lg bg-white">
+                              <DropdownMenuItem
+                                onClick={() => handleOpenDialog(invoice)}
+                                className="cursor-pointer py-2 font-medium"
+                              >
+                                <Edit className="w-4 h-4 mr-2.5 text-slate-600" />
+                                Edit Invoice
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleOpenPreview(invoice)}
+                                className="cursor-pointer py-2"
+                              >
+                                <ExternalLink className="w-4 h-4 mr-2.5 text-slate-600" />
+                                Preview Invoice
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setPendingAction({ type: 'duplicate', invoice })}
+                                className="cursor-pointer py-2"
+                              >
+                                <Copy className="w-4 h-4 mr-2.5 text-slate-600" />
+                                Duplicate Invoice
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="my-1" />
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => setInvoiceToDelete(invoice.id)}
+                                className="cursor-pointer py-2 text-destructive focus:bg-destructive/10"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2.5 text-destructive" />
+                                Delete Invoice
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );

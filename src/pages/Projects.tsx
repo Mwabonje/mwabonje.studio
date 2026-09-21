@@ -11,7 +11,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Users, PieChart, LayoutList, Clock, CheckSquare, FileText, Download, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, PieChart, LayoutList, Clock, CheckSquare, FileText, Download, Loader2, MoreHorizontal } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { format, isAfter, isBefore, isSameDay } from 'date-fns';
 import { toast } from 'sonner';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
@@ -574,17 +581,19 @@ export function Projects() {
 
         <TabsContent value="list" className="mt-0">
           <Card>
-            <CardContent className="p-0 overflow-x-auto">
+            <CardContent className="p-0">
               <Table className="min-w-[800px]">
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="whitespace-nowrap">Title</TableHead>
                     <TableHead>Client</TableHead>
                     <TableHead>Location</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead>Collaborators</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="whitespace-nowrap">Date</TableHead>
+                    <TableHead className="whitespace-nowrap">Progress</TableHead>
+                    <TableHead className="whitespace-nowrap">Collaborators</TableHead>
+                    <TableHead className="text-right sticky right-0 bg-white/95 dark:bg-card/95 backdrop-blur z-20 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4 min-w-[150px]">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -610,13 +619,19 @@ export function Projects() {
                       return (
                         <TableRow 
                           key={project.id}
-                          className={highlightedId === project.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}
+                          className={`group hover:bg-slate-50/80 transition-colors ${highlightedId === project.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}`}
                         >
-                          <TableCell className="font-medium">{project.title}</TableCell>
-                          <TableCell>{client?.name || 'Unknown Client'}</TableCell>
-                          <TableCell>{project.location}</TableCell>
-                          <TableCell>{project.date ? format(new Date(project.date), 'MMM d, yyyy') : '-'}</TableCell>
-                          <TableCell>
+                          <TableCell className="font-medium max-w-[200px] truncate" title={project.title}>
+                            {project.title}
+                          </TableCell>
+                          <TableCell className="max-w-[160px] truncate" title={client?.name || 'Unknown Client'}>
+                            {client?.name || 'Unknown Client'}
+                          </TableCell>
+                          <TableCell className="max-w-[150px] truncate" title={project.location || '-'}>
+                            {project.location || '-'}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">{project.date ? format(new Date(project.date), 'MMM d, yyyy') : '-'}</TableCell>
+                          <TableCell className="whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
                                 <div className="h-full bg-primary" style={{ width: `${progressPercentage}%` }} />
@@ -624,20 +639,90 @@ export function Projects() {
                               <span className="text-xs text-muted-foreground">{progressPercentage}%</span>
                             </div>
                           </TableCell>
-                          <TableCell>{project.collaborators?.length || 0}</TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => handleOpenSplitDialog(project)} className="mr-2">
-                              <PieChart className="w-4 h-4 mr-1" /> Split
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleOpenPreview(project)} title="View Report">
-                              <FileText className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(project)}>
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => setProjectToDelete(project.id)}>
-                              <Trash2 className="w-4 h-4 text-destructive" />
-                            </Button>
+                          <TableCell className="whitespace-nowrap">{project.collaborators?.length || 0}</TableCell>
+                          <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
+                            <div className="flex items-center justify-end gap-1">
+                              {/* Primary visible action: EDIT */}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenDialog(project)}
+                                title="Edit Project"
+                                className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+
+                              {/* Quick Report button */}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenPreview(project)}
+                                title="View Report"
+                                className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                              >
+                                <FileText className="w-4 h-4" />
+                              </Button>
+
+                              {/* Quick Split button */}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenSplitDialog(project)}
+                                title="Collaborator Split"
+                                className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                              >
+                                <PieChart className="w-4 h-4" />
+                              </Button>
+
+                              {/* More options dropdown */}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger
+                                  render={
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      title="More options"
+                                      className="text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                                    >
+                                      <MoreHorizontal className="w-4 h-4" />
+                                    </Button>
+                                  }
+                                />
+                                <DropdownMenuContent align="end" className="w-48 p-1.5 shadow-lg bg-white">
+                                  <DropdownMenuItem
+                                    onClick={() => handleOpenDialog(project)}
+                                    className="cursor-pointer py-2 font-medium"
+                                  >
+                                    <Edit className="w-4 h-4 mr-2.5 text-slate-600" />
+                                    Edit Project
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleOpenPreview(project)}
+                                    className="cursor-pointer py-2"
+                                  >
+                                    <FileText className="w-4 h-4 mr-2.5 text-slate-600" />
+                                    View Report
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleOpenSplitDialog(project)}
+                                    className="cursor-pointer py-2"
+                                  >
+                                    <PieChart className="w-4 h-4 mr-2.5 text-slate-600" />
+                                    Collaborator Split
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator className="my-1" />
+                                  <DropdownMenuItem
+                                    variant="destructive"
+                                    onClick={() => setProjectToDelete(project.id)}
+                                    className="cursor-pointer py-2 text-destructive focus:bg-destructive/10"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2.5 text-destructive" />
+                                    Delete Project
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

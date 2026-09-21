@@ -34,6 +34,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Plus,
   Edit,
   Trash2,
@@ -58,6 +65,7 @@ import {
   Loader2,
   Clock,
   AlertTriangle,
+  MoreHorizontal,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -3279,18 +3287,20 @@ export function Quotes() {
       </div>
 
       <Card>
-        <CardContent className="p-0 overflow-x-auto">
+        <CardContent className="p-0">
           <Table className="min-w-[800px]">
             <TableHeader>
-              <TableRow>
-                <TableHead>Quote ID</TableHead>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="whitespace-nowrap">Quote ID</TableHead>
                 <TableHead>Project</TableHead>
                 <TableHead>Client</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Total Amount</TableHead>
-                <TableHead>My Cut</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="whitespace-nowrap">Date</TableHead>
+                <TableHead className="whitespace-nowrap">Total Amount</TableHead>
+                <TableHead className="whitespace-nowrap">My Cut</TableHead>
+                <TableHead className="whitespace-nowrap">Status</TableHead>
+                <TableHead className="text-right sticky right-0 bg-white/95 dark:bg-card/95 backdrop-blur z-20 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4 min-w-[150px]">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -3347,12 +3357,12 @@ export function Quotes() {
                       : 0;
 
                     return (
-                      <TableRow key={quote.id}>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
+                      <TableRow key={quote.id} className="group hover:bg-slate-50/80 transition-colors">
+                        <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
                           {quote.quoteNumber ||
                             quote.id.substring(0, 8).toUpperCase()}
                         </TableCell>
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium max-w-[200px] truncate" title={quote.projectTitle || "Unknown Project"}>
                           {quote.projectTitle || "Unknown Project"}
                           {quote.revisionOf && (
                             <Badge
@@ -3363,19 +3373,19 @@ export function Quotes() {
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="max-w-[160px] truncate" title={quote.clientName || "Unknown Client"}>
                           {quote.clientName || "Unknown Client"}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {format(
                             new Date(quote.issueDate || quote.date),
                             "MMM d, yyyy",
                           )}
                         </TableCell>
-                        <TableCell className="font-semibold">
+                        <TableCell className="font-semibold whitespace-nowrap">
                           KES {quote.totalAmount.toLocaleString()}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {quote.isCollaboration ? (
                             <span className="text-green-600 font-semibold">
                               KES {myCut.toLocaleString()}
@@ -3384,109 +3394,160 @@ export function Quotes() {
                             <span className="text-slate-400 text-xs">-</span>
                           )}
                         </TableCell>
-                        <TableCell>{getStatusBadge(quote.status, checkIsExpired(quote))}</TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenPreview(quote)}
-                            title="Preview Quote"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          {quote.status !== "approved" &&
-                            quote.status !== "declined" && (
-                              <>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() =>
-                                    setPendingAction({ type: "approve", quote })
-                                  }
-                                  title="Approve & Create Invoice"
+                        <TableCell className="whitespace-nowrap">{getStatusBadge(quote.status, checkIsExpired(quote))}</TableCell>
+                        <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
+                          <div className="flex items-center justify-end gap-1">
+                            {/* Primary visible action: EDIT */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenDialog(quote)}
+                              title="Edit Quote"
+                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+
+                            {/* Secondary visible action: PREVIEW */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenPreview(quote)}
+                              title="Preview Quote"
+                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+
+                            {/* Quick Approve / Decline buttons if pending review */}
+                            {quote.status !== "approved" &&
+                              quote.status !== "declined" && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                      setPendingAction({ type: "approve", quote })
+                                    }
+                                    title="Approve & Create Invoice"
+                                    className="hover:bg-green-50"
+                                  >
+                                    <CheckSquare className="w-4 h-4 text-green-600 hover:text-green-700" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                      setPendingAction({ type: "decline", quote })
+                                    }
+                                    title="Mark as Declined"
+                                    className="hover:bg-red-50"
+                                  >
+                                    <XCircle className="w-4 h-4 text-red-500 hover:text-red-700" />
+                                  </Button>
+                                </>
+                              )}
+
+                            {/* Full Actions Dropdown with labeled options so nothing is hidden */}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger
+                                render={
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    title="More options"
+                                    className="text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                                  >
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                }
+                              />
+                              <DropdownMenuContent align="end" className="w-56 p-1.5 shadow-lg bg-white">
+                                <DropdownMenuItem
+                                  onClick={() => handleOpenDialog(quote)}
+                                  className="cursor-pointer py-2 font-medium"
                                 >
-                                  <CheckSquare className="w-4 h-4 text-green-600 hover:text-green-700" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() =>
-                                    setPendingAction({ type: "decline", quote })
-                                  }
-                                  title="Mark as Declined"
+                                  <Edit className="w-4 h-4 mr-2.5 text-slate-600" />
+                                  Edit Quote
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleOpenPreview(quote)}
+                                  className="cursor-pointer py-2"
                                 >
-                                  <XCircle className="w-4 h-4 text-red-500 hover:text-red-700" />
-                                </Button>
-                              </>
-                            )}
-                          {(quote.status === "sent" || quote.status === "approved") && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleOpenContract(quote)}
-                                title="Generate Contract"
-                              >
-                                <FileSignature className="w-4 h-4 justify-center items-center flex text-slate-500 hover:text-primary" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleOpenNDA(quote)}
-                                title="Generate NDA"
-                              >
-                                <FileText className="w-4 h-4 text-slate-500 hover:text-primary" />
-                              </Button>
-                            </>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              setPendingAction({ type: "link", quote })
-                            }
-                            title="Copy Shareable Link"
-                            className="relative"
-                          >
-                            {copiedId === quote.id ? (
-                              <span className="absolute -top-8 bg-slate-800 text-white text-[10px] px-2 py-1 rounded shadow-sm whitespace-nowrap animate-in fade-in slide-in-from-bottom-2">
-                                Copied!
-                              </span>
-                            ) : null}
-                            {copiedId === quote.id ? (
-                              <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            ) : (
-                              <LinkIcon className="w-4 h-4 text-slate-500 hover:text-primary" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              setPendingAction({ type: "duplicate", quote })
-                            }
-                            title="Create Revision"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              setPendingAction({ type: "edit", quote })
-                            }
-                            title="Edit Quote"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setQuoteToDelete(quote.id)}
-                            title="Delete Quote"
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
+                                  <Eye className="w-4 h-4 mr-2.5 text-slate-600" />
+                                  Preview Quote
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleCopyLink(quote.id)}
+                                  className="cursor-pointer py-2"
+                                >
+                                  {copiedId === quote.id ? (
+                                    <CheckCircle2 className="w-4 h-4 mr-2.5 text-green-500" />
+                                  ) : (
+                                    <LinkIcon className="w-4 h-4 mr-2.5 text-slate-600" />
+                                  )}
+                                  {copiedId === quote.id ? "Link Copied!" : "Copy Shareable Link"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDuplicateQuote(quote)}
+                                  className="cursor-pointer py-2"
+                                >
+                                  <Copy className="w-4 h-4 mr-2.5 text-slate-600" />
+                                  Create Revision
+                                </DropdownMenuItem>
+
+                                {(quote.status === "sent" || quote.status === "approved") && (
+                                  <>
+                                    <DropdownMenuSeparator className="my-1" />
+                                    <DropdownMenuItem
+                                      onClick={() => handleOpenContract(quote)}
+                                      className="cursor-pointer py-2"
+                                    >
+                                      <FileSignature className="w-4 h-4 mr-2.5 text-slate-600" />
+                                      Generate Contract
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => handleOpenNDA(quote)}
+                                      className="cursor-pointer py-2"
+                                    >
+                                      <FileText className="w-4 h-4 mr-2.5 text-slate-600" />
+                                      Generate NDA
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+
+                                {quote.status !== "approved" && quote.status !== "declined" && (
+                                  <>
+                                    <DropdownMenuSeparator className="my-1" />
+                                    <DropdownMenuItem
+                                      onClick={() => setPendingAction({ type: "approve", quote })}
+                                      className="cursor-pointer py-2 text-green-600 focus:text-green-700"
+                                    >
+                                      <CheckSquare className="w-4 h-4 mr-2.5 text-green-600" />
+                                      Approve & Create Invoice
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => setPendingAction({ type: "decline", quote })}
+                                      className="cursor-pointer py-2 text-red-600 focus:text-red-700"
+                                    >
+                                      <XCircle className="w-4 h-4 mr-2.5 text-red-500" />
+                                      Mark as Declined
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+
+                                <DropdownMenuSeparator className="my-1" />
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => setQuoteToDelete(quote.id)}
+                                  className="cursor-pointer py-2 text-destructive focus:bg-destructive/10"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2.5 text-destructive" />
+                                  Delete Quote
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
