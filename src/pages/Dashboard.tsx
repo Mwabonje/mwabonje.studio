@@ -79,27 +79,27 @@ export function Dashboard() {
         <div
           key={day.toString()}
           className={cn(
-            "relative flex flex-col items-center py-2 cursor-pointer h-14",
+            "relative flex flex-col items-center py-1 sm:py-2 cursor-pointer h-12 sm:h-14",
             !isSameMonth(day, monthStart) ? "text-slate-300" : "text-slate-700",
           )}
           onClick={() => setSelectedDate(cloneDay)}
         >
           <div className={cn(
-            "w-9 h-9 flex items-center justify-center rounded-full text-sm transition-colors z-10",
+            "w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full text-xs sm:text-sm transition-colors z-10",
             isSameDay(day, selectedDate) ? "bg-primary text-primary-foreground font-bold shadow-md" : "hover:bg-slate-100"
           )}>
             {formattedDate}
           </div>
           {/* Dot indicator for events */}
           {dayProjects.length > 0 && !isSameDay(day, selectedDate) && (
-            <div className="w-1 h-1 bg-primary rounded-full mt-1 absolute bottom-2"></div>
+            <div className="w-1.5 h-1.5 bg-primary rounded-full mt-1 absolute bottom-1 sm:bottom-2"></div>
           )}
         </div>
       );
       day = addDays(day, 1);
     }
     rows.push(
-      <div className="grid grid-cols-7 gap-y-4 gap-x-2" key={day.toString()}>
+      <div className="grid grid-cols-7 gap-y-2 sm:gap-y-4 gap-x-1 sm:gap-x-2" key={day.toString()}>
         {days}
       </div>
     );
@@ -135,12 +135,12 @@ export function Dashboard() {
       {/* Calendar Section */}
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm flex flex-col md:flex-row overflow-hidden border border-slate-100 min-h-[600px]">
         {/* Left Panel (Primary Color) */}
-        <div className="w-full md:w-[35%] bg-primary text-primary-foreground p-6 md:p-10 flex flex-col justify-between">
+        <div className="w-full md:w-[38%] lg:w-[35%] bg-primary text-primary-foreground p-5 sm:p-6 md:p-8 lg:p-10 flex flex-col justify-between">
           <div>
-            <MoreHorizontal className="w-6 h-6 text-primary-foreground/70 mb-8 md:mb-12" />
-            <div className="mb-8 md:mb-12">
-              <h1 className="text-6xl md:text-8xl font-bold mb-2">{format(selectedDate, 'd')}</h1>
-              <p className="text-xl md:text-2xl tracking-widest uppercase font-medium text-primary-foreground/90">{format(selectedDate, 'EEEE')}</p>
+            <MoreHorizontal className="w-6 h-6 text-primary-foreground/70 mb-4 sm:mb-8 md:mb-12" />
+            <div className="mb-6 sm:mb-8 md:mb-12">
+              <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold mb-1 sm:mb-2">{format(selectedDate, 'd')}</h1>
+              <p className="text-lg sm:text-xl md:text-2xl tracking-widest uppercase font-medium text-primary-foreground/90">{format(selectedDate, 'EEEE')}</p>
             </div>
             
             <div>
@@ -246,7 +246,7 @@ export function Dashboard() {
         </div>
 
         {/* Right Panel (Calendar Grid) */}
-        <div className="w-full md:w-[65%] p-6 md:p-10 flex flex-col bg-white">
+        <div className="w-full md:w-[62%] lg:w-[65%] p-4 sm:p-6 md:p-8 lg:p-10 flex flex-col bg-white">
           {/* Header Controls */}
           <div className="flex justify-between items-center mb-12">
             <div ref={monthContainerRef} className="flex-1 min-w-0 flex gap-6 overflow-x-auto hide-scrollbar mr-4">
@@ -445,7 +445,7 @@ export function Dashboard() {
       </div>
 
       {/* Quick Actions Floating Button */}
-      <div className="fixed bottom-8 right-8 z-50">
+      <div className="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 lg:bottom-8 lg:right-8 z-30">
         <DropdownMenu>
           <ActionTooltip content="Quick Creation Menu" side="left">
             <DropdownMenuTrigger render={

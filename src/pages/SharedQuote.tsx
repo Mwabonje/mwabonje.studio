@@ -353,11 +353,11 @@ export function SharedQuote() {
             .quote-root .packages-grid[data-count="1"] .package-card { flex: 1 1 100%; max-width: 100%; }
             .quote-root .package-card { flex: 1 1 calc(50% - 10px); min-width: 280px; border: 1px solid var(--rule); padding: 28px 26px 22px; position: relative; background: #fff; display: flex; flex-direction: column; }
             .quote-root .package-card.featured { flex: 1 1 100%; border-color: var(--gold); background: var(--ink); }
-            .quote-root .package-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
+            .quote-root .package-header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
             .quote-root .package-card.featured .package-header { border-bottom-color: rgba(255,255,255,0.12); }
-            .quote-root .package-tier { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--ink-soft); white-space: normal; word-wrap: break-word; line-height: 1.5; flex-shrink: 1; }
+            .quote-root .package-tier { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; line-height: 1.4; flex-shrink: 0; }
             .quote-root .package-card.featured .package-tier { color: var(--gold-light); }
-            .quote-root .package-price { font-family: 'Poppins', sans-serif; font-size: 30px; font-weight: 400; color: var(--ink); line-height: 1; flex-shrink: 0; white-space: nowrap; text-align: right; }
+            .quote-root .package-price { font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 400; color: var(--ink); line-height: 1; flex-shrink: 0; white-space: nowrap; text-align: right; }
             .quote-root .package-card.featured .package-price { color: #fff; }
             .quote-root .package-price span { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 400; color: var(--ink-soft); vertical-align: middle; margin-right: 3px; border:none; padding:0; background:transparent;}
             .quote-root .package-card.featured .package-price span { color: rgba(255,255,255,0.5); }
@@ -557,10 +557,8 @@ export function SharedQuote() {
                           <span className="premium-badge">Most Popular</span>
                         )}
                         <div className="package-header w-full">
-                          <div>
-                            <div className="package-tier">
-                              {pkg.name || `Package ${index + 1}`}
-                            </div>
+                          <div className="package-tier">
+                            {pkg.name || `Package ${index + 1}`}
                           </div>
                           <div className="package-price">
                             <span>Ksh</span>
@@ -624,9 +622,7 @@ export function SharedQuote() {
                 <div className="section-label mt-[48px]">{quote.deliverablesSubTitle || "Deliverables"}</div>
                 <div className="package-card flex flex-col mb-[40px]">
                   <div className="package-header w-full">
-                    <div>
-                      <div className="package-tier">{quote.deliverablesTitle}</div>
-                    </div>
+                    <div className="package-tier">{quote.deliverablesTitle}</div>
                     {quote.deliverablesPrice && (
                       <div className="package-price">
                         <span>Ksh</span>
