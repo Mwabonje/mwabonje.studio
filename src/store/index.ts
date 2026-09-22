@@ -215,7 +215,7 @@ export type Feedback = {
   userEmail: string;
   userName?: string;
   type: FeedbackType;
-  title: string;
+  title?: string;
   message: string;
   status: FeedbackStatus;
   createdAt: string;

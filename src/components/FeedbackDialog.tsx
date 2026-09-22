@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useStore, Feedback, FeedbackType } from '@/store';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
-import { Lightbulb, Bug, Sparkles, MessageSquare, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Lightbulb, Bug, Sparkles, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FeedbackDialogProps {
@@ -66,7 +65,6 @@ export function FeedbackDialog({ open, onOpenChange, trigger }: FeedbackDialogPr
 
   const { addFeedback } = useStore();
   const [type, setType] = useState<FeedbackType>('feature');
-  const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [rating, setRating] = useState<number>(5);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,20 +75,21 @@ export function FeedbackDialog({ open, onOpenChange, trigger }: FeedbackDialogPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !message.trim()) {
-      toast.error('Please enter both a title and details for your feedback.');
+    if (!message.trim()) {
+      toast.error('Please describe your feedback or idea.');
       return;
     }
 
     try {
       setIsSubmitting(true);
+      const derivedTitle = message.trim().split('\n')[0].slice(0, 80);
       const newFeedback: Feedback = {
         id: crypto.randomUUID(),
         userId: currentUser?.uid || 'anonymous',
         userEmail,
         userName,
         type,
-        title: title.trim(),
+        title: derivedTitle,
         message: message.trim(),
         status: 'new',
         createdAt: new Date().toISOString(),
@@ -103,7 +102,6 @@ export function FeedbackDialog({ open, onOpenChange, trigger }: FeedbackDialogPr
         duration: 4000,
       });
 
-      setTitle('');
       setMessage('');
       setType('feature');
       setRating(5);
@@ -170,38 +168,23 @@ export function FeedbackDialog({ open, onOpenChange, trigger }: FeedbackDialogPr
             </div>
           </div>
 
-          {/* Title */}
-          <div>
-            <Label htmlFor="feedback-title" className="text-xs font-semibold text-slate-700 mb-1.5 block">
-              Summary / Subject <span className="text-rose-500">*</span>
-            </Label>
-            <Input
-              id="feedback-title"
-              placeholder={
-                type === 'feature'
-                  ? 'e.g., Add automated client WhatsApp notifications'
-                  : type === 'bug'
-                  ? 'e.g., Receipt PDF layout overflows on Safari'
-                  : type === 'improvement'
-                  ? 'e.g., Quick invoice search by client phone number'
-                  : 'e.g., Love the new contracts feature!'
-              }
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="text-sm h-10 rounded-xl"
-              required
-            />
-          </div>
-
-          {/* Description */}
+          {/* Details / Message */}
           <div>
             <Label htmlFor="feedback-message" className="text-xs font-semibold text-slate-700 mb-1.5 block">
               Details & Context <span className="text-rose-500">*</span>
             </Label>
             <Textarea
               id="feedback-message"
-              placeholder="Please describe what you experienced, what feature you'd like to see, or any steps to reproduce an issue..."
-              rows={4}
+              placeholder={
+                type === 'feature'
+                  ? "Describe the feature or capability you'd like to see..."
+                  : type === 'bug'
+                  ? "Describe what happened, what wasn't working, or steps to reproduce..."
+                  : type === 'improvement'
+                  ? "Describe what workflow or action could be improved or made faster..."
+                  : "Share your thoughts, suggestions, or questions..."
+              }
+              rows={5}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="text-sm rounded-xl resize-none"
@@ -237,7 +220,7 @@ export function FeedbackDialog({ open, onOpenChange, trigger }: FeedbackDialogPr
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || !title.trim() || !message.trim()}
+              disabled={isSubmitting || !message.trim()}
               className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs h-10 px-5 gap-2 font-semibold shadow-sm"
             >
               <Send className="w-3.5 h-3.5" />

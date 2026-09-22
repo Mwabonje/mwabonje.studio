@@ -115,7 +115,7 @@ export function FeedbackInbox() {
     return feedbacks.filter((f) => {
       const matchSearch =
         search === '' ||
-        f.title.toLowerCase().includes(search.toLowerCase()) ||
+        (f.title && f.title.toLowerCase().includes(search.toLowerCase())) ||
         f.message.toLowerCase().includes(search.toLowerCase()) ||
         f.userEmail.toLowerCase().includes(search.toLowerCase()) ||
         (f.userName && f.userName.toLowerCase().includes(search.toLowerCase()));
@@ -349,13 +349,15 @@ export function FeedbackInbox() {
                           </span>
                         </div>
 
-                        {/* Title */}
-                        <h3 className="text-base font-bold text-slate-900 leading-snug">
-                          {fb.title}
-                        </h3>
+                        {/* Title if explicitly provided and distinct from message */}
+                        {fb.title && fb.title !== fb.message && (
+                          <h3 className="text-base font-bold text-slate-900 leading-snug mb-1.5">
+                            {fb.title}
+                          </h3>
+                        )}
 
                         {/* Message Description */}
-                        <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed whitespace-pre-line bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                        <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50/80 p-3.5 rounded-xl border border-slate-100">
                           {fb.message}
                         </p>
 
