@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useStore, Equipment as EquipmentType } from "@/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -84,12 +84,15 @@ export function Equipment() {
     }
   };
 
-  const filteredEquipment = equipment.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.serialNumber?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEquipment = useMemo(() => {
+    const q = searchTerm.toLowerCase();
+    return equipment.filter(
+      (item) =>
+        item.name.toLowerCase().includes(q) ||
+        item.category?.toLowerCase().includes(q) ||
+        item.serialNumber?.toLowerCase().includes(q)
+    );
+  }, [equipment, searchTerm]);
 
   const formatCurrency = (amount?: number) => {
     if (!amount) return "-";
@@ -127,7 +130,9 @@ export function Equipment() {
     document.body.removeChild(link);
   };
 
-  const totalValue = filteredEquipment.reduce((sum, item) => sum + (item.purchasePrice || 0), 0);
+  const totalValue = useMemo(() => {
+    return filteredEquipment.reduce((sum, item) => sum + (item.purchasePrice || 0), 0);
+  }, [filteredEquipment]);
 
   return (
     <div className="space-y-6">
@@ -262,7 +267,113 @@ export function Equipment() {
         </Dialog>
       </div>
 
-      <Card>
+      {/* Mobile Card View (Phone / Small Tablet) */}
+      <div className="block md:hidden space-y-3">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+          <Input
+            placeholder="Search equipment..."
+            className="pl-9 h-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {filteredEquipment.length === 0 ? (
+          <div className="bg-white dark:bg-card rounded-xl border p-8 text-center text-slate-500 shadow-sm">
+            No equipment found. Add your first item!
+          </div>
+        ) : (
+          filteredEquipment.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white dark:bg-card rounded-xl border border-slate-200/80 dark:border-border p-4 shadow-sm hover:shadow-md transition-shadow space-y-3"
+            >
+              <div className="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-border/60 pb-2.5">
+                <div>
+                  <h4 className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
+                    {item.name}
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {item.category || "Uncategorized"}
+                  </p>
+                </div>
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${
+                    item.condition === "New" || item.condition === "Excellent"
+                      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
+                      : item.condition === "Good"
+                      ? "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300"
+                      : item.condition === "Fair"
+                      ? "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
+                      : "bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-300"
+                  }`}
+                >
+                  {item.condition || "-"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-muted-foreground block">Serial No.</span>
+                  <span className="font-mono text-slate-800 dark:text-slate-200">
+                    {item.serialNumber || "-"}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-muted-foreground block">Value</span>
+                  <span className="font-semibold font-mono text-slate-900 dark:text-slate-100 text-sm">
+                    {formatCurrency(item.purchasePrice)} Ksh
+                  </span>
+                </div>
+                {item.purchaseDate && (
+                  <div className="col-span-2 pt-1 text-muted-foreground">
+                    Purchased: {item.purchaseDate}
+                  </div>
+                )}
+                {item.notes && (
+                  <div className="col-span-2 text-muted-foreground bg-slate-50 dark:bg-muted/40 p-2 rounded-lg text-[11px] line-clamp-2">
+                    {item.notes}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-border/60">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenDialog(item)}
+                  className="h-10 text-xs flex-1 font-medium text-slate-700 dark:text-slate-200"
+                >
+                  <Edit className="w-3.5 h-3.5 mr-1.5" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setItemToDelete(item.id)}
+                  className="h-10 text-xs px-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+
+        {filteredEquipment.length > 0 && (
+          <div className="bg-slate-50 dark:bg-card rounded-xl border p-3 flex justify-between items-center text-sm">
+            <span className="font-medium text-muted-foreground">Total Inventory Value:</span>
+            <span className="font-bold font-mono text-slate-900 dark:text-slate-100">
+              {formatCurrency(totalValue)} Ksh
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop / Tablet Table View */}
+      <Card className="hidden md:block">
         <CardHeader className="pb-3 border-b">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle>Inventory List</CardTitle>

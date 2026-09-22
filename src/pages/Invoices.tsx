@@ -1,5 +1,5 @@
 import { PDFLoader } from "@/components/PDFLoader";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useStore, Invoice, LineItem, Quote } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -357,6 +357,25 @@ export function Invoices() {
       default: return <Badge variant="outline" className="text-red-500 border-red-200 bg-red-50"><FileText className="w-3 h-3 mr-1" /> Unpaid</Badge>;
     }
   };
+
+  const displayInvoices = useMemo(() => {
+    return [...invoices]
+      .filter((invoice) => {
+        if (invoice.quoteId && invoice.quoteId !== "none") {
+          const quote = quotes.find((q) => q.id === invoice.quoteId);
+          if (quote && quote.status === "declined") {
+            return false;
+          }
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        if (dateB !== dateA) return dateB - dateA;
+        return b.id.localeCompare(a.id);
+      });
+  }, [invoices, quotes]);
 
   return (
     <div className="space-y-6">
@@ -1232,7 +1251,150 @@ export function Invoices() {
         </Dialog>
       </div>
 
-      <Card>
+      {/* Mobile Card View (Phone / Small Tablet) */}
+      <div className="block md:hidden space-y-3">
+        {displayInvoices.length === 0 ? (
+          <div className="bg-white dark:bg-card rounded-xl border p-8 text-center text-muted-foreground shadow-sm">
+            No invoices found. Create one to get started.
+          </div>
+        ) : (
+          displayInvoices.map((invoice) => {
+            const project = projects.find((p) => p.id === invoice.projectId);
+            const client = clients.find((c) => c.id === invoice.clientId);
+            const balance = invoice.totalAmount - invoice.amountPaid;
+            const invoiceNumber = invoice.quoteId
+              ? quotes.find((q) => q.id === invoice.quoteId)?.quoteNumber ||
+                invoice.quoteId.substring(0, 8).toUpperCase()
+              : invoice.id.substring(0, 8).toUpperCase();
+
+            return (
+              <div
+                key={invoice.id}
+                className={`bg-white dark:bg-card rounded-xl border border-slate-200/80 dark:border-border p-4 shadow-sm hover:shadow-md transition-shadow space-y-3 ${
+                  highlightedId === invoice.id
+                    ? "bg-slate-100 ring-2 ring-slate-400 ring-inset"
+                    : ""
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-border/60 pb-2.5">
+                  <span className="font-mono text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    {invoiceNumber}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      Due {format(new Date(invoice.dueDate), "MMM d, yyyy")}
+                    </span>
+                    {getStatusBadge(invoice.status)}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
+                    {project?.title || "Unknown Project"}
+                  </h4>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {client?.name || "Unknown Client"}
+                  </p>
+                </div>
+
+                <div className="flex items-baseline justify-between pt-1 bg-slate-50 dark:bg-muted/40 px-3 py-2 rounded-lg">
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Total Amount</span>
+                    <span className="text-base font-bold text-slate-900 dark:text-slate-100">
+                      KES {invoice.totalAmount.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs text-muted-foreground block">Balance Due</span>
+                    <span
+                      className={`text-sm font-semibold ${
+                        balance > 0
+                          ? "text-red-600 dark:text-red-400"
+                          : "text-green-600 dark:text-green-400"
+                      }`}
+                    >
+                      {balance > 0 ? `KES ${balance.toLocaleString()}` : "Fully Paid"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-border/60">
+                  <div className="flex items-center gap-2 flex-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenDialog(invoice)}
+                      className="h-10 text-xs flex-1 font-medium text-slate-700 dark:text-slate-200"
+                    >
+                      <Edit className="w-3.5 h-3.5 mr-1.5" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenPreview(invoice)}
+                      className="h-10 text-xs flex-1 font-medium text-slate-700 dark:text-slate-200"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                      Preview
+                    </Button>
+                  </div>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="More options"
+                          className="h-10 w-10 shrink-0 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                        >
+                          <MoreHorizontal className="w-5 h-5" />
+                        </Button>
+                      }
+                    />
+                    <DropdownMenuContent align="end" className="w-48 p-1.5 shadow-lg bg-white dark:bg-card">
+                      <DropdownMenuItem
+                        onClick={() => handleOpenDialog(invoice)}
+                        className="cursor-pointer py-2 font-medium"
+                      >
+                        <Edit className="w-4 h-4 mr-2.5 text-slate-600" />
+                        Edit Invoice
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleOpenPreview(invoice)}
+                        className="cursor-pointer py-2"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2.5 text-slate-600" />
+                        Preview Invoice
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setPendingAction({ type: "duplicate", invoice })}
+                        className="cursor-pointer py-2"
+                      >
+                        <Copy className="w-4 h-4 mr-2.5 text-slate-600" />
+                        Duplicate Invoice
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="my-1" />
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => setInvoiceToDelete(invoice.id)}
+                        className="cursor-pointer py-2 text-destructive focus:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2.5 text-destructive" />
+                        Delete Invoice
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop / Tablet Table View */}
+      <Card className="hidden md:block">
         <CardContent className="p-0">
           <Table className="min-w-[800px]">
             <TableHeader>
@@ -1250,27 +1412,14 @@ export function Invoices() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invoices.length === 0 ? (
+              {displayInvoices.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No invoices found. Create one to get started.
                   </TableCell>
                 </TableRow>
               ) : (
-                [...invoices].filter(invoice => {
-                  if (invoice.quoteId && invoice.quoteId !== 'none') {
-                    const quote = quotes.find(q => q.id === invoice.quoteId);
-                    if (quote && quote.status === 'declined') {
-                      return false;
-                    }
-                  }
-                  return true;
-                }).sort((a, b) => {
-                  const dateA = new Date(a.date).getTime();
-                  const dateB = new Date(b.date).getTime();
-                  if (dateB !== dateA) return dateB - dateA;
-                  return b.id.localeCompare(a.id);
-                }).map((invoice) => {
+                displayInvoices.map((invoice) => {
                   const project = projects.find(p => p.id === invoice.projectId);
                   const client = clients.find(c => c.id === invoice.clientId);
                   const balance = invoice.totalAmount - invoice.amountPaid;

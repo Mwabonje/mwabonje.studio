@@ -579,9 +579,9 @@ export function Expenses() {
         </div>
 
         {/* Ledger Section */}
-        <div className="border border-border rounded-xl p-6 bg-card shadow-sm">
-          <div className="flex gap-3 mb-8 flex-wrap border-b border-dashed border-border pb-8">
-            <div className="relative flex-1 min-w-[240px]">
+        <div className="border border-border rounded-xl p-4 sm:p-6 bg-card shadow-sm">
+          <div className="flex gap-3 mb-6 sm:mb-8 flex-col sm:flex-row flex-wrap border-b border-dashed border-border pb-6 sm:pb-8">
+            <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
                 type="text" 
@@ -592,7 +592,7 @@ export function Expenses() {
               />
             </div>
             <select 
-              className="h-11 px-4 text-sm bg-transparent border border-border rounded-xl focus:outline-none focus:border-foreground transition-colors appearance-auto w-[200px]"
+              className="h-11 px-4 text-sm bg-transparent border border-border rounded-xl focus:outline-none focus:border-foreground transition-colors appearance-auto w-full sm:w-[200px]"
               value={categoryFilter} 
               onChange={(e) => setCategoryFilter(e.target.value)}
             >
@@ -602,7 +602,7 @@ export function Expenses() {
               ))}
             </select>
             <button 
-              className="flex items-center gap-2 bg-primary text-primary-foreground border border-primary px-5 h-11 rounded-xl text-sm font-medium whitespace-nowrap transition-opacity hover:opacity-90"
+              className="flex items-center justify-center gap-2 bg-primary text-primary-foreground border border-primary px-5 h-11 rounded-xl text-sm font-medium whitespace-nowrap transition-opacity hover:opacity-90 w-full sm:w-auto"
               onClick={() => handleOpenDialog()}
             >
               <Plus className="w-4 h-4" />
@@ -610,7 +610,7 @@ export function Expenses() {
             </button>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-6 sm:mt-8">
             {filtered.length === 0 ? (
               <div className="py-12 text-center text-muted-foreground text-[15px]">No expenses match your search.</div>
             ) : (
@@ -618,34 +618,34 @@ export function Expenses() {
                 <div className="mt-8 first:mt-0" key={label}>
                   <p className="text-[13px] font-medium text-muted-foreground m-0 mb-3 pb-2 border-b border-border">{label}</p>
                   {groups[label].map((e) => (
-                    <div className="flex items-center justify-between py-4 border-b border-border hover:bg-muted/50 transition-colors px-2" key={e.id}>
-                      <div className="flex items-center gap-4">
-                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: CATEGORY_COLORS[e.category] || CATEGORY_COLORS["Other"] }}></div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-3.5 sm:py-4 border-b border-border hover:bg-muted/50 transition-colors px-2 rounded-lg" key={e.id}>
+                      <div className="flex items-start sm:items-center gap-3">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0 mt-1 sm:mt-0" style={{ backgroundColor: CATEGORY_COLORS[e.category] || CATEGORY_COLORS["Other"] }}></div>
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="m-0 font-medium text-[15px]">{e.vendor}</p>
+                            <p className="m-0 font-medium text-sm sm:text-[15px]">{e.vendor}</p>
                             {e.mpesaReference && (
                               <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-medium">
                                 M-Pesa: {e.mpesaReference}
                               </span>
                             )}
                           </div>
-                          <p className="mt-1 mb-0 text-sm text-muted-foreground">{e.description || "No description"}</p>
+                          <p className="mt-0.5 sm:mt-1 mb-0 text-xs sm:text-sm text-muted-foreground">{e.description || "No description"}</p>
                         </div>
                       </div>
-                      <div className="flex items-center">
-                        <div className="text-right">
-                          <p className="m-0 font-mono text-[15px] font-medium">{e.amount.toLocaleString("en-KE")}</p>
-                          <p className="mt-1 mb-0 text-[13px] text-muted-foreground">{e.category}</p>
+                      <div className="flex items-center justify-between sm:justify-end gap-4 ml-5 sm:ml-0 pt-2 sm:pt-0 border-t border-border/40 sm:border-0">
+                        <div className="text-left sm:text-right">
+                          <p className="m-0 font-mono text-sm sm:text-[15px] font-semibold">{e.amount.toLocaleString("en-KE")}</p>
+                          <p className="mt-0.5 mb-0 text-xs text-muted-foreground">{e.category}</p>
                         </div>
-                        <div className="flex gap-2 ml-6">
+                        <div className="flex gap-1 ml-2">
                           <ActionTooltip content="Edit Expense Details">
-                            <button className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-border transition-all" aria-label="Edit expense" onClick={() => handleOpenDialog(e)}>
+                            <button className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all" aria-label="Edit expense" onClick={() => handleOpenDialog(e)}>
                               <Edit2 className="w-4 h-4" />
                             </button>
                           </ActionTooltip>
                           <ActionTooltip content="Delete Expense Record">
-                            <button className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all" aria-label="Delete expense" onClick={() => confirmDelete(e.id)}>
+                            <button className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all" aria-label="Delete expense" onClick={() => confirmDelete(e.id)}>
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </ActionTooltip>

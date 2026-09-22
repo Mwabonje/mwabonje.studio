@@ -1,5 +1,5 @@
 import { PDFLoader } from "@/components/PDFLoader";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useStore, Project, CollaboratorSplit, Milestone } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
@@ -287,6 +287,15 @@ export function Projects() {
   };
 
   const [isTemplatesDialogOpen, setIsTemplatesDialogOpen] = useState(false);
+
+  const sortedProjects = useMemo(() => {
+    return [...projects].sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      if (dateB !== dateA) return dateB - dateA;
+      return b.id.localeCompare(a.id);
+    });
+  }, [projects]);
 
   return (
     <div className="space-y-6">
@@ -584,7 +593,167 @@ export function Projects() {
         </div>
 
         <TabsContent value="list" className="mt-0">
-          <Card>
+          {/* Mobile Card View (Phone / Small Tablet) */}
+          <div className="block md:hidden space-y-3">
+            {sortedProjects.length === 0 ? (
+              <div className="bg-white dark:bg-card rounded-xl border p-8 text-center text-muted-foreground shadow-sm">
+                No projects found. Create one to get started.
+              </div>
+            ) : (
+              sortedProjects.map((project) => {
+                const client = clients.find((c) => c.id === project.clientId);
+                const projectInvoices = invoices.filter((i) => i.projectId === project.id);
+                const totalBilled = projectInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
+                const totalPaid = projectInvoices.reduce((sum, i) => sum + i.amountPaid, 0);
+                const progressPercentage =
+                  totalBilled > 0
+                    ? Math.min(100, Math.round((totalPaid / totalBilled) * 100))
+                    : 0;
+
+                return (
+                  <div
+                    key={project.id}
+                    className={`bg-white dark:bg-card rounded-xl border border-slate-200/80 dark:border-border p-4 shadow-sm hover:shadow-md transition-shadow space-y-3 ${
+                      highlightedId === project.id
+                        ? "bg-slate-100 ring-2 ring-slate-400 ring-inset"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-border/60 pb-2.5">
+                      <div>
+                        <h4 className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
+                          {project.title}
+                        </h4>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                          {client?.name || "Unknown Client"}
+                        </p>
+                      </div>
+                      {project.location && (
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-muted text-slate-700 dark:text-slate-300 font-medium shrink-0">
+                          {project.location}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>
+                          {project.date ? format(new Date(project.date), "MMM d, yyyy") : "No date"}
+                        </span>
+                        <span>
+                          {project.collaborators?.length || 0} Collaborator{(project.collaborators?.length || 0) === 1 ? "" : "s"}
+                        </span>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="text-muted-foreground">Payment Progress</span>
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">
+                            {progressPercentage}%
+                          </span>
+                        </div>
+                        <div className="w-full h-2 bg-slate-100 dark:bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary"
+                            style={{ width: `${progressPercentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-border/60">
+                      <div className="flex items-center gap-2 flex-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenDialog(project)}
+                          className="h-10 text-xs flex-1 font-medium text-slate-700 dark:text-slate-200"
+                        >
+                          <Edit className="w-3.5 h-3.5 mr-1.5" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenPreview(project)}
+                          className="h-10 text-xs flex-1 font-medium text-slate-700 dark:text-slate-200"
+                        >
+                          <FileText className="w-3.5 h-3.5 mr-1.5" />
+                          Report
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenSplitDialog(project)}
+                          className="h-10 text-xs px-3 font-medium text-slate-700 dark:text-slate-200"
+                          title="Revenue Split"
+                        >
+                          <PieChart className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="More options"
+                              className="h-10 w-10 shrink-0 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                            >
+                              <MoreHorizontal className="w-5 h-5" />
+                            </Button>
+                          }
+                        />
+                        <DropdownMenuContent align="end" className="w-48 p-1.5 shadow-lg bg-white dark:bg-card">
+                          <DropdownMenuItem
+                            onClick={() => handleOpenDialog(project)}
+                            className="cursor-pointer py-2 font-medium"
+                          >
+                            <Edit className="w-4 h-4 mr-2.5 text-slate-600" />
+                            Edit Project
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleOpenPreview(project)}
+                            className="cursor-pointer py-2"
+                          >
+                            <FileText className="w-4 h-4 mr-2.5 text-slate-600" />
+                            View Report
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleOpenSplitDialog(project)}
+                            className="cursor-pointer py-2"
+                          >
+                            <PieChart className="w-4 h-4 mr-2.5 text-slate-600" />
+                            Revenue Split
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => navigate(`/contracts?projectId=${project.id}`)}
+                            className="cursor-pointer py-2"
+                          >
+                            <FileSignature className="w-4 h-4 mr-2.5 text-slate-600" />
+                            Contracts
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="my-1" />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => setProjectToDelete(project.id)}
+                            className="cursor-pointer py-2 text-destructive focus:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2.5 text-destructive" />
+                            Delete Project
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Desktop / Tablet Table View */}
+          <Card className="hidden md:block">
             <CardContent className="p-0">
               <Table className="min-w-[800px]">
                 <TableHeader>
@@ -601,19 +770,14 @@ export function Projects() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {projects.length === 0 ? (
+                  {sortedProjects.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         No projects found. Create one to get started.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    [...projects].sort((a, b) => {
-                      const dateA = new Date(a.date).getTime();
-                      const dateB = new Date(b.date).getTime();
-                      if (dateB !== dateA) return dateB - dateA;
-                      return b.id.localeCompare(a.id);
-                    }).map((project) => {
+                    sortedProjects.map((project) => {
                       const client = clients.find(c => c.id === project.clientId);
                       const projectInvoices = invoices.filter(i => i.projectId === project.id);
                       const totalBilled = projectInvoices.reduce((sum, i) => sum + i.totalAmount, 0);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useStore, Client } from "@/store";
 import { formatPhoneNumber } from "@/lib/utils";
@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit, Trash2, Search, Download } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Download, Mail, Phone } from "lucide-react";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { ActionTooltip } from "@/components/ui/tooltip";
 
@@ -136,12 +136,18 @@ export function Clients() {
     URL.revokeObjectURL(url);
   };
 
-  const filteredClients = clients.filter(
-    (client) =>
-      client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.phone.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredClients = useMemo(() => {
+    return clients.filter(
+      (client) =>
+        client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        client.phone.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [clients, searchQuery]);
+
+  const sortedFilteredClients = useMemo(() => {
+    return [...filteredClients].sort((a, b) => a.name.localeCompare(b.name));
+  }, [filteredClients]);
 
   const statsNationality: Record<string, number> = {};
   const statsLeadSource: Record<string, number> = {};
@@ -459,7 +465,112 @@ export function Clients() {
         </div>
       )}
 
-      <Card>
+      {/* Mobile Card View (Phone / Small Tablet) */}
+      <div className="block md:hidden space-y-3">
+        {sortedFilteredClients.length === 0 ? (
+          <div className="bg-white dark:bg-card rounded-xl border p-8 text-center text-muted-foreground shadow-sm">
+            {searchQuery
+              ? "No clients found matching your search."
+              : "No clients found. Add one to get started."}
+          </div>
+        ) : (
+          sortedFilteredClients.map((client) => (
+            <div
+              key={client.id}
+              className={`bg-white dark:bg-card rounded-xl border border-slate-200/80 dark:border-border p-4 shadow-sm hover:shadow-md transition-shadow space-y-3 ${
+                highlightedId === client.id
+                  ? "bg-slate-100 ring-2 ring-slate-400 ring-inset"
+                  : ""
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-border/60 pb-2.5">
+                <div>
+                  <h4 className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
+                    {client.name}
+                  </h4>
+                  {client.leadSource && (
+                    <span className="text-xs text-muted-foreground">
+                      Source: {client.leadSource}
+                    </span>
+                  )}
+                </div>
+                {client.nationality && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-muted text-slate-700 dark:text-slate-300 font-medium shrink-0">
+                    {client.nationality}
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-1.5 text-sm">
+                {client.email && (
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <Mail className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <a
+                      href={`mailto:${client.email}`}
+                      className="hover:underline hover:text-primary truncate"
+                    >
+                      {client.email}
+                    </a>
+                  </div>
+                )}
+                {client.phone && (
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <Phone className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <a
+                      href={`tel:${client.phone}`}
+                      className="hover:underline hover:text-primary"
+                    >
+                      {formatPhoneNumber(client.phone)}
+                    </a>
+                  </div>
+                )}
+                {client.notes && (
+                  <p className="text-xs text-muted-foreground pt-1 line-clamp-2 italic bg-slate-50 dark:bg-muted/30 p-2 rounded">
+                    "{client.notes}"
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-border/60">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenDialog(client)}
+                  className="h-10 text-xs flex-1 font-medium text-slate-700 dark:text-slate-200"
+                >
+                  <Edit className="w-3.5 h-3.5 mr-1.5" />
+                  Edit Client
+                </Button>
+                {client.phone && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="h-10 text-xs px-3 font-medium text-slate-700 dark:text-slate-200"
+                  >
+                    <a href={`tel:${client.phone}`}>
+                      <Phone className="w-3.5 h-3.5 mr-1.5" />
+                      Call
+                    </a>
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setClientToDelete(client.id)}
+                  className="h-10 w-10 shrink-0 text-destructive hover:bg-destructive/10"
+                  title="Delete Client"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop / Tablet Table View */}
+      <Card className="hidden md:block">
         <CardContent className="p-0">
           <Table className="min-w-[800px]">
             <TableHeader>
@@ -476,7 +587,7 @@ export function Clients() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredClients.length === 0 ? (
+              {sortedFilteredClients.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={7}
@@ -488,9 +599,7 @@ export function Clients() {
                   </TableCell>
                 </TableRow>
               ) : (
-                [...filteredClients]
-                  .sort((a, b) => a.name.localeCompare(b.name))
-                  .map((client) => (
+                sortedFilteredClients.map((client) => (
                     <TableRow 
                       key={client.id}
                       className={`group hover:bg-slate-50/80 transition-colors ${highlightedId === client.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}`}

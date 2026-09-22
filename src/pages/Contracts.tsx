@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore, Quote } from '@/store';
 import { Button } from '@/components/ui/button';
@@ -208,21 +208,23 @@ export function Contracts() {
     }
   };
 
-  const filteredQuotes = quotes
-    .filter(quote => {
-      const qNum = quote.quoteNumber || quote.id.substring(0, 8);
-      const matchesSearch = 
-        quote.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        quote.projectTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        qNum.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.date || a.issueDate).getTime();
-      const dateB = new Date(b.date || b.issueDate).getTime();
-      return dateB - dateA;
-    });
+  const filteredQuotes = useMemo(() => {
+    return quotes
+      .filter(quote => {
+        const qNum = quote.quoteNumber || quote.id.substring(0, 8);
+        const matchesSearch = 
+          quote.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          quote.projectTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          qNum.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        const dateA = new Date(a.date || a.issueDate).getTime();
+        const dateB = new Date(b.date || b.issueDate).getTime();
+        return dateB - dateA;
+      });
+  }, [quotes, searchQuery, statusFilter]);
 
   const hasSignature = Boolean(settings?.companySignature);
 
@@ -345,8 +347,101 @@ export function Contracts() {
         </div>
       </div>
 
-      {/* Contracts & NDAs Document Table */}
-      <Card className="shadow-sm border-slate-200">
+      {/* Mobile Card View (Phone / Small Tablet) */}
+      <div className="block md:hidden space-y-3">
+        {filteredQuotes.length === 0 ? (
+          <div className="bg-white dark:bg-card rounded-xl border p-8 text-center text-slate-500 shadow-sm">
+            <FileSignature className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+            <p className="font-medium text-slate-700 dark:text-slate-200">No quotes or projects found</p>
+            <p className="text-xs text-slate-500 mt-1">
+              Create a quote to instantly generate service contracts and NDAs.
+            </p>
+            <Button asChild size="sm" variant="outline" className="mt-3">
+              <Link to="/quotes">Go to Quotes</Link>
+            </Button>
+          </div>
+        ) : (
+          filteredQuotes.map((quote) => {
+            const quoteNumber =
+              quote.quoteNumber || quote.id.substring(0, 8).toUpperCase();
+            const total = (quote.packages || []).reduce(
+              (sum, p) => sum + (Number(p.settlement) || 0),
+              0
+            );
+            const displayDate = quote.date || quote.issueDate;
+
+            return (
+              <div
+                key={quote.id}
+                className="bg-white dark:bg-card rounded-xl border border-slate-200/80 dark:border-border p-4 shadow-sm hover:shadow-md transition-shadow space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-border/60 pb-2.5">
+                  <div>
+                    <span className="font-mono text-xs text-muted-foreground block">
+                      {quoteNumber}
+                    </span>
+                    <h4 className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight mt-0.5">
+                      {quote.projectTitle || "Untitled Project"}
+                    </h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
+                      {quote.clientName}
+                    </p>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={`capitalize text-xs shrink-0 ${
+                      quote.status === "approved"
+                        ? "bg-green-50 text-green-700 border-green-200"
+                        : quote.status === "sent"
+                        ? "bg-blue-50 text-blue-700 border-blue-200"
+                        : quote.status === "declined"
+                        ? "bg-red-50 text-red-700 border-red-200"
+                        : "bg-slate-100 text-slate-700 border-slate-200"
+                    }`}
+                  >
+                    {quote.status || "draft"}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">
+                    {displayDate
+                      ? format(new Date(displayDate), "MMM d, yyyy")
+                      : "-"}
+                  </span>
+                  <span className="font-semibold font-mono text-slate-900 dark:text-slate-100 text-sm">
+                    KES {total.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-border/60">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenContract(quote)}
+                    className="h-10 text-xs flex-1 font-medium border-slate-300 hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors text-slate-700 dark:text-slate-200"
+                  >
+                    <FileSignature className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                    Contract
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenNDA(quote)}
+                    className="h-10 text-xs flex-1 font-medium border-slate-300 hover:border-sky-500 hover:bg-sky-50/50 hover:text-sky-600 transition-colors text-slate-700 dark:text-slate-200"
+                  >
+                    <FileText className="w-3.5 h-3.5 mr-1.5 text-sky-600" />
+                    NDA
+                  </Button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Contracts & NDAs Document Table (Desktop / Tablet) */}
+      <Card className="shadow-sm border-slate-200 hidden md:block">
         <CardContent className="p-0">
           <Table className="min-w-[900px]">
             <TableHeader>

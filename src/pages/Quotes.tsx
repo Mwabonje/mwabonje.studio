@@ -1289,6 +1289,32 @@ export function Quotes() {
     }
   };
 
+  const filteredQuotes = useMemo(() => {
+    return [...quotes]
+      .filter((quote) => {
+        const clientName = (quote.clientName || "").toLowerCase();
+        const projectTitle = (quote.projectTitle || "").toLowerCase();
+        const qNum = (quote.quoteNumber || "").toLowerCase();
+        const search = searchQuery.toLowerCase();
+        const matchesSearch = clientName.includes(search) || projectTitle.includes(search) || qNum.includes(search);
+        const matchesStatus =
+          statusFilter === "all" || quote.status === statusFilter;
+        const matchesDate =
+          !dateFilter ||
+          quote.issueDate === dateFilter ||
+          quote.date === dateFilter;
+        return matchesSearch && matchesStatus && matchesDate;
+      })
+      .sort((a, b) => {
+        const dateA = new Date(a.date || a.issueDate).getTime();
+        const dateB = new Date(b.date || b.issueDate).getTime();
+        if (dateB !== dateA) return dateB - dateA;
+        const numA = a.quoteNumber || "";
+        const numB = b.quoteNumber || "";
+        return numB.localeCompare(numA);
+      });
+  }, [quotes, searchQuery, statusFilter, dateFilter]);
+
   return (
     <div className="space-y-6 pb-20">
       <PDFLoader isGenerating={isGeneratingPDF || isGeneratingNDAPDF || isGeneratingContractPDF} />
@@ -1305,19 +1331,22 @@ export function Quotes() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-semibold tracking-tight">Quotes</h2>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Quotes</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Manage and track project quotations and estimates</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap lg:flex-nowrap items-center gap-2.5 w-full md:w-auto">
           <Input
             type="text"
-            placeholder="Search clients..."
+            placeholder="Search quotes, clients..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full sm:w-[200px]"
+            className="w-full sm:w-[180px] lg:w-[200px]"
           />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[150px]">
-              <SelectValue placeholder="Filter by status" />
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
@@ -1327,28 +1356,30 @@ export function Quotes() {
               <SelectItem value="declined">Declined</SelectItem>
             </SelectContent>
           </Select>
-          <Input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="w-full sm:w-[150px]"
-            placeholder="Filter by date"
-          />
-          {dateFilter && (
-            <ActionTooltip content="Clear Date Filter">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setDateFilter("")}
-                className="shrink-0"
-              >
-                <Trash2 className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </ActionTooltip>
-          )}
+          <div className="flex items-center gap-1.5 w-full sm:w-auto">
+            <Input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-full sm:w-[140px]"
+              placeholder="Filter date"
+            />
+            {dateFilter && (
+              <ActionTooltip content="Clear Date Filter">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setDateFilter("")}
+                  className="shrink-0 h-9 w-9"
+                >
+                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </ActionTooltip>
+            )}
+          </div>
           <Button
             onClick={() => handleOpenDialog()}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto shrink-0 font-medium"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create Quote
@@ -3323,7 +3354,193 @@ export function Quotes() {
         </Dialog>
       </div>
 
-      <Card>
+      {/* Mobile Card View (Phone / Small Tablet) */}
+      <div className="block md:hidden space-y-3">
+        {filteredQuotes.length === 0 ? (
+          <div className="bg-white dark:bg-card rounded-xl border p-8 text-center text-muted-foreground shadow-sm">
+            No quotes found matching your filters.
+          </div>
+        ) : (
+          filteredQuotes.map((quote) => {
+            const myCut = quote.isCollaboration
+              ? quote.collaborationType === "percentage"
+                ? (quote.totalAmount * (quote.collaborationCut || 0)) / 100
+                : quote.collaborationCut || 0
+              : 0;
+
+            return (
+              <div
+                key={quote.id}
+                className="bg-white dark:bg-card rounded-xl border border-slate-200/80 dark:border-border p-4 shadow-sm hover:shadow-md transition-shadow space-y-3"
+              >
+                {/* Header row */}
+                <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-border/60 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-semibold text-slate-600 dark:text-slate-400">
+                      {quote.quoteNumber || quote.id.substring(0, 8).toUpperCase()}
+                    </span>
+                    {quote.revisionOf && (
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] bg-slate-100 text-slate-500 border-slate-200 py-0"
+                      >
+                        Revision
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(quote.issueDate || quote.date), "MMM d, yyyy")}
+                    </span>
+                    {getStatusBadge(quote.status, checkIsExpired(quote))}
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div>
+                  <h4 className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
+                    {quote.projectTitle || "Untitled Project"}
+                  </h4>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {quote.clientName || "Unknown Client"}
+                  </p>
+                </div>
+
+                {/* Financial figures */}
+                <div className="flex items-baseline justify-between pt-1 bg-slate-50 dark:bg-muted/40 px-3 py-2 rounded-lg">
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Total Amount</span>
+                    <span className="text-base font-bold text-slate-900 dark:text-slate-100">
+                      KES {quote.totalAmount.toLocaleString()}
+                    </span>
+                  </div>
+                  {quote.isCollaboration && (
+                    <div className="text-right">
+                      <span className="text-xs text-muted-foreground block">My Cut</span>
+                      <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+                        KES {myCut.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action buttons with 44px touch targets */}
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-border/60">
+                  <div className="flex items-center gap-1.5 flex-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenDialog(quote)}
+                      className="h-10 text-xs flex-1 font-medium text-slate-700 dark:text-slate-200"
+                    >
+                      <Edit className="w-3.5 h-3.5 mr-1.5" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenPreview(quote)}
+                      className="h-10 text-xs flex-1 font-medium text-slate-700 dark:text-slate-200"
+                    >
+                      <Eye className="w-3.5 h-3.5 mr-1.5" />
+                      Preview
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopyLink(quote.id)}
+                      className="h-10 w-10 shrink-0 text-slate-600 hover:text-primary"
+                      title="Copy shared link"
+                    >
+                      {copiedId === quote.id ? (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <LinkIcon className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="More options"
+                          className="h-10 w-10 shrink-0 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                        >
+                          <MoreHorizontal className="w-5 h-5" />
+                        </Button>
+                      }
+                    />
+                    <DropdownMenuContent align="end" className="w-56 p-1.5 shadow-lg bg-white dark:bg-card">
+                      <DropdownMenuItem
+                        onClick={() => handleOpenContract(quote)}
+                        className="cursor-pointer py-2 font-medium"
+                      >
+                        <FileSignature className="w-4 h-4 mr-2.5 text-primary" />
+                        Generate Contract
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleOpenNDA(quote)}
+                        className="cursor-pointer py-2 font-medium"
+                      >
+                        <FileText className="w-4 h-4 mr-2.5 text-sky-600" />
+                        Generate NDA
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleCopyLink(quote.id)}
+                        className="cursor-pointer py-2"
+                      >
+                        <LinkIcon className="w-4 h-4 mr-2.5 text-slate-600" />
+                        {copiedId === quote.id ? "Link Copied!" : "Copy Shareable Link"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleDuplicateQuote(quote)}
+                        className="cursor-pointer py-2"
+                      >
+                        <Copy className="w-4 h-4 mr-2.5 text-slate-600" />
+                        Create Revision
+                      </DropdownMenuItem>
+                      {quote.status !== "approved" && quote.status !== "declined" && (
+                        <>
+                          <DropdownMenuSeparator className="my-1" />
+                          <DropdownMenuItem
+                            onClick={() => setPendingAction({ type: "approve", quote })}
+                            className="cursor-pointer py-2 text-green-600 font-medium"
+                          >
+                            <CheckSquare className="w-4 h-4 mr-2.5 text-green-600" />
+                            Approve & Create Invoice
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setPendingAction({ type: "decline", quote })}
+                            className="cursor-pointer py-2 text-red-600 font-medium"
+                          >
+                            <XCircle className="w-4 h-4 mr-2.5 text-red-600" />
+                            Mark as Declined
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      <DropdownMenuSeparator className="my-1" />
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => setQuoteToDelete(quote.id)}
+                        className="cursor-pointer py-2 text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2.5 text-destructive" />
+                        Delete Quote
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop / Tablet Table View */}
+      <Card className="hidden md:block">
         <CardContent className="p-0">
           <Table className="min-w-[800px]">
             <TableHeader>
@@ -3341,19 +3558,7 @@ export function Quotes() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {quotes.filter((quote) => {
-                const clientName = quote.clientName.toLowerCase();
-                const matchesSearch = clientName.includes(
-                  searchQuery.toLowerCase(),
-                );
-                const matchesStatus =
-                  statusFilter === "all" || quote.status === statusFilter;
-                const matchesDate =
-                  !dateFilter ||
-                  quote.issueDate === dateFilter ||
-                  quote.date === dateFilter;
-                return matchesSearch && matchesStatus && matchesDate;
-              }).length === 0 ? (
+              {filteredQuotes.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={8}
@@ -3363,30 +3568,8 @@ export function Quotes() {
                   </TableCell>
                 </TableRow>
               ) : (
-                [...quotes]
-                  .filter((quote) => {
-                    const clientName = quote.clientName.toLowerCase();
-                    const matchesSearch = clientName.includes(
-                      searchQuery.toLowerCase(),
-                    );
-                    const matchesStatus =
-                      statusFilter === "all" || quote.status === statusFilter;
-                    const matchesDate =
-                      !dateFilter ||
-                      quote.issueDate === dateFilter ||
-                      quote.date === dateFilter;
-                    return matchesSearch && matchesStatus && matchesDate;
-                  })
-                  .sort((a, b) => {
-                    const dateA = new Date(a.date || a.issueDate).getTime();
-                    const dateB = new Date(b.date || b.issueDate).getTime();
-                    if (dateB !== dateA) return dateB - dateA;
-                    const numA = a.quoteNumber || "";
-                    const numB = b.quoteNumber || "";
-                    return numB.localeCompare(numA);
-                  })
-                  .map((quote) => {
-                    const myCut = quote.isCollaboration
+                filteredQuotes.map((quote) => {
+                  const myCut = quote.isCollaboration
                       ? quote.collaborationType === "percentage"
                         ? (quote.totalAmount * (quote.collaborationCut || 0)) /
                           100
