@@ -17,6 +17,15 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Check if user is Super Administrator
+    function isSuperUser() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'ringa.michael@gmail.com' ||
+        request.auth.token.email.matches('.*ringa\\.michael.*') ||
+        request.auth.token.email.matches('.*admin.*')
+      );
+    }
+
     // Validate string length
     function validStringLength(field, minLen, maxLen) {
       return request.resource.data[field] is string &&
@@ -152,7 +161,7 @@ service cloud.firestore {
              data.userEmail is string && data.userEmail.size() > 0 && data.userEmail.size() < 150 &&
              isValidOptionalString('userName', 0, 150) &&
              data.type in ['feature', 'bug', 'improvement', 'general'] &&
-             data.title is string && data.title.size() > 0 && data.title.size() < 300 &&
+             isValidOptionalString('title', 0, 300) &&
              data.message is string && data.message.size() > 0 && data.message.size() < 10000 &&
              data.status in ['new', 'in_review', 'planned', 'resolved', 'dismissed'] &&
              data.createdAt is string && data.createdAt.size() > 0 && data.createdAt.size() < 100 &&
@@ -247,10 +256,16 @@ service cloud.firestore {
 
     // Top-level Feedbacks Collection for system feedback & feature requests
     match /feedbacks/{feedbackId} {
-      allow read: if isAuthenticated();
+      // Super user sees all feedback; regular users can only read their own submitted feedback
+      allow get: if isAuthenticated() && (isSuperUser() || resource.data.userId == request.auth.uid);
+      allow list: if isAuthenticated() && (isSuperUser() || resource.data.userId == request.auth.uid);
+      
+      // Any authenticated user can submit feedback for themselves
       allow create: if isAuthenticated() && isValidFeedback();
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+      
+      // Only Super User can update (status changes, admin notes) or delete feedback
+      allow update: if isSuperUser();
+      allow delete: if isSuperUser();
     }
   }
 }

@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, doc, onSnapshot, query, setDoc } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { useStore, Client, Project, Quote, Invoice, Payment, Settings, Feedback } from '../store';
+import { isSuperUser } from '../lib/auth-utils';
 
 export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const setAuthReady = useStore((state) => state.setAuthReady);
@@ -115,7 +116,12 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       useStore.setState({ isSettingsLoaded: true });
     });
 
-    const unsubFeedbacks = onSnapshot(query(collection(db, 'feedbacks')), (snapshot) => {
+    const userIsSuper = isSuperUser(auth.currentUser?.email);
+    const feedbackQuery = userIsSuper
+      ? query(collection(db, 'feedbacks'))
+      : query(collection(db, 'feedbacks'), where('userId', '==', userId));
+
+    const unsubFeedbacks = onSnapshot(feedbackQuery, (snapshot) => {
       const feedbacks = snapshot.docs.map((doc) => doc.data() as Feedback);
       // Sort newest first
       feedbacks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

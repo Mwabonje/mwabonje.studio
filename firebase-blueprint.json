@@ -140,7 +140,7 @@
         "rating": { "type": "number" },
         "adminNotes": { "type": "string" }
       },
-      "required": ["id", "userId", "userEmail", "type", "title", "message", "status", "createdAt"]
+      "required": ["id", "userId", "userEmail", "type", "message", "status", "createdAt"]
     }
   },
   "firestore": {
