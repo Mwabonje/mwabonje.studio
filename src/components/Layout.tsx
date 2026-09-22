@@ -13,7 +13,8 @@ export function Layout() {
   const navigate = useNavigate();
   const { clients, projects, invoices, quotes, settings, isSettingsLoaded, deleteInvoice } = useStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [userName, setUserName] = useState('Mwabonje Admin');
+  const [userName, setUserName] = useState('Michael');
+  const [userFullName, setUserFullName] = useState('Michael');
   const [userInitial, setUserInitial] = useState('M');
 
   useEffect(() => {
@@ -56,13 +57,19 @@ export function Layout() {
         if (user.displayName) {
           // Remove any text in parentheses, e.g., "Michael Ringa (Mike)" -> "Michael Ringa"
           const cleanName = user.displayName.replace(/\s*\(.*?\)\s*/g, '').trim();
-          setUserName(cleanName);
-          setUserInitial(cleanName.charAt(0).toUpperCase());
+          // Pick the first name only to prevent truncation in the sidebar
+          const firstName = cleanName.split(/\s+/)[0] || cleanName;
+          setUserName(firstName);
+          setUserFullName(cleanName);
+          setUserInitial(firstName.charAt(0).toUpperCase());
         } else if (user.email) {
           const emailName = user.email.split('@')[0];
-          const formattedName = emailName.split('.').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
-          setUserName(formattedName);
-          setUserInitial(formattedName.charAt(0).toUpperCase());
+          const firstPart = emailName.split(/[\s._-]+/)[0];
+          const formattedFirstName = firstPart ? firstPart.charAt(0).toUpperCase() + firstPart.slice(1) : 'Admin';
+          const fullFormatted = emailName.split('.').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+          setUserName(formattedFirstName);
+          setUserFullName(fullFormatted);
+          setUserInitial(formattedFirstName.charAt(0).toUpperCase());
         }
       }
     });
@@ -198,7 +205,7 @@ export function Layout() {
                 {userInitial}
               </div>
               <div className="ml-3 overflow-hidden">
-                <p className="text-sm font-semibold text-white truncate max-w-[130px]" title={userName}>{userName}</p>
+                <p className="text-sm font-semibold text-white truncate max-w-[130px]" title={userFullName || userName}>{userName}</p>
                 <p className="text-xs text-primary-foreground/60 truncate">Studio Manager</p>
               </div>
             </div>
