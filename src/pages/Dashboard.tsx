@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/store';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays } from 'date-fns';
-import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2, Activity, CreditCard, FileText, UserPlus, FileCheck, ArrowUpRight, Receipt, BookOpen, ArrowRight } from 'lucide-react';
+import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2, Activity, CreditCard, FileText, UserPlus, FileCheck, ArrowUpRight, Receipt, BookOpen, ArrowRight, MessageSquarePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -19,6 +19,7 @@ export function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [isClearQuotesDialogOpen, setIsClearQuotesDialogOpen] = useState(false);
+  
   const [eventFormData, setEventFormData] = useState({
     title: '',
     clientId: '',
@@ -470,6 +471,10 @@ export function Dashboard() {
             <DropdownMenuItem onClick={() => navigate('/invoices?new=true')} className="cursor-pointer py-3">
               <Receipt className="w-4 h-4 mr-3 text-slate-500" />
               <span className="font-medium text-slate-700">New Invoice</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/feedback')} className="cursor-pointer py-3 border-t border-slate-100">
+              <MessageSquarePlus className="w-4 h-4 mr-3 text-amber-500" />
+              <span className="font-medium text-slate-700">Send Feedback</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/guide?tour=true')} className="cursor-pointer py-3 border-t border-slate-100">
               <BookOpen className="w-4 h-4 mr-3 text-primary" />

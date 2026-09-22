@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, onSnapshot, query, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
-import { useStore, Client, Project, Quote, Invoice, Payment, Settings } from '../store';
+import { useStore, Client, Project, Quote, Invoice, Payment, Settings, Feedback } from '../store';
 
 export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const setAuthReady = useStore((state) => state.setAuthReady);
@@ -29,6 +29,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           quotes: [],
           invoices: [],
           payments: [],
+          feedbacks: [],
         });
       }
     });
@@ -114,6 +115,15 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       useStore.setState({ isSettingsLoaded: true });
     });
 
+    const unsubFeedbacks = onSnapshot(query(collection(db, 'feedbacks')), (snapshot) => {
+      const feedbacks = snapshot.docs.map((doc) => doc.data() as Feedback);
+      // Sort newest first
+      feedbacks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      useStore.setState({ feedbacks });
+    }, (error) => {
+      console.error("Firebase feedbacks error:", error);
+    });
+
     return () => {
       unsubClients();
       unsubProjects();
@@ -125,6 +135,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       unsubExpenses();
       unsubReminders();
       unsubSettings();
+      unsubFeedbacks();
     };
   }, [userId]);
 

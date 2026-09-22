@@ -122,6 +122,25 @@
         "colorScheme": { "type": "string" },
         "paymentDetails": { "type": "string" }
       }
+    },
+    "Feedback": {
+      "title": "Feedback",
+      "description": "User feedback, bug report, or feature suggestion",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "userName": { "type": "string" },
+        "type": { "type": "string", "enum": ["feature", "bug", "improvement", "general"] },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["new", "in_review", "planned", "resolved", "dismissed"] },
+        "createdAt": { "type": "string" },
+        "rating": { "type": "number" },
+        "adminNotes": { "type": "string" }
+      },
+      "required": ["id", "userId", "userEmail", "type", "title", "message", "status", "createdAt"]
     }
   },
   "firestore": {
@@ -148,6 +167,10 @@
     "/users/{userId}/settings/profile": {
       "schema": { "$ref": "#/entities/Settings" },
       "description": "Settings for a user"
+    },
+    "/feedbacks/{feedbackId}": {
+      "schema": { "$ref": "#/entities/Feedback" },
+      "description": "User system feedback and feature suggestions for super user"
     }
   }
 }

@@ -145,6 +145,20 @@ service cloud.firestore {
              isValidOptionalString('paymentDetails', 0, 2000);
     }
 
+    function isValidFeedback() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.userId == request.auth.uid &&
+             data.userEmail is string && data.userEmail.size() > 0 && data.userEmail.size() < 150 &&
+             isValidOptionalString('userName', 0, 150) &&
+             data.type in ['feature', 'bug', 'improvement', 'general'] &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 300 &&
+             data.message is string && data.message.size() > 0 && data.message.size() < 10000 &&
+             data.status in ['new', 'in_review', 'planned', 'resolved', 'dismissed'] &&
+             data.createdAt is string && data.createdAt.size() > 0 && data.createdAt.size() < 100 &&
+             isValidOptionalString('adminNotes', 0, 5000);
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -229,6 +243,14 @@ service cloud.firestore {
         allow update: if isOwner(userId) && isValidSettings();
         allow delete: if isOwner(userId);
       }
+    }
+
+    // Top-level Feedbacks Collection for system feedback & feature requests
+    match /feedbacks/{feedbackId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidFeedback();
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
     }
   }
 }

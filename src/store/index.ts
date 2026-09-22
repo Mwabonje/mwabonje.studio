@@ -206,6 +206,23 @@ export type Expense = {
   uid?: string;
 };
 
+export type FeedbackType = 'feature' | 'bug' | 'improvement' | 'general';
+export type FeedbackStatus = 'new' | 'in_review' | 'planned' | 'resolved' | 'dismissed';
+
+export type Feedback = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName?: string;
+  type: FeedbackType;
+  title: string;
+  message: string;
+  status: FeedbackStatus;
+  createdAt: string;
+  rating?: number;
+  adminNotes?: string;
+};
+
 type AppState = {
   clients: Client[];
   projects: Project[];
@@ -216,6 +233,7 @@ type AppState = {
   equipment: Equipment[];
   expenses: Expense[];
   reminders: Reminder[];
+  feedbacks: Feedback[];
   settings: Settings;
   isSettingsLoaded: boolean;
   isAuthReady: boolean;
@@ -259,6 +277,10 @@ type AppState = {
   updateReminder: (id: string, reminder: Partial<Reminder>) => Promise<void>;
   deleteReminder: (id: string) => Promise<void>;
 
+  addFeedback: (feedback: Feedback) => Promise<void>;
+  updateFeedback: (id: string, feedback: Partial<Feedback>) => Promise<void>;
+  deleteFeedback: (id: string) => Promise<void>;
+
   updateSettings: (settings: Partial<Settings>) => Promise<void>;
 };
 
@@ -298,6 +320,7 @@ export const useStore = create<AppState>((set, get) => ({
   equipment: [],
   expenses: [],
   reminders: [],
+  feedbacks: [],
   settings: defaultSettings,
   isSettingsLoaded: false,
   isAuthReady: false,
@@ -548,6 +571,19 @@ export const useStore = create<AppState>((set, get) => ({
     const uid = auth.currentUser?.uid;
     if (!uid) return;
     await deleteDoc(doc(db, `users/${uid}/reminders`, id));
+  },
+
+  addFeedback: async (feedback) => {
+    const data = cleanData(feedback);
+    await setDoc(doc(db, 'feedbacks', feedback.id), data);
+  },
+  updateFeedback: async (id, feedback) => {
+    const existing = get().feedbacks.find((f) => f.id === id);
+    if (!existing) return;
+    await setDoc(doc(db, 'feedbacks', id), cleanData({ ...existing, ...feedback }));
+  },
+  deleteFeedback: async (id) => {
+    await deleteDoc(doc(db, 'feedbacks', id));
   },
 
   updateSettings: async (updatedSettings) => {

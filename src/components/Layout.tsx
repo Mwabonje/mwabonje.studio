@@ -1,21 +1,28 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings, Users, Camera, Wallet, FileSignature, BookOpen, HelpCircle } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings, Users, Camera, Wallet, FileSignature, BookOpen, HelpCircle, MessageSquarePlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { ReminderPopup } from '@/components/ReminderPopup';
+import { FeedbackDialog } from '@/components/FeedbackDialog';
+import { isSuperUser } from '@/lib/auth-utils';
 
 export function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { clients, projects, invoices, quotes, settings, isSettingsLoaded, deleteInvoice } = useStore();
+  const { clients, projects, invoices, quotes, settings, isSettingsLoaded, deleteInvoice, feedbacks } = useStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [userName, setUserName] = useState('Michael');
   const [userFullName, setUserFullName] = useState('Michael');
   const [userInitial, setUserInitial] = useState('M');
+
+  const currentUser = auth.currentUser;
+  const isSuper = isSuperUser(currentUser?.email);
+  const newFeedbackCount = feedbacks.filter((f) => f.status === 'new').length;
 
   useEffect(() => {
     // Cleanup orphaned invoices where the associated quote is declined
@@ -86,6 +93,12 @@ export function Layout() {
     { name: 'Expenses', href: '/expenses', icon: Wallet },
     { name: 'Performance', href: '/performance', icon: PieChart },
     { name: 'Equipment', href: '/equipment', icon: Camera },
+    { 
+      name: isSuper ? 'Feedback Inbox' : 'Feedback', 
+      href: '/feedback', 
+      icon: MessageSquarePlus,
+      badge: isSuper && newFeedbackCount > 0 ? newFeedbackCount : undefined,
+    },
     { name: 'System Guide', href: '/guide', icon: BookOpen },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
@@ -110,6 +123,17 @@ export function Layout() {
           </h1>
         </Link>
         <div className="flex items-center gap-1 shrink-0">
+          <Link 
+            to="/feedback"
+            className="w-11 h-11 flex items-center justify-center text-white/80 hover:text-white rounded-lg active:bg-white/10 transition-colors relative" 
+            title={isSuper ? "Feedback Inbox" : "Send Feedback"}
+            aria-label={isSuper ? "Feedback Inbox" : "Send Feedback"}
+          >
+            <MessageSquarePlus className="w-5 h-5" />
+            {isSuper && newFeedbackCount > 0 && (
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-primary animate-pulse" />
+            )}
+          </Link>
           <Link 
             to="/guide" 
             className="w-11 h-11 flex items-center justify-center text-white/80 hover:text-white rounded-lg active:bg-white/10 transition-colors" 
@@ -228,6 +252,7 @@ export function Layout() {
         <div className="flex-1 overflow-y-auto flex flex-col px-3.5 sm:px-6 md:px-8 lg:px-12 pt-4 sm:pt-6 lg:pt-10 pb-24 lg:pb-12">
           <Outlet />
           <ReminderPopup />
+          <FeedbackDialog open={isFeedbackDialogOpen} onOpenChange={setIsFeedbackDialogOpen} />
         </div>
       </main>
 
