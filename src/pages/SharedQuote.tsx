@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getResolvedTheme } from "@/lib/theme";
+import { formatQuoteNumber } from "@/lib/documentNumbering";
 
 export function SharedQuote() {
   const [searchParams] = useSearchParams();
@@ -460,7 +461,7 @@ export function SharedQuote() {
                   </>
                 )}
               </h1>
-              <div className="header-sub">Quote No. {quote.quoteNumber}</div>
+              <div className="header-sub">Quote No. {formatQuoteNumber(quote)}</div>
             </header>
 
             {/* CLIENT META */}

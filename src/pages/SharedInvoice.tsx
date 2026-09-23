@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getResolvedTheme } from '@/lib/theme';
+import { formatInvoiceNumber } from '@/lib/documentNumbering';
 
 import { formatPhoneNumber } from '@/lib/utils';
 
@@ -784,7 +785,7 @@ export function SharedInvoice() {
               </div>
               <div className="header-right">
                 <div className="invoice-label">In<em>voice</em></div>
-                <div className="invoice-number">INV · {invoice.date ? format(new Date(invoice.date), 'yyyy') : new Date().getFullYear()} · {invoice.id.slice(0, 3).toUpperCase()}</div>
+                <div className="invoice-number">{formatInvoiceNumber(invoice, quote)}</div>
                 <div className={`status-badge ${invoice.amountPaid === 0 ? 'status-unpaid' : invoice.amountPaid < invoice.totalAmount ? 'status-partial' : 'status-paid'}`}>
                   {invoice.amountPaid === 0 ? 'Awaiting Payment' : invoice.amountPaid < invoice.totalAmount ? 'Partially Paid' : 'Paid in Full'}
                 </div>
@@ -804,7 +805,7 @@ export function SharedInvoice() {
 
               <div className="meta-block">
                 <div className="meta-block-title">Invoice Details</div>
-                <div className="meta-line"><strong>Invoice No.</strong> <span>{invoice.quoteId ? (quote?.quoteNumber || invoice.quoteId.slice(0, 8).toUpperCase()) : invoice.id.slice(0, 8).toUpperCase()}</span></div>
+                <div className="meta-line"><strong>Invoice No.</strong> <span>{formatInvoiceNumber(invoice, quote)}</span></div>
                 <div className="meta-line"><strong>Issue Date</strong> <span>{invoice.date ? format(new Date(invoice.date), 'dd · MM · yyyy') : 'N/A'}</span></div>
                 {invoice.dueDate && <div className="meta-line"><strong>Due Date</strong> <span>{format(new Date(invoice.dueDate), 'dd · MM · yyyy')}</span></div>}
                 {project?.title && <div className="meta-line"><strong>Project</strong> <span>{project.title}</span></div>}

@@ -1,6 +1,7 @@
 import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useStore, Invoice, LineItem, Quote } from '@/store';
+import { formatInvoiceNumber, generateNextInvoiceNumber } from '@/lib/documentNumbering';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -319,8 +320,15 @@ export function Invoices() {
         await updateInvoice(editingInvoice.id, { ...formData, lineItems, totalAmount });
         localStorage.removeItem(`invoiceDraft_${editingInvoice.id}`);
       } else {
+        const linkedQuote = formData.quoteId && formData.quoteId !== 'none'
+          ? quotes.find(q => q.id === formData.quoteId)
+          : null;
+        const invoiceYear = formData.date ? new Date(formData.date).getFullYear() : new Date().getFullYear();
+        const invoiceNumber = generateNextInvoiceNumber(invoices, linkedQuote, invoiceYear);
+
         await addInvoice({
           id: crypto.randomUUID(),
+          invoiceNumber,
           ...formData,
           quoteId: formData.quoteId === 'none' ? undefined : formData.quoteId,
           lineItems,
@@ -1098,7 +1106,7 @@ export function Invoices() {
                         </div>
                         <div className="header-right">
                           <div className="invoice-label">In<em>voice</em></div>
-                          <div className="invoice-number">INV · {previewInvoice.date ? format(new Date(previewInvoice.date), 'yyyy') : new Date().getFullYear()} · {previewInvoice.id.slice(0, 3).toUpperCase()}</div>
+                          <div className="invoice-number">{formatInvoiceNumber(previewInvoice, quotes.find(q => q.id === previewInvoice.quoteId), quotes)}</div>
                           <div className={`status-badge ${previewInvoice.amountPaid === 0 ? 'status-unpaid' : previewInvoice.amountPaid < previewInvoice.totalAmount ? 'status-partial' : 'status-paid'}`}>
                             {previewInvoice.amountPaid === 0 ? 'Awaiting Payment' : previewInvoice.amountPaid < previewInvoice.totalAmount ? 'Partially Paid' : 'Paid in Full'}
                           </div>
@@ -1118,7 +1126,7 @@ export function Invoices() {
 
                         <div className="meta-block">
                           <div className="meta-block-title">Invoice Details</div>
-                          <div className="meta-line"><strong>Invoice No.</strong> <span>{previewInvoice.quoteId ? (quotes.find(q => q.id === previewInvoice.quoteId)?.quoteNumber || previewInvoice.quoteId.slice(0, 8).toUpperCase()) : previewInvoice.id.slice(0, 8).toUpperCase()}</span></div>
+                          <div className="meta-line"><strong>Invoice No.</strong> <span>{formatInvoiceNumber(previewInvoice, quotes.find(q => q.id === previewInvoice.quoteId), quotes)}</span></div>
                           <div className="meta-line"><strong>Issue Date</strong> <span>{previewInvoice.date ? format(new Date(previewInvoice.date), 'dd · MM · yyyy') : 'N/A'}</span></div>
                           {previewInvoice.dueDate && <div className="meta-line"><strong>Due Date</strong> <span>{format(new Date(previewInvoice.dueDate), 'dd · MM · yyyy')}</span></div>}
                           {project?.title && <div className="meta-line"><strong>Project</strong> <span>{project.title}</span></div>}
@@ -1262,10 +1270,11 @@ export function Invoices() {
             const project = projects.find((p) => p.id === invoice.projectId);
             const client = clients.find((c) => c.id === invoice.clientId);
             const balance = invoice.totalAmount - invoice.amountPaid;
-            const invoiceNumber = invoice.quoteId
-              ? quotes.find((q) => q.id === invoice.quoteId)?.quoteNumber ||
-                invoice.quoteId.substring(0, 8).toUpperCase()
-              : invoice.id.substring(0, 8).toUpperCase();
+            const invoiceNumber = formatInvoiceNumber(
+              invoice,
+              quotes.find((q) => q.id === invoice.quoteId),
+              quotes
+            );
 
             return (
               <div
@@ -1430,7 +1439,7 @@ export function Invoices() {
                       className={`group hover:bg-muted/50 transition-colors ${highlightedId === invoice.id ? "bg-muted ring-2 ring-border ring-inset transition-all duration-500" : ""}`}
                     >
                       <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
-                        {invoice.quoteId ? (quotes.find(q => q.id === invoice.quoteId)?.quoteNumber || invoice.quoteId.substring(0, 8).toUpperCase()) : invoice.id.substring(0, 8).toUpperCase()}
+                        {formatInvoiceNumber(invoice, quotes.find(q => q.id === invoice.quoteId), quotes)}
                       </TableCell>
                       <TableCell className="font-medium max-w-[180px] truncate" title={client?.name || 'Unknown Client'}>
                         {client?.name || 'Unknown Client'}

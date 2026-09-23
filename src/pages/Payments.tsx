@@ -1,6 +1,7 @@
 import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useMemo } from 'react';
 import { useStore, Payment, CollaboratorSplit } from '@/store';
+import { formatReceiptNumber, formatInvoiceNumber } from '@/lib/documentNumbering';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,7 @@ import { ActionTooltip } from '@/components/ui/tooltip';
 
 export function Payments() {
 
-  const { payments, invoices, clients, projects, settings, addPayment, updatePayment, deletePayment, updateProject } = useStore();
+  const { payments, invoices, quotes, clients, projects, settings, addPayment, updatePayment, deletePayment, updateProject } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -128,14 +129,18 @@ export function Payments() {
         return;
       }
 
+      const paymentId = crypto.randomUUID();
+      const receiptNumber = formatReceiptNumber({ id: paymentId, date: formData.date });
+
       const newPayment: Payment = {
-        id: crypto.randomUUID(),
+        id: paymentId,
+        receiptNumber,
         invoiceId: formData.invoiceId,
         amount: Number(formData.amount),
         date: formData.date,
         method: formData.method,
         reference: formData.reference,
-          allocations: formData.allocations,
+        allocations: formData.allocations,
       };
       
       await addPayment(newPayment);
@@ -237,7 +242,7 @@ export function Payments() {
 
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
 
-      pdf.save(`Receipt_${previewPayment.id.substring(0, 6)}.pdf`);
+      pdf.save(`Receipt_${formatReceiptNumber(previewPayment)}.pdf`);
       
       element.style.cssText = originalStyle;
       element.className = originalClass;
@@ -314,9 +319,10 @@ export function Payments() {
                         const balance = invoice.totalAmount - invoice.amountPaid;
                         // If editing, the balance should technically include the current payment amount back, 
                         // but for simplicity we'll just show the current balance.
+                        const invNumber = formatInvoiceNumber(invoice, quotes.find(q => q.id === invoice.quoteId), quotes);
                         return (
                           <SelectItem key={invoice.id} value={invoice.id}>
-                            {client?.name} - {project?.title} (Bal: KES {balance.toLocaleString()})
+                            {invNumber} · {client?.name} - {project?.title} (Bal: KES {balance.toLocaleString()})
                           </SelectItem>
                         );
                       })
@@ -1100,10 +1106,10 @@ export function Payments() {
 
                           <div className="meta-block">
                             <div className="meta-block-title">Receipt Details</div>
-                            <div className="meta-line"><strong>Receipt No.</strong> &nbsp;RCT-{previewPayment.id.substring(0, 6).toUpperCase()}</div>
+                            <div className="meta-line"><strong>Receipt No.</strong> &nbsp;{formatReceiptNumber(previewPayment)}</div>
                             <div className="meta-line"><strong>Date Paid</strong> &nbsp;&nbsp;&nbsp;{format(new Date(previewPayment.date), 'dd · MM · yyyy')}</div>
                             {project?.title && <div className="meta-line"><strong>Project</strong> &nbsp;&nbsp;&nbsp;&nbsp;{project.title}</div>}
-                            <div className="meta-line"><strong>Ref. Invoice</strong> &nbsp;{invoice ? `INV · ${invoice.date ? format(new Date(invoice.date), 'yyyy') : new Date().getFullYear()} · ${invoice.id.slice(0, 3).toUpperCase()}` : '——————'}</div>
+                            <div className="meta-line"><strong>Ref. Invoice</strong> &nbsp;{invoice ? formatInvoiceNumber(invoice, quotes.find(q => q.id === invoice.quoteId), quotes) : '——————'}</div>
                           </div>
                         </div>
 
@@ -1339,7 +1345,7 @@ export function Payments() {
               >
                 <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-border/60 pb-2.5">
                   <span className="font-mono text-xs font-semibold text-slate-600 dark:text-slate-400">
-                    RCT-{payment.id.substring(0, 6).toUpperCase()}
+                    {formatReceiptNumber(payment)}
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">
@@ -1482,7 +1488,7 @@ export function Payments() {
                   return (
                     <TableRow key={payment.id} className="group hover:bg-muted/50 transition-colors">
                       <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
-                        RCT-{payment.id.substring(0, 6).toUpperCase()}
+                        {formatReceiptNumber(payment)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">{format(new Date(payment.date), 'MMM d, yyyy')}</TableCell>
                       <TableCell className="font-medium max-w-[160px] truncate" title={client?.name || 'Unknown Client'}>

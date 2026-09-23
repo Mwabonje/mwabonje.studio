@@ -2,6 +2,7 @@ import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from "@/store";
+import { formatQuoteNumber, generateNextQuoteNumber, generateQuoteRevisionNumber } from "@/lib/documentNumbering";
 import { NDA } from "@/components/NDA";
 import { Contract } from "@/components/Contract";
 import { Card, CardContent } from "@/components/ui/card";
@@ -229,40 +230,11 @@ export function Quotes() {
   >([]);
 
   const generateQuoteNumber = () => {
-    let maxNum = 0;
-    quotes.forEach((q) => {
-      if (q.quoteNumber && q.quoteNumber.startsWith("QT-")) {
-        const parts = q.quoteNumber.split("-");
-        if (parts.length >= 2) {
-          const num = parseInt(parts[1], 10);
-          if (!isNaN(num) && num > maxNum) {
-            maxNum = num;
-          }
-        }
-      }
-    });
-    return `QT-${String(maxNum + 1).padStart(4, "0")}`;
+    return generateNextQuoteNumber(quotes);
   };
 
   const generateRevisionNumber = (originalQuote: Quote) => {
-    const baseNumber =
-      originalQuote.quoteNumber ||
-      `QT-${originalQuote.id.substring(0, 8).toUpperCase()}`;
-    const baseWithoutRev = baseNumber.replace(/-R\d+$/, "");
-
-    let maxRev = 0;
-    quotes.forEach((q) => {
-      if (q.quoteNumber && q.quoteNumber.startsWith(`${baseWithoutRev}-R`)) {
-        const revPart = q.quoteNumber.split("-R")[1];
-        if (revPart) {
-          const num = parseInt(revPart, 10);
-          if (!isNaN(num) && num > maxRev) {
-            maxRev = num;
-          }
-        }
-      }
-    });
-    return `${baseWithoutRev}-R${maxRev + 1}`;
+    return generateQuoteRevisionNumber(originalQuote, quotes);
   };
 
   const getColorClass = (color: string) => {
@@ -1215,6 +1187,7 @@ export function Quotes() {
         }
 
         const existingInvoice = invoices.find(i => i.projectId === projectId && i.status !== 'paid');
+        const generatedInvoiceNumber = formatQuoteNumber(quoteToApprove).replace(/^QT-/, 'INV-');
 
         if (existingInvoice) {
           const newStatus = existingInvoice.amountPaid >= totalSelectedAmount 
@@ -1222,6 +1195,7 @@ export function Quotes() {
             : (existingInvoice.amountPaid > 0 ? 'partially_paid' : 'unpaid');
             
           await updateInvoice(existingInvoice.id, {
+            invoiceNumber: existingInvoice.invoiceNumber || generatedInvoiceNumber,
             quoteId: quoteToApprove.id,
             clientId,
             lineItems,
@@ -1231,6 +1205,7 @@ export function Quotes() {
         } else {
           await addInvoice({
             id: crypto.randomUUID(),
+            invoiceNumber: generatedInvoiceNumber,
             quoteId: quoteToApprove.id,
             projectId,
             clientId,
@@ -1294,7 +1269,7 @@ export function Quotes() {
       .filter((quote) => {
         const clientName = (quote.clientName || "").toLowerCase();
         const projectTitle = (quote.projectTitle || "").toLowerCase();
-        const qNum = (quote.quoteNumber || "").toLowerCase();
+        const qNum = formatQuoteNumber(quote).toLowerCase();
         const search = searchQuery.toLowerCase();
         const matchesSearch = clientName.includes(search) || projectTitle.includes(search) || qNum.includes(search);
         const matchesStatus =
@@ -1309,8 +1284,8 @@ export function Quotes() {
         const dateA = new Date(a.date || a.issueDate).getTime();
         const dateB = new Date(b.date || b.issueDate).getTime();
         if (dateB !== dateA) return dateB - dateA;
-        const numA = a.quoteNumber || "";
-        const numB = b.quoteNumber || "";
+        const numA = formatQuoteNumber(a);
+        const numB = formatQuoteNumber(b);
         return numB.localeCompare(numA);
       });
   }, [quotes, searchQuery, statusFilter, dateFilter]);
@@ -2889,7 +2864,7 @@ export function Quotes() {
                       )}
                     </h1>
                     <div className="header-sub">
-                      Quote No. {formData.quoteNumber}
+                      Quote No. {formatQuoteNumber(formData)}
                     </div>
                   </header>
 
@@ -3377,7 +3352,7 @@ export function Quotes() {
                 <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-border/60 pb-2.5">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs font-semibold text-slate-600 dark:text-slate-400">
-                      {quote.quoteNumber || quote.id.substring(0, 8).toUpperCase()}
+                      {formatQuoteNumber(quote)}
                     </span>
                     {quote.revisionOf && (
                       <Badge
@@ -3579,8 +3554,7 @@ export function Quotes() {
                     return (
                       <TableRow key={quote.id} className="group hover:bg-muted/50 transition-colors">
                         <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
-                          {quote.quoteNumber ||
-                            quote.id.substring(0, 8).toUpperCase()}
+                          {formatQuoteNumber(quote)}
                         </TableCell>
                         <TableCell className="font-medium max-w-[200px] truncate" title={quote.projectTitle || "Unknown Project"}>
                           {quote.projectTitle || "Unknown Project"}

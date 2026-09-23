@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useStore } from '@/store';
+import { formatInvoiceNumber } from '@/lib/documentNumbering';
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
-  const { clients, projects, invoices } = useStore();
+  const { clients, projects, invoices, quotes } = useStore();
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -31,10 +32,12 @@ export function GlobalSearch() {
     (p.id && p.id.toLowerCase().includes(query.toLowerCase()))
   );
 
-  const filteredInvoices = invoices.filter(i => 
-    (i.id && i.id.toLowerCase().includes(query.toLowerCase())) ||
-    (i.clientId && clients.find(c => c.id === i.clientId)?.name?.toLowerCase().includes(query.toLowerCase()))
-  );
+  const filteredInvoices = invoices.filter(i => {
+    const invNumber = formatInvoiceNumber(i, quotes.find(q => q.id === i.quoteId), quotes).toLowerCase();
+    const clientName = (clients.find(c => c.id === i.clientId)?.name || '').toLowerCase();
+    const q = query.toLowerCase();
+    return invNumber.includes(q) || (i.id && i.id.toLowerCase().includes(q)) || clientName.includes(q);
+  });
 
   const hasResults = query.trim().length > 0 && (filteredClients.length > 0 || filteredProjects.length > 0 || filteredInvoices.length > 0);
 
@@ -139,7 +142,7 @@ export function GlobalSearch() {
                         >
                           <div className="flex flex-col">
                             <span className="font-medium text-foreground">
-                              {invoice.id.startsWith('INV-') ? invoice.id : `INV-${invoice.id.substring(0, 6).toUpperCase()}`}
+                              {formatInvoiceNumber(invoice, quotes.find(q => q.id === invoice.quoteId), quotes)}
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {clients.find(c => c.id === invoice.clientId)?.name || 'Unknown Client'}

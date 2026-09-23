@@ -119,6 +119,7 @@ export type Quote = {
 
 export type Invoice = {
   id: string;
+  invoiceNumber?: string;
   quoteId?: string;
   projectId: string;
   clientId: string;
@@ -127,17 +128,16 @@ export type Invoice = {
   amountPaid: number;
   status: 'unpaid' | 'partially_paid' | 'paid';
   date: string;
-  
   dueDate: string;
   uid?: string;
 };
 
 export type Payment = {
   id: string;
+  receiptNumber?: string;
   invoiceId: string;
   amount: number;
   date: string;
-  
   method: 'cash' | 'mpesa' | 'bank' | 'paypal';
   reference?: string;
   uid?: string;

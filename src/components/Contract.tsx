@@ -1,6 +1,7 @@
 import React, { forwardRef } from "react";
 import { format } from "date-fns";
 import { Quote, useStore } from "@/store";
+import { formatQuoteNumber } from "@/lib/documentNumbering";
 
 interface ContractProps {
   quote: Quote;
@@ -47,7 +48,7 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
           Service Agreement
         </h1>
         <p className="text-slate-500">
-          Quote / Ref Number: {quote.quoteNumber || quote.id.slice(0, 8)}
+          Quote / Ref Number: {formatQuoteNumber(quote)}
         </p>
       </div>
 

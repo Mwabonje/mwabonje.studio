@@ -1,6 +1,7 @@
 import React, { forwardRef } from "react";
 import { format } from "date-fns";
 import { Quote, useStore } from "@/store";
+import { formatQuoteNumber } from "@/lib/documentNumbering";
 
 interface NDAProps {
   quote: Quote;
@@ -112,7 +113,7 @@ export const NDA = forwardRef<HTMLDivElement, NDAProps>(({ quote, isAutoSigned }
         <p>
           The Photographer retains the copyright to the Media as defined in the
           original service agreement or quote (Quote #
-          {quote.quoteNumber || quote.id.slice(0, 8)}), but waives the standard
+          {formatQuoteNumber(quote)}), but waives the standard
           right to use the Media for promotional purposes in consideration of
           this Agreement. Following secure delivery, the Client assumes sole responsibility to download and securely backup all final Media within seven (7) calendar days. The Photographer will maintain private backup files for a limited time; however, any Client requests for re-delivery of the Media after this seven-day period will be subject to an additional retrieval and administrative fee.
         </p>

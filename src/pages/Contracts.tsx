@@ -1,6 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore, Quote } from '@/store';
+import { formatQuoteNumber } from '@/lib/documentNumbering';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -211,7 +212,7 @@ export function Contracts() {
   const filteredQuotes = useMemo(() => {
     return quotes
       .filter(quote => {
-        const qNum = quote.quoteNumber || quote.id.substring(0, 8);
+        const qNum = formatQuoteNumber(quote);
         const matchesSearch = 
           quote.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           quote.projectTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -362,8 +363,7 @@ export function Contracts() {
           </div>
         ) : (
           filteredQuotes.map((quote) => {
-            const quoteNumber =
-              quote.quoteNumber || quote.id.substring(0, 8).toUpperCase();
+            const quoteNumber = formatQuoteNumber(quote);
             const total = (quote.packages || []).reduce(
               (sum, p) => sum + (Number(p.settlement) || 0),
               0
@@ -475,7 +475,7 @@ export function Contracts() {
                 </TableRow>
               ) : (
                 filteredQuotes.map((quote) => {
-                  const quoteNumber = quote.quoteNumber || quote.id.substring(0, 8).toUpperCase();
+                  const quoteNumber = formatQuoteNumber(quote);
                   const total = (quote.packages || []).reduce((sum, p) => sum + (Number(p.settlement) || 0), 0);
                   const displayDate = quote.date || quote.issueDate;
 
@@ -589,7 +589,7 @@ export function Contracts() {
                 <SelectContent className="max-h-60">
                   {quotes.map(q => (
                     <SelectItem key={q.id} value={q.id}>
-                      {(q.quoteNumber || q.id.substring(0, 8).toUpperCase())} - {q.projectTitle || 'Untitled'} ({q.clientName})
+                      {formatQuoteNumber(q)} - {q.projectTitle || 'Untitled'} ({q.clientName})
                     </SelectItem>
                   ))}
                 </SelectContent>
