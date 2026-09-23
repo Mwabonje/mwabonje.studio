@@ -387,7 +387,7 @@ export function Clients() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500 uppercase tracking-widest">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
                 Top Nationalities
               </CardTitle>
             </CardHeader>
@@ -403,13 +403,13 @@ export function Clients() {
                         <span className="w-24 truncate font-medium">
                           {item.name}
                         </span>
-                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                           <div
                             className="h-full bg-primary"
                             style={{ width: `${item.percentage}%` }}
                           />
                         </div>
-                        <span className="w-12 text-right text-slate-500">
+                        <span className="w-12 text-right text-muted-foreground">
                           {item.percentage}%
                         </span>
                       </div>
@@ -417,7 +417,7 @@ export function Clients() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-400 mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   No nationality data yet.
                 </p>
               )}
@@ -426,7 +426,7 @@ export function Clients() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500 uppercase tracking-widest">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
                 Top Lead Sources
               </CardTitle>
             </CardHeader>
@@ -442,13 +442,13 @@ export function Clients() {
                         <span className="w-24 truncate font-medium">
                           {item.name}
                         </span>
-                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                           <div
                             className="h-full bg-accent"
                             style={{ width: `${item.percentage}%` }}
                           />
                         </div>
-                        <span className="w-12 text-right text-slate-500">
+                        <span className="w-12 text-right text-muted-foreground">
                           {item.percentage}%
                         </span>
                       </div>
@@ -456,7 +456,7 @@ export function Clients() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-400 mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   No lead source data yet.
                 </p>
               )}
@@ -602,7 +602,7 @@ export function Clients() {
                 sortedFilteredClients.map((client) => (
                     <TableRow 
                       key={client.id}
-                      className={`group hover:bg-slate-50/80 transition-colors ${highlightedId === client.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}`}
+                      className={`group hover:bg-muted/50 transition-colors ${highlightedId === client.id ? "bg-muted ring-2 ring-border ring-inset transition-all duration-500" : ""}`}
                     >
                       <TableCell className="font-medium max-w-[160px] truncate" title={client.name}>
                         {client.name}
@@ -621,7 +621,7 @@ export function Clients() {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleOpenDialog(client)}
-                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                              className="text-foreground hover:text-primary hover:bg-muted"
                             >
                               <Edit className="w-4 h-4" />
                             </Button>

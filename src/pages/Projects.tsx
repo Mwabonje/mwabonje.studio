@@ -787,7 +787,7 @@ export function Projects() {
                       return (
                         <TableRow 
                           key={project.id}
-                          className={`group hover:bg-slate-50/80 transition-colors ${highlightedId === project.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}`}
+                          className={`group hover:bg-muted/50 transition-colors ${highlightedId === project.id ? "bg-muted ring-2 ring-border ring-inset transition-all duration-500" : ""}`}
                         >
                           <TableCell className="font-medium max-w-[200px] truncate" title={project.title}>
                             {project.title}
@@ -801,7 +801,7 @@ export function Projects() {
                           <TableCell className="whitespace-nowrap">{project.date ? format(new Date(project.date), 'MMM d, yyyy') : '-'}</TableCell>
                           <TableCell className="whitespace-nowrap">
                             <div className="flex items-center gap-2">
-                              <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
                                 <div className="h-full bg-primary" style={{ width: `${progressPercentage}%` }} />
                               </div>
                               <span className="text-xs text-muted-foreground">{progressPercentage}%</span>
@@ -816,7 +816,7 @@ export function Projects() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleOpenDialog(project)}
-                                  className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                                  className="text-foreground hover:text-primary hover:bg-muted"
                                 >
                                   <Edit className="w-4 h-4" />
                                 </Button>
@@ -828,7 +828,7 @@ export function Projects() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleOpenPreview(project)}
-                                  className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                                  className="text-foreground hover:text-primary hover:bg-muted"
                                 >
                                   <FileText className="w-4 h-4" />
                                 </Button>
@@ -840,7 +840,7 @@ export function Projects() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleOpenSplitDialog(project)}
-                                  className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                                  className="text-foreground hover:text-primary hover:bg-muted"
                                 >
                                   <PieChart className="w-4 h-4" />
                                 </Button>
@@ -854,7 +854,7 @@ export function Projects() {
                                       variant="ghost"
                                       size="icon"
                                       title="More options"
-                                      className="text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                                      className="text-muted-foreground hover:text-foreground hover:bg-muted"
                                     >
                                       <MoreHorizontal className="w-4 h-4" />
                                     </Button>
@@ -913,7 +913,7 @@ export function Projects() {
         </TabsContent>
 
         <TabsContent value="timeline" className="mt-0">
-          <div className="relative border-l-2 border-slate-200 ml-4 md:ml-6 space-y-8 pb-8 pt-4">
+          <div className="relative border-l-2 border-border ml-4 md:ml-6 space-y-8 pb-8 pt-4">
             {projects.length === 0 ? (
               <p className="text-muted-foreground ml-6">No projects found. Create one to get started.</p>
             ) : (
@@ -923,7 +923,7 @@ export function Projects() {
                 const today = new Date(new Date().setHours(0,0,0,0));
                 const isPast = projectDate < today;
                 const isToday = isSameDay(projectDate, today);
-                const badgeColor = isPast ? 'bg-slate-300 border-slate-300' : isToday ? 'bg-primary border-primary' : 'bg-blue-500 border-blue-500';
+                const badgeColor = isPast ? 'bg-muted border-border' : isToday ? 'bg-primary border-primary' : 'bg-blue-500 border-blue-500';
                 
                 const projectInvoices = invoices.filter(i => i.projectId === project.id);
                 const totalBilled = projectInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
@@ -932,8 +932,8 @@ export function Projects() {
                 
                 return (
                   <div key={project.id} className="relative pl-8 md:pl-10">
-                    <div className={`absolute -left-[9px] top-1.5 h-4 w-4 rounded-full border-2 border-white shadow-sm ${badgeColor}`} />
-                    <Card className={`border-l-4 ${isPast ? 'border-l-slate-300' : isToday ? 'border-l-primary' : 'border-l-blue-500'} hover:shadow-md transition-shadow`}>
+                    <div className={`absolute -left-[9px] top-1.5 h-4 w-4 rounded-full border-2 border-background shadow-sm ${badgeColor}`} />
+                    <Card className={`border-l-4 ${isPast ? 'border-l-muted-foreground/40' : isToday ? 'border-l-primary' : 'border-l-blue-500'} hover:shadow-md transition-shadow`}>
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                           <div className="w-full sm:w-auto flex-1">
@@ -942,11 +942,11 @@ export function Projects() {
                                 <h3 className="text-lg font-semibold">{project.title}</h3>
                                 {isToday && <span className="text-xs font-medium px-2 py-0.5 rounded bg-primary/10 text-primary">Today</span>}
                               </div>
-                              <div className="flex items-center gap-2 sm:ml-4 bg-slate-50 px-2 py-1 rounded">
-                                <div className="w-20 md:w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                              <div className="flex items-center gap-2 sm:ml-4 bg-muted/50 px-2 py-1 rounded">
+                                <div className="w-20 md:w-24 h-2 bg-muted rounded-full overflow-hidden">
                                   <div className="h-full bg-primary" style={{ width: `${progressPercentage}%` }} />
                                 </div>
-                                <span className="text-xs font-medium text-slate-600">{progressPercentage}%</span>
+                                <span className="text-xs font-medium text-foreground">{progressPercentage}%</span>
                               </div>
                             </div>
                             <div className="text-sm text-muted-foreground flex flex-wrap gap-x-4 gap-y-2">
@@ -955,23 +955,23 @@ export function Projects() {
                                <span className="flex items-center"><strong>Date:</strong> <span className="ml-1">{project.date ? format(projectDate, 'MMM d, yyyy') : '-'}</span></span>
                             </div>
                             {project.description && (
-                              <p className="mt-3 text-sm text-slate-600 line-clamp-2">{project.description}</p>
+                              <p className="mt-3 text-sm text-foreground/80 line-clamp-2">{project.description}</p>
                             )}
                           </div>
                           <div className="flex -mx-2 sm:mx-0 sm:flex-col gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                             <div className="flex items-center justify-center gap-2 bg-slate-50 px-3 py-1.5 rounded-md border text-sm font-medium shrink-0">
-                               <Users className="w-4 h-4 text-slate-500" />
+                             <div className="flex items-center justify-center gap-2 bg-muted/50 px-3 py-1.5 rounded-md border text-sm font-medium shrink-0">
+                               <Users className="w-4 h-4 text-muted-foreground" />
                                {project.collaborators?.length || 0}
                              </div>
                              <div className="flex items-center space-x-1 sm:justify-end ml-auto sm:ml-0">
                                <ActionTooltip content="Collaborator Revenue Split">
                                  <Button variant="ghost" size="icon" onClick={() => handleOpenSplitDialog(project)}>
-                                   <PieChart className="w-4 h-4 text-slate-500" />
+                                   <PieChart className="w-4 h-4 text-muted-foreground" />
                                  </Button>
                                </ActionTooltip>
                                <ActionTooltip content="Edit Project Details">
                                  <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(project)}>
-                                   <Edit className="w-4 h-4 text-slate-500" />
+                                   <Edit className="w-4 h-4 text-muted-foreground" />
                                  </Button>
                                </ActionTooltip>
                                <ActionTooltip content="Delete Project">

@@ -3577,7 +3577,7 @@ export function Quotes() {
                       : 0;
 
                     return (
-                      <TableRow key={quote.id} className="group hover:bg-slate-50/80 transition-colors">
+                      <TableRow key={quote.id} className="group hover:bg-muted/50 transition-colors">
                         <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
                           {quote.quoteNumber ||
                             quote.id.substring(0, 8).toUpperCase()}
@@ -3587,7 +3587,7 @@ export function Quotes() {
                           {quote.revisionOf && (
                             <Badge
                               variant="outline"
-                              className="ml-2 text-[10px] bg-slate-100 text-slate-500 border-slate-200"
+                              className="ml-2 text-[10px] bg-muted text-muted-foreground border-border"
                             >
                               Revision
                             </Badge>
@@ -3607,11 +3607,11 @@ export function Quotes() {
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
                           {quote.isCollaboration ? (
-                            <span className="text-green-600 font-semibold">
+                            <span className="text-green-600 dark:text-green-400 font-semibold">
                               KES {myCut.toLocaleString()}
                             </span>
                           ) : (
-                            <span className="text-slate-400 text-xs">-</span>
+                            <span className="text-muted-foreground text-xs">-</span>
                           )}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">{getStatusBadge(quote.status, checkIsExpired(quote))}</TableCell>
@@ -3623,7 +3623,7 @@ export function Quotes() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleOpenDialog(quote)}
-                                className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                                className="text-foreground hover:text-primary hover:bg-muted"
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
@@ -3635,7 +3635,7 @@ export function Quotes() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleOpenPreview(quote)}
-                                className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                                className="text-foreground hover:text-primary hover:bg-muted"
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
@@ -3647,7 +3647,7 @@ export function Quotes() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleOpenContract(quote)}
-                                className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                                className="text-foreground hover:text-primary hover:bg-muted"
                               >
                                 <FileSignature className="w-4 h-4 text-primary" />
                               </Button>
@@ -3659,7 +3659,7 @@ export function Quotes() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleOpenNDA(quote)}
-                                className="text-slate-700 hover:text-sky-600 hover:bg-slate-100"
+                                className="text-foreground hover:text-sky-600 hover:bg-muted"
                               >
                                 <FileText className="w-4 h-4 text-sky-600" />
                               </Button>

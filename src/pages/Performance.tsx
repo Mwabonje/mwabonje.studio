@@ -391,10 +391,10 @@ export function Performance() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat, index) => (
-          <Card key={index} className="border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+          <Card key={index} className="border-border shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-start justify-between pb-2">
               <div className="flex flex-col">
-                <CardTitle className="text-sm font-medium text-slate-500 uppercase tracking-wider">
+                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                   {stat.title}
                 </CardTitle>
                 {stat.action}
@@ -404,22 +404,22 @@ export function Performance() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-800">{stat.value}</div>
-              <p className="text-xs text-slate-500 mt-2">{stat.description}</p>
+              <div className="text-3xl font-bold text-foreground">{stat.value}</div>
+              <p className="text-xs text-muted-foreground mt-2">{stat.description}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
       <div className="mt-8">
-        <Card className="border-slate-100 shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-semibold text-slate-800">
+                <CardTitle className="text-lg font-semibold text-foreground">
                   Revenue & Projects Overview
                 </CardTitle>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Monthly breakdown of revenue and number of projects for {selectedMonth.getFullYear()}
                 </p>
               </div>
@@ -433,12 +433,12 @@ export function Performance() {
                   data={chartData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(150, 150, 150, 0.2)" />
                   <XAxis 
                     dataKey="name" 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    tick={{ fill: '#888888', fontSize: 12 }}
                     dy={10}
                   />
                   <YAxis 
@@ -446,7 +446,7 @@ export function Performance() {
                     orientation="left"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    tick={{ fill: '#888888', fontSize: 12 }}
                     tickFormatter={(value) => `Ksh ${value.toLocaleString()}`}
                   />
                   <YAxis 
@@ -491,14 +491,14 @@ export function Performance() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3 mt-8">
-        <Card className="border-slate-100 shadow-sm lg:col-span-2">
+        <Card className="border-border shadow-sm lg:col-span-2">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-semibold text-slate-800">
+                <CardTitle className="text-lg font-semibold text-foreground">
                   Revenue Heatmap
                 </CardTitle>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Peak booking months and seasonal income trends for {selectedMonth.getFullYear()}
                 </p>
               </div>
@@ -526,12 +526,12 @@ export function Performance() {
                 }
 
                 const colors = [
-                  'bg-slate-100', // 0
-                  'bg-emerald-100', // 1
-                  'bg-emerald-300', // 2
-                  'bg-emerald-500', // 3
-                  'bg-emerald-700', // 4
-                  'bg-emerald-900'  // 5
+                  'bg-muted', // 0
+                  'bg-emerald-900/40 text-emerald-300', // 1
+                  'bg-emerald-800/60', // 2
+                  'bg-emerald-600', // 3
+                  'bg-emerald-500', // 4
+                  'bg-emerald-400'  // 5
                 ];
                 
                 const heatmapMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -541,64 +541,64 @@ export function Performance() {
                     <div 
                       className={`w-full aspect-square rounded-md ${colors[scale]} transition-all duration-300 group-hover:ring-2 group-hover:ring-offset-2 group-hover:ring-emerald-500 group-hover:scale-105`} 
                     ></div>
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{heatmapMonths[i]}</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{heatmapMonths[i]}</span>
                     
                     {/* Tooltip */}
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 hidden group-hover:flex flex-col items-center z-10 pointer-events-none drop-shadow-md transition-all">
-                      <div className="bg-slate-900 text-white text-xs py-1.5 px-3 rounded-md whitespace-nowrap font-medium">
-                        {heatmapMonths[i]} {selectedMonth.getFullYear()}: <span className="text-emerald-400">Ksh {revenue.toLocaleString()}</span>
+                      <div className="bg-popover text-popover-foreground border border-border text-xs py-1.5 px-3 rounded-md whitespace-nowrap font-medium">
+                        {heatmapMonths[i]} {selectedMonth.getFullYear()}: <span className="text-emerald-500 font-bold">Ksh {revenue.toLocaleString()}</span>
                       </div>
-                      <div className="w-2.5 h-2.5 bg-slate-900 rotate-45 -mt-1.5 hidden group-hover:block"></div>
+                      <div className="w-2.5 h-2.5 bg-popover border-b border-r border-border rotate-45 -mt-1.5 hidden group-hover:block"></div>
                     </div>
                   </div>
                 );
               })}
             </div>
             
-            <div className="mt-6 mb-4 flex items-center justify-end gap-2 text-xs text-slate-500 font-medium">
+            <div className="mt-6 mb-4 flex items-center justify-end gap-2 text-xs text-muted-foreground font-medium">
               <span>Less</span>
               <div className="flex gap-1">
-                <div className="w-3 h-3 rounded-sm bg-slate-100 border border-slate-200"></div>
-                <div className="w-3 h-3 rounded-sm bg-emerald-100"></div>
-                <div className="w-3 h-3 rounded-sm bg-emerald-300"></div>
+                <div className="w-3 h-3 rounded-sm bg-muted border border-border"></div>
+                <div className="w-3 h-3 rounded-sm bg-emerald-900/40"></div>
+                <div className="w-3 h-3 rounded-sm bg-emerald-800/60"></div>
+                <div className="w-3 h-3 rounded-sm bg-emerald-600"></div>
                 <div className="w-3 h-3 rounded-sm bg-emerald-500"></div>
-                <div className="w-3 h-3 rounded-sm bg-emerald-700"></div>
-                <div className="w-3 h-3 rounded-sm bg-emerald-900"></div>
+                <div className="w-3 h-3 rounded-sm bg-emerald-400"></div>
               </div>
               <span>More</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-100 shadow-sm lg:col-span-1 flex flex-col max-h-[460px]">
-          <CardHeader className="pb-4 shrink-0 border-b border-slate-100">
-            <CardTitle className="text-lg font-semibold text-slate-800">
+        <Card className="border-border shadow-sm lg:col-span-1 flex flex-col max-h-[460px]">
+          <CardHeader className="pb-4 shrink-0 border-b border-border">
+            <CardTitle className="text-lg font-semibold text-foreground">
               Payment Summary
             </CardTitle>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               All-time earnings by contractor
             </p>
           </CardHeader>
           <CardContent className="pt-4 overflow-y-auto">
             <div className="space-y-3">
               {allTimeCollaboratorTotals.map((agg, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100 hover:bg-slate-100 transition-colors">
+                <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border hover:bg-muted transition-colors">
                    <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold shrink-0">
+                     <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold shrink-0">
                        {agg.name.charAt(0).toUpperCase()}
                      </div>
                      <div className="overflow-hidden">
-                       <p className="font-semibold text-slate-800 text-sm truncate" title={agg.name}>{agg.name}</p>
-                       <p className="text-xs text-slate-500">Contractor</p>
+                       <p className="font-semibold text-foreground text-sm truncate" title={agg.name}>{agg.name}</p>
+                       <p className="text-xs text-muted-foreground">Contractor</p>
                      </div>
                    </div>
                    <div className="text-right shrink-0 ml-2">
-                     <p className="font-bold text-emerald-600 text-sm">KES {agg.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                     <p className="font-bold text-emerald-500 text-sm">KES {agg.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
                    </div>
                 </div>
               ))}
               {allTimeCollaboratorTotals.length === 0 && (
-                 <div className="text-center py-8 text-slate-500 text-sm">No contractor payments recorded yet.</div>
+                 <div className="text-center py-8 text-muted-foreground text-sm">No contractor payments recorded yet.</div>
               )}
             </div>
           </CardContent>
@@ -607,14 +607,14 @@ export function Performance() {
       </TabsContent>
 
       <TabsContent value="splits" className="space-y-6 mt-0">
-        <Card className="border-slate-100 shadow-sm mb-6">
+        <Card className="border-border shadow-sm mb-6">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-semibold text-slate-800">
+                <CardTitle className="text-lg font-semibold text-foreground">
                   Monthly Collaborator Totals
                 </CardTitle>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Total amounts paid to each collaborator for {format(selectedMonth, 'MMMM yyyy')}
                 </p>
               </div>
@@ -652,8 +652,8 @@ export function Performance() {
                   
                   return aggregated.map((agg, idx) => (
                     <TableRow key={idx}>
-                      <TableCell className="font-medium text-slate-800">{agg.name}</TableCell>
-                      <TableCell className="text-right font-bold text-emerald-600">
+                      <TableCell className="font-medium text-foreground">{agg.name}</TableCell>
+                      <TableCell className="text-right font-bold text-emerald-500">
                         KES {agg.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </TableCell>
                     </TableRow>
@@ -664,10 +664,10 @@ export function Performance() {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-100 shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-slate-800">Detailed Project Splits</CardTitle>
-            <p className="text-sm text-slate-500">
+            <CardTitle className="text-lg font-semibold text-foreground">Detailed Project Splits</CardTitle>
+            <p className="text-sm text-muted-foreground">
               A comprehensive list of all collaborator splits, including amounts, project details, and dates.
             </p>
           </CardHeader>
@@ -696,21 +696,21 @@ export function Performance() {
                 ) : (
                   allSplits.map((split) => (
                     <TableRow key={split.id}>
-                      <TableCell className="font-medium text-slate-800">{split.collaboratorName}</TableCell>
-                      <TableCell className="text-slate-500">{split.collaboratorRole || '-'}</TableCell>
+                      <TableCell className="font-medium text-foreground">{split.collaboratorName}</TableCell>
+                      <TableCell className="text-muted-foreground">{split.collaboratorRole || '-'}</TableCell>
                       <TableCell>{split.projectName}</TableCell>
                       <TableCell>{split.projectLocation}</TableCell>
                       <TableCell>{split.projectDate ? format(split.projectDate, 'MMM d, yyyy') : 'N/A'}</TableCell>
                       <TableCell>{split.month} {split.year}</TableCell>
-                      <TableCell className="text-right text-slate-500">
+                      <TableCell className="text-right text-muted-foreground">
                         KES {split.totalProjectRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                        <span className="inline-flex items-center rounded-md bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-500 ring-1 ring-inset ring-blue-500/20">
                           {split.percentage.toFixed(1)}%
                         </span>
                       </TableCell>
-                      <TableCell className="text-right font-semibold text-emerald-600">
+                      <TableCell className="text-right font-semibold text-emerald-500">
                         KES {split.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </TableCell>
                     </TableRow>

@@ -1430,36 +1430,36 @@ export function Payments() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="whitespace-nowrap">Receipt No</TableHead>
-                <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors whitespace-nowrap" onClick={() => handleSort('date')}>
+                <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors whitespace-nowrap" onClick={() => handleSort('date')}>
                   <div className="flex items-center gap-1">
                     Date
                     {sortField === 'date' ? (
                       sortDirection === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
                     ) : (
-                      <ArrowUpDown className="w-3 h-3 text-slate-300" />
+                      <ArrowUpDown className="w-3 h-3 text-muted-foreground/60" />
                     )}
                   </div>
                 </TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Project</TableHead>
-                <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors whitespace-nowrap" onClick={() => handleSort('method')}>
+                <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors whitespace-nowrap" onClick={() => handleSort('method')}>
                   <div className="flex items-center gap-1">
                     Method
                     {sortField === 'method' ? (
                       sortDirection === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
                     ) : (
-                      <ArrowUpDown className="w-3 h-3 text-slate-300" />
+                      <ArrowUpDown className="w-3 h-3 text-muted-foreground/60" />
                     )}
                   </div>
                 </TableHead>
                 <TableHead className="whitespace-nowrap">Reference</TableHead>
-                <TableHead className="cursor-pointer hover:bg-slate-50 transition-colors whitespace-nowrap" onClick={() => handleSort('amount')}>
+                <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors whitespace-nowrap" onClick={() => handleSort('amount')}>
                   <div className="flex items-center gap-1">
                     Amount
                     {sortField === 'amount' ? (
                       sortDirection === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
                     ) : (
-                      <ArrowUpDown className="w-3 h-3 text-slate-300" />
+                      <ArrowUpDown className="w-3 h-3 text-muted-foreground/60" />
                     )}
                   </div>
                 </TableHead>
@@ -1480,7 +1480,7 @@ export function Payments() {
                   const client = clients.find(c => c.id === invoice?.clientId);
                   
                   return (
-                    <TableRow key={payment.id} className="group hover:bg-slate-50/80 transition-colors">
+                    <TableRow key={payment.id} className="group hover:bg-muted/50 transition-colors">
                       <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
                         RCT-{payment.id.substring(0, 6).toUpperCase()}
                       </TableCell>
@@ -1493,7 +1493,7 @@ export function Payments() {
                       </TableCell>
                       <TableCell className="capitalize whitespace-nowrap">{payment.method}</TableCell>
                       <TableCell className="font-mono text-xs whitespace-nowrap">{payment.reference || '-'}</TableCell>
-                      <TableCell className="font-semibold text-green-600 whitespace-nowrap">
+                      <TableCell className="font-semibold text-green-600 dark:text-green-400 whitespace-nowrap">
                         KES {payment.amount.toLocaleString()}
                       </TableCell>
                       <TableCell className="text-right sticky right-0 bg-white dark:bg-card group-hover:bg-slate-50 dark:group-hover:bg-muted/50 transition-colors z-10 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)] pr-4">
@@ -1503,7 +1503,7 @@ export function Payments() {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleOpenDialog(payment)}
-                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                              className="text-foreground hover:text-primary hover:bg-muted"
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
@@ -1513,7 +1513,7 @@ export function Payments() {
                               variant="ghost"
                               size="icon"
                               onClick={() => generateReceipt(payment, 'preview')}
-                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                              className="text-foreground hover:text-primary hover:bg-muted"
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
@@ -1523,7 +1523,7 @@ export function Payments() {
                               variant="ghost"
                               size="icon"
                               onClick={() => generateReceipt(payment, 'download')}
-                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                              className="text-foreground hover:text-primary hover:bg-muted"
                             >
                               <Download className="w-4 h-4" />
                             </Button>

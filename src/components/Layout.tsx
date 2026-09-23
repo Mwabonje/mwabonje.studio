@@ -114,7 +114,7 @@ export function Layout() {
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
       {/* Mobile/Tablet Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-primary text-primary-foreground flex items-center justify-between px-4 z-30 shadow-md">
         <Link to="/dashboard" className="flex items-center gap-2 overflow-hidden">
@@ -195,7 +195,7 @@ export function Layout() {
                     className={cn(
                       "flex items-center px-5 sm:px-6 py-3.5 sm:py-4 text-sm font-medium transition-colors relative z-10 min-h-[44px]",
                       isActive 
-                        ? "bg-slate-50 text-primary rounded-full lg:rounded-r-none lg:rounded-l-full shadow-sm lg:shadow-none" 
+                        ? "bg-background text-foreground dark:text-accent rounded-full lg:rounded-r-none lg:rounded-l-full shadow-sm lg:shadow-none font-semibold" 
                         : "text-primary-foreground/70 hover:bg-white/10 hover:text-primary-foreground rounded-full lg:mr-8"
                     )}
                   >
@@ -204,7 +204,7 @@ export function Layout() {
                     {item.badge !== undefined && (
                       <span className={cn(
                         "ml-auto text-xs font-bold px-2 py-0.5 rounded-full shrink-0",
-                        isActive ? "bg-primary/10 text-primary" : "bg-white/10 text-white"
+                        isActive ? "bg-primary/10 text-primary dark:bg-accent/20 dark:text-accent" : "bg-white/10 text-white"
                       )}>
                         {item.badge}
                       </span>
@@ -212,8 +212,8 @@ export function Layout() {
                   </Link>
                   {isActive && (
                     <div className="hidden lg:block">
-                      <div className="absolute -top-5 right-0 w-5 h-5 pointer-events-none" style={{ background: 'radial-gradient(circle at 0 0, transparent 20px, #f8fafc 20px)' }} />
-                      <div className="absolute -bottom-5 right-0 w-5 h-5 pointer-events-none" style={{ background: 'radial-gradient(circle at 0 100%, transparent 20px, #f8fafc 20px)' }} />
+                      <div className="absolute -top-5 right-0 w-5 h-5 pointer-events-none" style={{ background: 'radial-gradient(circle at 0 0, transparent 20px, var(--background) 20px)' }} />
+                      <div className="absolute -bottom-5 right-0 w-5 h-5 pointer-events-none" style={{ background: 'radial-gradient(circle at 0 100%, transparent 20px, var(--background) 20px)' }} />
                     </div>
                   )}
                 </li>
@@ -257,7 +257,7 @@ export function Layout() {
       </main>
 
       {/* Mobile & Tablet Bottom Navigation Bar */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-t border-slate-200/80 z-30 flex items-center justify-around px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 dark:bg-card/95 backdrop-blur-md border-t border-slate-200/80 dark:border-border z-30 flex items-center justify-around px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
         {bottomNavItems.map((item) => {
           const isActive = location.pathname === item.href || (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
           return (
@@ -266,11 +266,11 @@ export function Layout() {
               to={item.href}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full py-1 text-[11px] font-medium transition-colors relative min-w-[56px]",
-                isActive ? "text-primary font-bold" : "text-slate-500 hover:text-slate-800"
+                isActive ? "text-primary dark:text-accent font-bold" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
               )}
             >
               <div className="relative">
-                <item.icon className={cn("w-5 h-5 mb-0.5", isActive ? "text-primary scale-110" : "text-slate-500")} />
+                <item.icon className={cn("w-5 h-5 mb-0.5", isActive ? "text-primary dark:text-accent scale-110" : "text-slate-500 dark:text-slate-400")} />
                 {item.badge !== undefined && (
                   <span className="absolute -top-1 -right-2 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full min-w-[16px] text-center">
                     {item.badge}
@@ -279,7 +279,7 @@ export function Layout() {
               </div>
               <span className="truncate max-w-[64px]">{item.name}</span>
               {isActive && (
-                <span className="w-4 h-0.5 bg-primary rounded-full absolute bottom-1" />
+                <span className="w-4 h-0.5 bg-primary dark:bg-accent rounded-full absolute bottom-1" />
               )}
             </Link>
           );
@@ -288,12 +288,12 @@ export function Layout() {
         <button
           onClick={() => setIsMobileMenuOpen(true)}
           className={cn(
-            "flex flex-col items-center justify-center flex-1 h-full py-1 text-[11px] font-medium transition-colors relative text-slate-500 hover:text-slate-800 min-w-[56px]",
-            isMobileMenuOpen ? "text-primary font-bold" : ""
+            "flex flex-col items-center justify-center flex-1 h-full py-1 text-[11px] font-medium transition-colors relative text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 min-w-[56px]",
+            isMobileMenuOpen ? "text-primary dark:text-accent font-bold" : ""
           )}
           aria-label="More navigation options"
         >
-          <Menu className="w-5 h-5 mb-0.5 text-slate-500" />
+          <Menu className="w-5 h-5 mb-0.5 text-slate-500 dark:text-slate-400" />
           <span className="truncate">More</span>
         </button>
       </nav>

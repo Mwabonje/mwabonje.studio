@@ -81,13 +81,13 @@ export function Dashboard() {
           key={day.toString()}
           className={cn(
             "relative flex flex-col items-center py-1 sm:py-2 cursor-pointer h-12 sm:h-14",
-            !isSameMonth(day, monthStart) ? "text-slate-300" : "text-slate-700",
+            !isSameMonth(day, monthStart) ? "text-slate-300 dark:text-slate-600" : "text-slate-700 dark:text-slate-200",
           )}
           onClick={() => setSelectedDate(cloneDay)}
         >
           <div className={cn(
             "w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full text-xs sm:text-sm transition-colors z-10",
-            isSameDay(day, selectedDate) ? "bg-primary text-primary-foreground font-bold shadow-md" : "hover:bg-slate-100"
+            isSameDay(day, selectedDate) ? "bg-primary text-primary-foreground font-bold shadow-md" : "hover:bg-slate-100 dark:hover:bg-muted"
           )}>
             {formattedDate}
           </div>
@@ -134,20 +134,20 @@ export function Dashboard() {
   return (
     <div className="flex-1 flex flex-col xl:flex-row gap-8 min-h-full xl:h-full">
       {/* Calendar Section */}
-      <div className="flex-1 bg-white rounded-[2rem] shadow-sm flex flex-col md:flex-row overflow-hidden border border-slate-100 min-h-[600px]">
+      <div className="flex-1 bg-card text-foreground rounded-[2rem] shadow-sm flex flex-col md:flex-row overflow-hidden border border-border min-h-[600px]">
         {/* Left Panel (Primary Color) */}
-        <div className="w-full md:w-[38%] lg:w-[35%] bg-primary text-primary-foreground p-5 sm:p-6 md:p-8 lg:p-10 flex flex-col justify-between">
+        <div className="w-full md:w-[38%] lg:w-[35%] bg-[#003223] dark:bg-[#002218] text-white p-5 sm:p-6 md:p-8 lg:p-10 flex flex-col justify-between">
           <div>
-            <MoreHorizontal className="w-6 h-6 text-primary-foreground/70 mb-4 sm:mb-8 md:mb-12" />
+            <MoreHorizontal className="w-6 h-6 text-white/70 mb-4 sm:mb-8 md:mb-12" />
             <div className="mb-6 sm:mb-8 md:mb-12">
               <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold mb-1 sm:mb-2">{format(selectedDate, 'd')}</h1>
-              <p className="text-lg sm:text-xl md:text-2xl tracking-widest uppercase font-medium text-primary-foreground/90">{format(selectedDate, 'EEEE')}</p>
+              <p className="text-lg sm:text-xl md:text-2xl tracking-widest uppercase font-medium text-white/90">{format(selectedDate, 'EEEE')}</p>
             </div>
             
             <div>
-              <h3 className="text-sm font-bold tracking-widest mb-6 text-primary-foreground/90 uppercase">Current Events</h3>
+              <h3 className="text-sm font-bold tracking-widest mb-6 text-white/90 uppercase">Current Events</h3>
               {selectedDayEvents.length === 0 ? (
-                <p className="text-primary-foreground/80 text-sm mb-6">No bookings on this day</p>
+                <p className="text-white/80 text-sm mb-6">No bookings on this day</p>
               ) : (
                 <div className="space-y-4 mb-6">
                   {selectedDayEvents.map(event => {
@@ -156,11 +156,11 @@ export function Dashboard() {
                       <div key={event.id} className="bg-white/10 p-4 rounded-xl relative group">
                         <div className="pr-8">
                           <p className="font-semibold text-lg">{event.title}</p>
-                          <p className="text-sm text-primary-foreground/70 mt-1">{client?.name || 'Unknown Client'} • {event.location}</p>
+                          <p className="text-sm text-white/70 mt-1">{client?.name || 'Unknown Client'} • {event.location}</p>
                         </div>
                         <button 
                           onClick={() => deleteProject(event.id)}
-                          className="absolute top-4 right-4 text-primary-foreground/50 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-4 right-4 text-white/50 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                           title="Delete Event"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -170,16 +170,16 @@ export function Dashboard() {
                   })}
                 </div>
               )}
-              <a href="#" className="text-sm text-primary-foreground/70 hover:text-white underline underline-offset-4 transition-colors">See past events</a>
+              <a href="#" className="text-sm text-white/70 hover:text-white underline underline-offset-4 transition-colors">See past events</a>
             </div>
           </div>
           
           <div className="mt-8 md:mt-12">
             <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>
               <DialogTrigger className="w-full block text-left">
-                <div className="flex items-center justify-between border-b border-primary-foreground/20 pb-4 cursor-pointer group">
-                  <span className="text-sm text-primary-foreground/80 group-hover:text-white transition-colors">Create an Event</span>
-                  <Plus className="w-5 h-5 text-primary-foreground/80 group-hover:text-white transition-colors" />
+                <div className="flex items-center justify-between border-b border-white/20 pb-4 cursor-pointer group">
+                  <span className="text-sm text-white/80 group-hover:text-white transition-colors">Create an Event</span>
+                  <Plus className="w-5 h-5 text-white/80 group-hover:text-white transition-colors" />
                 </div>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
@@ -247,7 +247,7 @@ export function Dashboard() {
         </div>
 
         {/* Right Panel (Calendar Grid) */}
-        <div className="w-full md:w-[62%] lg:w-[65%] p-4 sm:p-6 md:p-8 lg:p-10 flex flex-col bg-white">
+        <div className="w-full md:w-[62%] lg:w-[65%] p-4 sm:p-6 md:p-8 lg:p-10 flex flex-col bg-card">
           {/* Header Controls */}
           <div className="flex justify-between items-center mb-12">
             <div ref={monthContainerRef} className="flex-1 min-w-0 flex gap-6 overflow-x-auto hide-scrollbar mr-4">
@@ -258,21 +258,21 @@ export function Dashboard() {
                   className={cn(
                     "text-sm pb-1 px-1 border-b-2 transition-colors shrink-0 whitespace-nowrap",
                     currentDate.getMonth() === i 
-                      ? "border-slate-800 text-slate-800 font-bold" 
-                      : "border-transparent text-slate-400 hover:text-slate-600 font-medium"
+                      ? "border-foreground text-foreground font-bold" 
+                      : "border-transparent text-muted-foreground hover:text-foreground font-medium"
                   )}
                 >
                   {m}
                 </button>
               ))}
             </div>
-            <div className="flex items-center space-x-3 text-slate-400 font-medium shrink-0">
+            <div className="flex items-center space-x-3 text-muted-foreground font-medium shrink-0">
               <ActionTooltip content="Previous Month">
-                <button onClick={prevMonth} aria-label="Previous Month" className="p-1 hover:bg-slate-100 rounded-full transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+                <button onClick={prevMonth} aria-label="Previous Month" className="p-1 hover:bg-muted rounded-full transition-colors"><ChevronLeft className="w-4 h-4" /></button>
               </ActionTooltip>
-              <span className="text-slate-600 font-bold">{format(currentDate, 'yyyy')}</span>
+              <span className="text-foreground font-bold">{format(currentDate, 'yyyy')}</span>
               <ActionTooltip content="Next Month">
-                <button onClick={nextMonth} aria-label="Next Month" className="p-1 hover:bg-slate-100 rounded-full transition-colors"><ChevronRight className="w-4 h-4" /></button>
+                <button onClick={nextMonth} aria-label="Next Month" className="p-1 hover:bg-muted rounded-full transition-colors"><ChevronRight className="w-4 h-4" /></button>
               </ActionTooltip>
             </div>
           </div>
@@ -280,7 +280,7 @@ export function Dashboard() {
           {/* Days Header */}
           <div className="grid grid-cols-7 mb-6">
             {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
-              <div key={day} className="text-center text-xs font-bold text-slate-800 tracking-wider">
+              <div key={day} className="text-center text-xs font-bold text-foreground tracking-wider">
                 {day}
               </div>
             ))}
@@ -296,20 +296,20 @@ export function Dashboard() {
       {/* Right Sidebar Section */}
       <div className="w-full xl:w-[400px] flex flex-col gap-8 xl:pl-4">
         {/* Summary Card */}
-        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex flex-col gap-5 shadow-sm">
+        <div className="bg-muted/40 border border-border rounded-2xl p-6 flex flex-col gap-5 shadow-sm">
           <div>
-            <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Total Pending Invoices</p>
+            <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Total Pending Invoices</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-slate-800">Ksh {totalPendingAmount.toLocaleString()}</span>
-              <span className="text-xs font-medium text-slate-400">({pendingInvoices.length} pending)</span>
+              <span className="text-2xl font-bold text-foreground">Ksh {totalPendingAmount.toLocaleString()}</span>
+              <span className="text-xs font-medium text-muted-foreground">({pendingInvoices.length} pending)</span>
             </div>
           </div>
-          <div className="h-px bg-slate-200 w-full"></div>
+          <div className="h-px bg-border w-full"></div>
           <div>
-            <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Upcoming Deadlines</p>
+            <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Upcoming Deadlines</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-slate-800">{upcomingDeadlinesCount}</span>
-              <span className="text-xs font-medium text-slate-400">projects scheduled</span>
+              <span className="text-2xl font-bold text-foreground">{upcomingDeadlinesCount}</span>
+              <span className="text-xs font-medium text-muted-foreground">projects scheduled</span>
             </div>
           </div>
         </div>
@@ -342,12 +342,12 @@ export function Dashboard() {
         {/* Upcoming Shoots */}
         <div>
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xs font-bold tracking-widest text-slate-800 uppercase">Upcoming Shoots</h3>
-            <Link to="/projects" className="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors uppercase">View All</Link>
+            <h3 className="text-xs font-bold tracking-widest text-foreground uppercase">Upcoming Shoots</h3>
+            <Link to="/projects" className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors uppercase">View All</Link>
           </div>
           <div className="space-y-6">
             {upcomingShoots.length === 0 ? (
-              <p className="text-sm text-slate-500">No upcoming shoots.</p>
+              <p className="text-sm text-muted-foreground">No upcoming shoots.</p>
             ) : (
               upcomingShoots.map(shoot => {
                 const client = clients.find(c => c.id === shoot.clientId);
@@ -358,12 +358,12 @@ export function Dashboard() {
                 return (
                   <div key={shoot.id} className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-2xl border border-slate-100 bg-slate-50 flex items-center justify-center text-slate-400 shadow-sm">
+                      <div className="w-12 h-12 rounded-2xl border border-border bg-muted/40 flex items-center justify-center text-muted-foreground shadow-sm">
                         <Camera className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="font-bold text-slate-800 text-sm">{client?.name || shoot.title}</p>
-                        <p className="text-xs text-slate-500 mt-0.5 uppercase tracking-wide">
+                        <p className="font-bold text-foreground text-sm">{client?.name || shoot.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 uppercase tracking-wide">
                           {format(new Date(shoot.date), 'MMM dd')} • {shoot.title.split(' ')[0] || 'SHOOT'}
                         </p>
                       </div>
@@ -384,11 +384,11 @@ export function Dashboard() {
         {/* Recent Quotes */}
         <div>
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xs font-bold tracking-widest text-slate-800 uppercase">Recent Quotes</h3>
+            <h3 className="text-xs font-bold tracking-widest text-foreground uppercase">Recent Quotes</h3>
             {recentQuotes.length > 0 && (
               <Dialog open={isClearQuotesDialogOpen} onOpenChange={setIsClearQuotesDialogOpen}>
                 <DialogTrigger 
-                  render={<Button variant="ghost" size="sm" className="text-[10px] text-slate-400 hover:text-red-500 uppercase tracking-wider h-auto py-1 px-2" />}
+                  render={<Button variant="ghost" size="sm" className="text-[10px] text-muted-foreground hover:text-destructive uppercase tracking-wider h-auto py-1 px-2" />}
                 >
                   Clear History
                 </DialogTrigger>
@@ -397,7 +397,7 @@ export function Dashboard() {
                     <DialogTitle>Clear Quote History</DialogTitle>
                   </DialogHeader>
                   <div className="py-4">
-                    <p className="text-sm text-slate-500">Are you sure you want to clear all quotes? This action cannot be undone.</p>
+                    <p className="text-sm text-muted-foreground">Are you sure you want to clear all quotes? This action cannot be undone.</p>
                   </div>
                   <div className="flex justify-end space-x-2">
                     <Button variant="outline" onClick={() => setIsClearQuotesDialogOpen(false)}>Cancel</Button>
@@ -419,18 +419,18 @@ export function Dashboard() {
           </div>
           <div className="space-y-6 mb-0">
             {recentQuotes.length === 0 ? (
-              <p className="text-sm text-slate-500">No recent quotes.</p>
+              <p className="text-sm text-muted-foreground">No recent quotes.</p>
             ) : (
               recentQuotes.map(quote => {
                 return (
                   <div key={quote.id} className="flex items-center justify-between">
                     <div>
-                      <p className="font-bold text-slate-800 text-sm">{quote.clientName || 'Unknown Client'}</p>
-                      <p className="text-xs text-slate-500 mt-0.5 uppercase tracking-wide">{quote.projectTitle || 'EDITORIAL PROJECT'}</p>
+                      <p className="font-bold text-foreground text-sm">{quote.clientName || 'Unknown Client'}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 uppercase tracking-wide">{quote.projectTitle || 'EDITORIAL PROJECT'}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-slate-800 text-sm">Ksh {quote.totalAmount.toLocaleString()}</p>
-                      <p className="text-[10px] font-bold text-slate-500 mt-0.5 uppercase tracking-wider">{quote.status}</p>
+                      <p className="font-bold text-foreground text-sm">Ksh {quote.totalAmount.toLocaleString()}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground mt-0.5 uppercase tracking-wider">{quote.status}</p>
                     </div>
                   </div>
                 );
@@ -438,7 +438,7 @@ export function Dashboard() {
             )}
           </div>
           <Link to="/quotes" className="block">
-            <Button variant="outline" className="w-full rounded-none border-slate-800 text-slate-800 text-xs font-bold tracking-widest uppercase py-6 hover:bg-slate-50 mb-0 mt-6">
+            <Button variant="outline" className="w-full rounded-none border-foreground text-foreground text-xs font-bold tracking-widest uppercase py-6 hover:bg-muted mb-0 mt-6">
               + Create New Quote
             </Button>
           </Link>
@@ -450,35 +450,35 @@ export function Dashboard() {
         <DropdownMenu>
           <ActionTooltip content="Quick Creation Menu" side="left">
             <DropdownMenuTrigger render={
-              <Button size="icon" aria-label="Quick Creation Menu" className="w-14 h-14 rounded-full shadow-xl bg-slate-800 text-white hover:bg-slate-700 hover:scale-105 transition-all">
+              <Button size="icon" aria-label="Quick Creation Menu" className="w-14 h-14 rounded-full shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all">
                 <Plus className="w-6 h-6" />
               </Button>
             } />
           </ActionTooltip>
           <DropdownMenuContent align="end" className="w-48 mb-2 p-2">
             <DropdownMenuItem onClick={() => navigate('/clients?new=true')} className="cursor-pointer py-3">
-              <UserPlus className="w-4 h-4 mr-3 text-slate-500" />
-              <span className="font-medium text-slate-700">New Client</span>
+              <UserPlus className="w-4 h-4 mr-3 text-muted-foreground" />
+              <span className="font-medium text-foreground">New Client</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/projects?new=true')} className="cursor-pointer py-3">
-              <Camera className="w-4 h-4 mr-3 text-slate-500" />
-              <span className="font-medium text-slate-700">New Project</span>
+              <Camera className="w-4 h-4 mr-3 text-muted-foreground" />
+              <span className="font-medium text-foreground">New Project</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/quotes?new=true')} className="cursor-pointer py-3">
-              <FileText className="w-4 h-4 mr-3 text-slate-500" />
-              <span className="font-medium text-slate-700">New Quote</span>
+              <FileText className="w-4 h-4 mr-3 text-muted-foreground" />
+              <span className="font-medium text-foreground">New Quote</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/invoices?new=true')} className="cursor-pointer py-3">
-              <Receipt className="w-4 h-4 mr-3 text-slate-500" />
-              <span className="font-medium text-slate-700">New Invoice</span>
+              <Receipt className="w-4 h-4 mr-3 text-muted-foreground" />
+              <span className="font-medium text-foreground">New Invoice</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/feedback')} className="cursor-pointer py-3 border-t border-slate-100">
+            <DropdownMenuItem onClick={() => navigate('/feedback')} className="cursor-pointer py-3 border-t border-border">
               <MessageSquarePlus className="w-4 h-4 mr-3 text-amber-500" />
-              <span className="font-medium text-slate-700">Send Feedback</span>
+              <span className="font-medium text-foreground">Send Feedback</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/guide?tour=true')} className="cursor-pointer py-3 border-t border-slate-100">
-              <BookOpen className="w-4 h-4 mr-3 text-primary" />
-              <span className="font-medium text-slate-700">Manual & Tour</span>
+            <DropdownMenuItem onClick={() => navigate('/guide?tour=true')} className="cursor-pointer py-3 border-t border-border">
+              <BookOpen className="w-4 h-4 mr-3 text-accent" />
+              <span className="font-medium text-foreground">Manual & Tour</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

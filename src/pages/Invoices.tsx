@@ -1427,7 +1427,7 @@ export function Invoices() {
                   return (
                     <TableRow 
                       key={invoice.id} 
-                      className={`group hover:bg-slate-50/80 transition-colors ${highlightedId === invoice.id ? "bg-slate-100 ring-2 ring-slate-400 ring-inset transition-all duration-500" : ""}`}
+                      className={`group hover:bg-muted/50 transition-colors ${highlightedId === invoice.id ? "bg-muted ring-2 ring-border ring-inset transition-all duration-500" : ""}`}
                     >
                       <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
                         {invoice.quoteId ? (quotes.find(q => q.id === invoice.quoteId)?.quoteNumber || invoice.quoteId.substring(0, 8).toUpperCase()) : invoice.id.substring(0, 8).toUpperCase()}
@@ -1440,7 +1440,7 @@ export function Invoices() {
                       </TableCell>
                       <TableCell className="whitespace-nowrap">{format(new Date(invoice.dueDate), 'MMM d, yyyy')}</TableCell>
                       <TableCell className="font-semibold whitespace-nowrap">KES {invoice.totalAmount.toLocaleString()}</TableCell>
-                      <TableCell className="font-medium text-red-600 whitespace-nowrap">
+                      <TableCell className="font-medium text-red-600 dark:text-red-400 whitespace-nowrap">
                         {balance > 0 ? `KES ${balance.toLocaleString()}` : '-'}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">{getStatusBadge(invoice.status)}</TableCell>
@@ -1452,7 +1452,7 @@ export function Invoices() {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleOpenDialog(invoice)}
-                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                              className="text-foreground hover:text-primary hover:bg-muted"
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
@@ -1464,7 +1464,7 @@ export function Invoices() {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleOpenPreview(invoice)}
-                              className="text-slate-700 hover:text-primary hover:bg-slate-100"
+                              className="text-foreground hover:text-primary hover:bg-muted"
                             >
                               <ExternalLink className="w-4 h-4" />
                             </Button>

@@ -235,8 +235,8 @@ export function Contracts() {
       {/* Top Header Banner */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Contracts & NDAs</h2>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Contracts & NDAs</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Generate, auto-sign, and export legally binding Service Agreements and Confidentiality Agreements.
           </p>
         </div>
@@ -288,21 +288,21 @@ export function Contracts() {
           </CardContent>
         </Card>
 
-        <Card className={`border shadow-sm ${hasSignature ? 'bg-emerald-50/70 border-emerald-200' : 'bg-amber-50/70 border-amber-200'}`}>
+        <Card className={`border shadow-sm ${hasSignature ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' : 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800'}`}>
           <CardContent className="p-5 flex items-start gap-3.5">
-            <div className={`p-2.5 rounded-xl shrink-0 ${hasSignature ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+            <div className={`p-2.5 rounded-xl shrink-0 ${hasSignature ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300'}`}>
               <PenTool className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <span className="text-xs uppercase tracking-wider font-semibold text-slate-600">Auto-Signature</span>
+                <span className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Auto-Signature</span>
                 {hasSignature ? (
-                  <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] py-0">Active</Badge>
+                  <Badge variant="outline" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 border-emerald-300 text-[10px] py-0">Active</Badge>
                 ) : (
-                  <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] py-0">Not Configured</Badge>
+                  <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 border-amber-300 text-[10px] py-0">Not Configured</Badge>
                 )}
               </div>
-              <p className="text-xs text-slate-600 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 {hasSignature 
                   ? "Your digital company signature is ready for 1-click document stamping." 
                   : "Upload your company signature in Settings to auto-sign documents instantly."}
@@ -480,7 +480,7 @@ export function Contracts() {
                   const displayDate = quote.date || quote.issueDate;
 
                   return (
-                    <TableRow key={quote.id} className="group hover:bg-slate-50/80 transition-colors">
+                    <TableRow key={quote.id} className="group hover:bg-muted/50 transition-colors">
                       <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
                         {quoteNumber}
                       </TableCell>
@@ -489,16 +489,16 @@ export function Contracts() {
                       </TableCell>
                       <TableCell className="max-w-[180px] truncate" title={quote.clientName}>
                         <div>
-                          <p className="font-medium text-slate-800 truncate">{quote.clientName}</p>
+                          <p className="font-medium text-foreground truncate">{quote.clientName}</p>
                           {quote.clientEmail && (
-                            <p className="text-xs text-slate-400 truncate">{quote.clientEmail}</p>
+                            <p className="text-xs text-muted-foreground truncate">{quote.clientEmail}</p>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="whitespace-nowrap text-xs text-slate-600">
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                         {displayDate ? format(new Date(displayDate), 'MMM d, yyyy') : '-'}
                       </TableCell>
-                      <TableCell className="font-semibold whitespace-nowrap text-slate-800">
+                      <TableCell className="font-semibold whitespace-nowrap text-foreground">
                         KES {total.toLocaleString()}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
@@ -506,12 +506,12 @@ export function Contracts() {
                           variant="outline" 
                           className={`capitalize text-xs ${
                             quote.status === 'approved' 
-                              ? 'bg-green-50 text-green-700 border-green-200' 
+                              ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800' 
                               : quote.status === 'sent' 
-                                ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' 
                                 : quote.status === 'declined' 
-                                  ? 'bg-red-50 text-red-700 border-red-200' 
-                                  : 'bg-slate-100 text-slate-700 border-slate-200'
+                                  ? 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800' 
+                                  : 'bg-muted text-foreground border-border'
                           }`}
                         >
                           {quote.status || 'draft'}
@@ -525,7 +525,7 @@ export function Contracts() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleOpenContract(quote)}
-                              className="text-xs font-medium border-slate-300 hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors text-slate-700 h-8 px-2.5"
+                              className="text-xs font-medium border-border hover:border-primary hover:bg-primary/10 hover:text-primary transition-colors text-foreground h-8 px-2.5"
                             >
                               <FileSignature className="w-3.5 h-3.5 mr-1.5 text-primary" />
                               Contract
@@ -538,9 +538,9 @@ export function Contracts() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleOpenNDA(quote)}
-                              className="text-xs font-medium border-slate-300 hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors text-slate-700 h-8 px-2.5"
+                              className="text-xs font-medium border-border hover:border-sky-500 hover:bg-sky-500/10 hover:text-sky-400 transition-colors text-foreground h-8 px-2.5"
                             >
-                              <FileText className="w-3.5 h-3.5 mr-1.5 text-sky-600" />
+                              <FileText className="w-3.5 h-3.5 mr-1.5 text-sky-500" />
                               NDA
                             </Button>
                           </ActionTooltip>

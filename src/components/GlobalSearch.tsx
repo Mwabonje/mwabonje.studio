@@ -60,12 +60,12 @@ export function GlobalSearch() {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden gap-0 bg-white">
+        <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden gap-0 bg-card text-foreground border-border">
           <DialogTitle className="sr-only">Global Search</DialogTitle>
-          <div className="flex items-center border-b px-4 py-3">
-            <Search className="w-5 h-5 text-slate-400 mr-3" />
+          <div className="flex items-center border-b border-border px-4 py-3">
+            <Search className="w-5 h-5 text-muted-foreground mr-3" />
             <input 
-              className="flex-1 bg-transparent outline-none text-slate-800 placeholder:text-slate-400"
+              className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
               placeholder="Search clients, projects, invoices by name or ID..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -75,13 +75,13 @@ export function GlobalSearch() {
 
           <div className="max-h-[60vh] overflow-y-auto p-2">
             {!query.trim() && (
-              <div className="p-8 text-center text-slate-500 text-sm">
+              <div className="p-8 text-center text-muted-foreground text-sm">
                 Start typing to search across your workspace...
               </div>
             )}
             
             {query.trim() && !hasResults && (
-              <div className="p-8 text-center text-slate-500 text-sm">
+              <div className="p-8 text-center text-muted-foreground text-sm">
                 No results found for "{query}"
               </div>
             )}
@@ -90,16 +90,16 @@ export function GlobalSearch() {
               <div className="space-y-4">
                 {filteredClients.length > 0 && (
                   <div>
-                    <h3 className="text-xs font-semibold text-slate-500 px-3 mb-2 uppercase tracking-wider">Clients</h3>
+                    <h3 className="text-xs font-semibold text-muted-foreground px-3 mb-2 uppercase tracking-wider">Clients</h3>
                     <div className="space-y-1">
                       {filteredClients.map(client => (
                         <button 
                           key={client.id}
                           onClick={() => handleSelect('/clients', client.id)}
-                          className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded-md flex items-center justify-between"
+                          className="w-full text-left px-3 py-2 hover:bg-muted rounded-md flex items-center justify-between transition-colors"
                         >
-                          <span className="font-medium text-slate-800">{client.name}</span>
-                          <span className="text-xs text-slate-400">{client.id.substring(0, 8).toUpperCase()}</span>
+                          <span className="font-medium text-foreground">{client.name}</span>
+                          <span className="text-xs text-muted-foreground">{client.id.substring(0, 8).toUpperCase()}</span>
                         </button>
                       ))}
                     </div>
@@ -108,19 +108,19 @@ export function GlobalSearch() {
 
                 {filteredProjects.length > 0 && (
                   <div>
-                    <h3 className="text-xs font-semibold text-slate-500 px-3 mb-2 uppercase tracking-wider">Projects</h3>
+                    <h3 className="text-xs font-semibold text-muted-foreground px-3 mb-2 uppercase tracking-wider">Projects</h3>
                     <div className="space-y-1">
                       {filteredProjects.map(project => (
                         <button 
                           key={project.id}
                           onClick={() => handleSelect('/projects', project.id)}
-                          className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded-md flex flex-col"
+                          className="w-full text-left px-3 py-2 hover:bg-muted rounded-md flex flex-col transition-colors"
                         >
                           <div className="flex items-center justify-between w-full">
-                            <span className="font-medium text-slate-800">{project.title}</span>
-                            <span className="text-xs text-slate-400">{project.id.substring(0, 8).toUpperCase()}</span>
+                            <span className="font-medium text-foreground">{project.title}</span>
+                            <span className="text-xs text-muted-foreground">{project.id.substring(0, 8).toUpperCase()}</span>
                           </div>
-                          <span className="text-xs text-slate-500">{clients.find(c => c.id === project.clientId)?.name || 'Unknown Client'}</span>
+                          <span className="text-xs text-muted-foreground">{clients.find(c => c.id === project.clientId)?.name || 'Unknown Client'}</span>
                         </button>
                       ))}
                     </div>
@@ -129,23 +129,23 @@ export function GlobalSearch() {
 
                 {filteredInvoices.length > 0 && (
                   <div>
-                    <h3 className="text-xs font-semibold text-slate-500 px-3 mb-2 uppercase tracking-wider">Invoices</h3>
+                    <h3 className="text-xs font-semibold text-muted-foreground px-3 mb-2 uppercase tracking-wider">Invoices</h3>
                     <div className="space-y-1">
                       {filteredInvoices.map(invoice => (
                         <button 
                           key={invoice.id}
                           onClick={() => handleSelect('/invoices', invoice.id)}
-                          className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded-md flex items-center justify-between"
+                          className="w-full text-left px-3 py-2 hover:bg-muted rounded-md flex items-center justify-between transition-colors"
                         >
                           <div className="flex flex-col">
-                            <span className="font-medium text-slate-800">
+                            <span className="font-medium text-foreground">
                               {invoice.id.startsWith('INV-') ? invoice.id : `INV-${invoice.id.substring(0, 6).toUpperCase()}`}
                             </span>
-                            <span className="text-xs text-slate-500">
+                            <span className="text-xs text-muted-foreground">
                               {clients.find(c => c.id === invoice.clientId)?.name || 'Unknown Client'}
                             </span>
                           </div>
-                          <span className="font-medium text-slate-800">
+                          <span className="font-medium text-foreground">
                             Ksh {invoice.totalAmount.toLocaleString()}
                           </span>
                         </button>

@@ -163,10 +163,10 @@ export function FeedbackInbox() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card text-foreground p-6 rounded-2xl border border-border shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 text-white text-xs font-semibold">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold">
               <ShieldCheck className="w-3.5 h-3.5 text-accent" />
               {isSuper ? 'Super User Portal' : 'User Feedback'}
             </span>
@@ -176,10 +176,10 @@ export function FeedbackInbox() {
               </span>
             )}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Feedback Inbox
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {isSuper
               ? 'Review suggestions, feature ideas, and issue reports submitted across CaptureCRM.'
               : 'Submit suggestions, feature ideas, or report any issues directly to the studio administrator.'}
@@ -197,61 +197,61 @@ export function FeedbackInbox() {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
+        <div className="bg-card p-5 rounded-2xl border border-border shadow-sm">
+          <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">Total</span>
-            <Inbox className="w-4 h-4 text-slate-500" />
+            <Inbox className="w-4 h-4 text-muted-foreground" />
           </div>
-          <p className="text-2xl sm:text-3xl font-bold text-slate-900">{stats.total}</p>
-          <p className="text-[11px] text-slate-400 mt-1">All time submissions</p>
+          <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.total}</p>
+          <p className="text-[11px] text-muted-foreground mt-1">All time submissions</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="flex items-center justify-between text-amber-600 mb-2">
+        <div className="bg-card p-5 rounded-2xl border border-border shadow-sm">
+          <div className="flex items-center justify-between text-amber-500 mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">Features</span>
             <Lightbulb className="w-4 h-4 text-amber-500" />
           </div>
-          <p className="text-2xl sm:text-3xl font-bold text-slate-900">{stats.features}</p>
-          <p className="text-[11px] text-slate-400 mt-1">Feature proposals</p>
+          <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.features}</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Feature proposals</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="flex items-center justify-between text-rose-600 mb-2">
+        <div className="bg-card p-5 rounded-2xl border border-border shadow-sm">
+          <div className="flex items-center justify-between text-rose-500 mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">Bugs</span>
             <Bug className="w-4 h-4 text-rose-500" />
           </div>
-          <p className="text-2xl sm:text-3xl font-bold text-slate-900">{stats.bugs}</p>
-          <p className="text-[11px] text-slate-400 mt-1">Reported issues</p>
+          <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.bugs}</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Reported issues</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="flex items-center justify-between text-emerald-600 mb-2">
+        <div className="bg-card p-5 rounded-2xl border border-border shadow-sm">
+          <div className="flex items-center justify-between text-emerald-500 mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">Resolved</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
-          <p className="text-2xl sm:text-3xl font-bold text-slate-900">{stats.resolved}</p>
-          <p className="text-[11px] text-slate-400 mt-1">Addressed items</p>
+          <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.resolved}</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Addressed items</p>
         </div>
       </div>
 
       {/* Main Feedback List Container */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         {/* Filter and Search Bar */}
-        <div className="p-4 bg-slate-50/70 border-b border-slate-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="p-4 bg-muted/40 border-b border-border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search feedback by keyword, user, or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 text-xs rounded-xl bg-white border-slate-200"
+              className="pl-9 h-9 text-xs rounded-xl bg-background border-border text-foreground"
             />
           </div>
 
           <div className="flex items-center gap-2 self-end md:self-auto w-full md:w-auto">
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-9 text-xs w-[130px] rounded-xl bg-white border-slate-200">
+              <SelectTrigger className="h-9 text-xs w-[130px] rounded-xl bg-background border-border text-foreground">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -266,7 +266,7 @@ export function FeedbackInbox() {
 
             {/* Type Filter */}
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="h-9 text-xs w-[140px] rounded-xl bg-white border-slate-200">
+              <SelectTrigger className="h-9 text-xs w-[140px] rounded-xl bg-background border-border text-foreground">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
@@ -281,14 +281,14 @@ export function FeedbackInbox() {
         </div>
 
         {/* Feedback Items List */}
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-border">
           {filteredFeedbacks.length === 0 ? (
             <div className="p-16 text-center">
-              <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-3">
+              <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center text-muted-foreground mx-auto mb-3">
                 <MessageSquare className="w-7 h-7" />
               </div>
-              <h3 className="text-base font-bold text-slate-800">No Feedback Found</h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 leading-relaxed">
+              <h3 className="text-base font-bold text-foreground">No Feedback Found</h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1 leading-relaxed">
                 {feedbacks.length === 0
                   ? 'No feedback entries have been submitted yet. Any ideas or bug reports submitted by team members will appear right here.'
                   : 'No feedback matches your search criteria. Try resetting your search or filters.'}
@@ -320,7 +320,7 @@ export function FeedbackInbox() {
                 : '';
 
               return (
-                <div key={fb.id} className="p-5 sm:p-6 hover:bg-slate-50/50 transition-colors">
+                <div key={fb.id} className="p-5 sm:p-6 hover:bg-muted/40 transition-colors">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     {/* Content Section */}
                     <div className="flex items-start gap-3.5 flex-1 min-w-0">
@@ -339,44 +339,44 @@ export function FeedbackInbox() {
                             {statusInfo.label}
                           </span>
                           {fb.rating && (
-                            <span className="flex items-center text-[11px] font-bold text-amber-500 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                            <span className="flex items-center text-[11px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
                               <Star className="w-3 h-3 fill-amber-400 mr-1" />
                               {fb.rating}/5
                             </span>
                           )}
-                          <span className="text-[11px] text-slate-400" title={formattedDate}>
+                          <span className="text-[11px] text-muted-foreground" title={formattedDate}>
                             {timeDistance}
                           </span>
                         </div>
 
                         {/* Title if explicitly provided and distinct from message */}
                         {fb.title && fb.title !== fb.message && (
-                          <h3 className="text-base font-bold text-slate-900 leading-snug mb-1.5">
+                          <h3 className="text-base font-bold text-foreground leading-snug mb-1.5">
                             {fb.title}
                           </h3>
                         )}
 
                         {/* Message Description */}
-                        <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50/80 p-3.5 rounded-xl border border-slate-100">
+                        <p className="text-xs sm:text-sm text-foreground leading-relaxed whitespace-pre-line bg-muted/40 p-3.5 rounded-xl border border-border">
                           {fb.message}
                         </p>
 
                         {/* Admin Notes */}
                         {fb.adminNotes && (
-                          <div className="mt-2.5 text-xs bg-amber-50/80 border border-amber-200 p-3 rounded-xl text-amber-950 flex items-start gap-2.5">
-                            <MessageCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                          <div className="mt-2.5 text-xs bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl text-foreground flex items-start gap-2.5">
+                            <MessageCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                             <div>
-                              <span className="font-bold text-amber-900">Admin Resolution Note: </span>
+                              <span className="font-bold text-amber-600 dark:text-amber-400">Admin Resolution Note: </span>
                               <span>{fb.adminNotes}</span>
                             </div>
                           </div>
                         )}
 
                         {/* Submitter Details */}
-                        <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-                          <span className="font-semibold text-slate-700">{fb.userName || 'Anonymous'}</span>
+                        <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="font-semibold text-foreground">{fb.userName || 'Anonymous'}</span>
                           <span>•</span>
-                          <span className="text-slate-400">{fb.userEmail}</span>
+                          <span className="text-muted-foreground">{fb.userEmail}</span>
                         </div>
                       </div>
                     </div>
@@ -387,9 +387,9 @@ export function FeedbackInbox() {
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             render={
-                              <Button variant="outline" size="sm" className="h-8 text-xs font-semibold gap-1.5 rounded-lg border-slate-200">
+                              <Button variant="outline" size="sm" className="h-8 text-xs font-semibold gap-1.5 rounded-lg border-border">
                                 <span>Status</span>
-                                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                               </Button>
                             }
                           />
@@ -411,7 +411,7 @@ export function FeedbackInbox() {
                               Mark Resolved
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleStatusChange(fb.id, 'dismissed')}>
-                              <CheckCheck className="w-3.5 h-3.5 mr-2 text-slate-500" />
+                              <CheckCheck className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
                               Dismiss
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -420,7 +420,7 @@ export function FeedbackInbox() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-slate-400 hover:text-slate-700 rounded-lg"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-lg"
                           title="Add/Edit Admin Note"
                           onClick={() => {
                             setSelectedFeedbackForNotes(fb);
@@ -433,7 +433,7 @@ export function FeedbackInbox() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-slate-400 hover:text-rose-600 rounded-lg"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive rounded-lg"
                           title="Delete Feedback"
                           onClick={() => handleDelete(fb.id)}
                         >

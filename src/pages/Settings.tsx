@@ -327,7 +327,7 @@ export default function Settings() {
                       <SelectItem value="minimal">Minimalist Monochrome</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-slate-500 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     This will apply globally. Try out different themes by viewing a Quote or Invoice!
                   </p>
                 </div>
@@ -359,7 +359,7 @@ export default function Settings() {
                       <SelectItem value="system">System</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-slate-500 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     This setting is saved to your browser and applies instantly.
                   </p>
                 </div>
@@ -407,11 +407,11 @@ export default function Settings() {
               <div className="space-y-2">
                 <Label>Company Signature / Owner Signature</Label>
                 <div className="flex items-center gap-4">
-                  <div className="h-20 w-40 rounded-md border border-dashed flex items-center justify-center bg-slate-50/50 overflow-hidden">
+                  <div className="h-20 w-40 rounded-md border border-dashed flex items-center justify-center bg-muted/40 overflow-hidden">
                     {formData.companySignature ? (
                       <img src={formData.companySignature} alt="Signature" className="h-full w-full object-contain mix-blend-multiply opacity-50" />
                     ) : (
-                      <ImageIcon className="h-8 w-8 text-slate-200" />
+                      <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
                     )}
                   </div>
                   <div>
