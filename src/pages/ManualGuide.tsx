@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
@@ -416,6 +416,14 @@ export function ManualGuide() {
   const [selectedModule, setSelectedModule] = useState<string>('studio-setup');
   const [isTourOpen, setIsTourOpen] = useState(searchParams.get('tour') === 'true');
   const [tourStep, setTourStep] = useState(0);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('has_explored_system_manual', 'true');
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // Filter modules based on search
   const filteredModules = useMemo(() => {

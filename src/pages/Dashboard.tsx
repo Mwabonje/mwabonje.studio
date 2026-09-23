@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/store';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays } from 'date-fns';
-import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2, Activity, CreditCard, FileText, UserPlus, FileCheck, ArrowUpRight, Receipt, BookOpen, ArrowRight, MessageSquarePlus } from 'lucide-react';
+import { MoreHorizontal, ChevronLeft, ChevronRight, Plus, Camera, Trash2, Activity, CreditCard, FileText, UserPlus, FileCheck, ArrowUpRight, Receipt, BookOpen, ArrowRight, MessageSquarePlus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -12,13 +12,46 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ActionTooltip } from '@/components/ui/tooltip';
 
+const MANUAL_GUIDE_EXPLORED_KEY = 'has_explored_system_manual';
+
 export function Dashboard() {
   const navigate = useNavigate();
-  const { projects, quotes, clients, invoices, payments, deleteProject, addProject, deleteQuote } = useStore();
+  const { projects, quotes, clients, invoices, payments, deleteProject, addProject, deleteQuote, userId } = useStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [isClearQuotesDialogOpen, setIsClearQuotesDialogOpen] = useState(false);
+  const [hasExploredGuide, setHasExploredGuide] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(MANUAL_GUIDE_EXPLORED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const globalExplored = localStorage.getItem(MANUAL_GUIDE_EXPLORED_KEY) === 'true';
+      const userExplored = userId ? localStorage.getItem(`${MANUAL_GUIDE_EXPLORED_KEY}_${userId}`) === 'true' : false;
+      if (globalExplored || userExplored) {
+        setHasExploredGuide(true);
+      }
+    } catch {
+      // ignore
+    }
+  }, [userId]);
+
+  const handleExploreGuide = () => {
+    try {
+      localStorage.setItem(MANUAL_GUIDE_EXPLORED_KEY, 'true');
+      if (userId) {
+        localStorage.setItem(`${MANUAL_GUIDE_EXPLORED_KEY}_${userId}`, 'true');
+      }
+    } catch {
+      // ignore
+    }
+    setHasExploredGuide(true);
+  };
   
   const [eventFormData, setEventFormData] = useState({
     title: '',
@@ -314,30 +347,47 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* System Manual Guide Card */}
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 bg-white/10 rounded-lg text-accent">
-                <BookOpen className="w-4 h-4" />
-              </span>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">System Manual</span>
+        {/* System Manual Guide Card - Appears only for first-time users until they hit explore */}
+        {!hasExploredGuide && (
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 shadow-sm space-y-3 relative transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 bg-white/10 rounded-lg text-accent">
+                  <BookOpen className="w-4 h-4" />
+                </span>
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-200">System Manual</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link 
+                  to="/guide?tour=true" 
+                  onClick={handleExploreGuide}
+                  className="text-[11px] font-semibold text-accent hover:underline flex items-center"
+                >
+                  2-Min Tour <ArrowRight className="w-3 h-3 ml-1" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleExploreGuide}
+                  title="Dismiss guide"
+                  aria-label="Dismiss guide"
+                  className="text-slate-400 hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
-            <Link to="/guide?tour=true" className="text-[11px] font-semibold text-accent hover:underline flex items-center">
-              2-Min Tour <ArrowRight className="w-3 h-3 ml-1" />
-            </Link>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Need help with Quotes, Legal Contracts, Invoicing, or M-Pesa receipts? Read our step-by-step workflow guide.
+            </p>
+            <div className="flex gap-2 pt-1">
+              <Link to="/guide" className="flex-1" onClick={handleExploreGuide}>
+                <Button size="sm" variant="secondary" className="w-full text-xs font-semibold bg-white text-slate-900 hover:bg-slate-100 h-8">
+                  Explore Manual Guide
+                </Button>
+              </Link>
+            </div>
           </div>
-          <p className="text-xs text-slate-300 leading-relaxed">
-            Need help with Quotes, Legal Contracts, Invoicing, or M-Pesa receipts? Read our step-by-step workflow guide.
-          </p>
-          <div className="flex gap-2 pt-1">
-            <Link to="/guide" className="flex-1">
-              <Button size="sm" variant="secondary" className="w-full text-xs font-semibold bg-white text-slate-900 hover:bg-slate-100 h-8">
-                Explore Manual Guide
-              </Button>
-            </Link>
-          </div>
-        </div>
+        )}
 
         {/* Upcoming Shoots */}
         <div>
