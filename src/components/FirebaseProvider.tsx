@@ -13,18 +13,6 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setAuthReady(true, user.uid);
-        // Load ONLY this specific user's cached settings if they exist; otherwise start with clean defaults
-        try {
-          const cached = localStorage.getItem(`capturecrm_settings_${user.uid}`);
-          if (cached) {
-            useStore.setState({ settings: { ...defaultSettings, ...JSON.parse(cached) } });
-          } else {
-            useStore.setState({ settings: defaultSettings });
-          }
-        } catch (e) {
-          useStore.setState({ settings: defaultSettings });
-        }
-
         // Create a top-level document so the user can see their data in the Firebase Console
         try {
           await setDoc(doc(db, 'users', user.uid), {
@@ -39,13 +27,9 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         useStore.setState({
           clients: [],
           projects: [],
-          projectTemplates: [],
           quotes: [],
           invoices: [],
           payments: [],
-          equipment: [],
-          expenses: [],
-          reminders: [],
           feedbacks: [],
           settings: defaultSettings,
           isSettingsLoaded: false,
@@ -128,12 +112,8 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const cached = localStorage.getItem(`capturecrm_settings_${userId}`);
       if (cached) {
         useStore.setState({ settings: { ...defaultSettings, ...JSON.parse(cached) } });
-      } else {
-        useStore.setState({ settings: defaultSettings });
       }
-    } catch (e) {
-      useStore.setState({ settings: defaultSettings });
-    }
+    } catch (e) {}
 
     const unsubSettings = onSnapshot(doc(db, `users/${userId}/settings/profile`), (docSnap) => {
       if (docSnap.exists()) {
@@ -143,12 +123,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           localStorage.setItem(`capturecrm_settings_${userId}`, JSON.stringify(data));
         } catch (e) {}
       } else {
-        // User has no personal settings in Firestore yet.
-        // Explicitly set blank defaultSettings so this user enters their own details!
-        useStore.setState({ settings: defaultSettings, isSettingsLoaded: true });
-        try {
-          localStorage.removeItem(`capturecrm_settings_${userId}`);
-        } catch (e) {}
+        useStore.setState({ isSettingsLoaded: true });
       }
     }, (error) => {
       console.error("Firebase settings error:", error);

@@ -3,11 +3,19 @@ import { useStore, Reminder } from '@/store';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Bell, Calendar, CheckCircle, XCircle, ShieldCheck } from 'lucide-react';
+import { seedStatutoryReminders } from '@/lib/seedReminders';
 
 export function ReminderPopup() {
   const { reminders, expenses, updateReminder, addExpense, addReminder } = useStore();
   const [activeReminders, setActiveReminders] = useState<Reminder[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Check on mount and sync to seed both Health Insurance & NSSF with September paid
+  useEffect(() => {
+    if (reminders !== undefined && expenses !== undefined) {
+      seedStatutoryReminders(expenses, reminders).catch(console.error);
+    }
+  }, [reminders.length, expenses.length]);
 
   useEffect(() => {
     const checkReminders = () => {

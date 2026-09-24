@@ -7,7 +7,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { toast } from 'sonner';
-import { Upload, Image as ImageIcon, Building2 } from 'lucide-react';
+import { Upload, Image as ImageIcon } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { getResolvedTheme } from '../lib/theme';
 import { Badge } from '../components/ui/badge';
@@ -153,11 +153,18 @@ export default function Settings() {
       const rawOwner = formData.ownerName?.trim() || '';
       const sanitizedOwner = formatCapitalizedName(rawOwner);
 
+      // Ensure payment details don't retain stale default "CaptureCRM" or "Mwabonje"
+      const sanitizedPaymentDetails = formData.paymentDetails
+        ? formData.paymentDetails
+            .replace(/CaptureCRM/gi, sanitizedName || 'Photography Studio')
+            .replace(/Mwabonje/gi, sanitizedName || 'Photography Studio')
+        : '';
+
       const dataToSave = {
         ...formData,
         companyName: sanitizedName,
         ownerName: sanitizedOwner,
-        paymentDetails: formData.paymentDetails?.trim() || '',
+        paymentDetails: sanitizedPaymentDetails,
       };
 
       await updateSettings(dataToSave);
@@ -175,25 +182,9 @@ export default function Settings() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground">
-          Manage your personal company profile and invoice template settings.
+          Manage your company profile and invoice template settings.
         </p>
       </div>
-
-      {(!settings.companyName || !settings.ownerName) && (
-        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 sm:p-5 flex items-start gap-3.5 shadow-xs">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-            <Building2 className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-sm sm:text-base text-foreground">
-              Enter Your Personal Studio Information
-            </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-relaxed">
-              Every user manages their own unique business profile. Enter your company name, owner name, contact details, and payment instructions below to personalize your quotes, contracts, and invoices.
-            </p>
-          </div>
-        </div>
-      )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr] max-w-6xl">
         <div className="lg:col-span-2">
@@ -280,7 +271,7 @@ export default function Settings() {
                       type="email"
                       value={formData.companyEmail}
                       onChange={handleChange}
-                      placeholder="e.g. hello@yourstudio.com"
+                      placeholder="e.g. hello@capturecrm.com"
                     />
                   </div>
                   <div className="space-y-2">
@@ -302,7 +293,7 @@ export default function Settings() {
                     name="companyWebsite"
                     value={formData.companyWebsite}
                     onChange={handleChange}
-                    placeholder="e.g. www.yourstudio.com"
+                    placeholder="e.g. www.capturecrm.com"
                   />
                 </div>
 
@@ -313,7 +304,7 @@ export default function Settings() {
                     name="companyAddress"
                     value={formData.companyAddress}
                     onChange={handleChange}
-                    placeholder="e.g. Studio Address / City, Country"
+                    placeholder="e.g. 123 Studio Lane, Nairobi"
                     rows={3}
                   />
                 </div>
@@ -439,7 +430,7 @@ export default function Settings() {
                   name="paymentDetails"
                   value={formData.paymentDetails}
                   onChange={handleChange}
-                  placeholder="e.g. Bank: Bank Name&#10;Acc Name: Your Business Name&#10;Acc No: 1234567890&#10;M-Pesa Till: 123456"
+                  placeholder="e.g. Bank: Standard Chartered&#10;Acc Name: Apex Visuals&#10;Acc No: 0100000000000&#10;M-Pesa Till: 123456"
                   rows={5}
                 />
               </div>

@@ -299,10 +299,10 @@ export const defaultSettings: Settings = {
 const getInitialSettings = (): Settings => {
   if (typeof window !== 'undefined') {
     try {
-      // Only load cached settings if they belong to the currently authenticated user
-      const currentUid = auth.currentUser?.uid;
-      if (currentUid) {
-        const stored = localStorage.getItem(`capturecrm_settings_${currentUid}`);
+      const keys = Object.keys(localStorage);
+      const settingsKey = keys.find(k => k.startsWith('capturecrm_settings_'));
+      if (settingsKey) {
+        const stored = localStorage.getItem(settingsKey);
         if (stored) {
           const parsed = JSON.parse(stored);
           return { ...defaultSettings, ...parsed };

@@ -801,13 +801,10 @@ export function SharedQuote() {
                 {photographyName}
               </div>
               <div className="footer-contact">
-                {settings?.companyEmail && <span>{settings.companyEmail}</span>}
-                {settings?.companyEmail && settings?.companyAddress && <span> · </span>}
-                {settings?.companyAddress && <span>{settings.companyAddress}</span>}
-                {(settings?.companyEmail || settings?.companyAddress) && (settings?.companyWebsite || settings?.companyPhone) && <br />}
-                {settings?.companyWebsite && <span>{settings.companyWebsite}</span>}
-                {settings?.companyWebsite && settings?.companyPhone && <span> · </span>}
-                {settings?.companyPhone && <span>{settings.companyPhone}</span>}
+                {settings.companyEmail} ·{" "}
+                {settings.companyAddress || "Malindi, Kenya"}
+                <br />
+                {settings.companyWebsite} · {settings.companyPhone}
               </div>
             </footer>
           </div>

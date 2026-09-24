@@ -1103,9 +1103,7 @@ export function Invoices() {
                       <header className="header">
                         <div className="header-left">
                           <div className="studio-name">{getPhotographyName(settings)}</div>
-                          {settings.companyAddress && (
-                            <div className="studio-tagline">{settings.companyAddress}</div>
-                          )}
+                          <div className="studio-tagline">{settings.companyAddress || 'Malindi, Kenya'}</div>
                         </div>
                         <div className="header-right">
                           <div className="invoice-label">In<em>voice</em></div>

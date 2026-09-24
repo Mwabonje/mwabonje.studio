@@ -374,7 +374,7 @@ export function Projects() {
                     id="location"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="e.g. Studio / Event Location"
+                    placeholder="e.g. Malindi"
                     required
                   />
                 </div>
@@ -493,7 +493,7 @@ export function Projects() {
                           {collab.splitType === 'transport' && (
                             <div className="flex-1 min-w-[150px]">
                               <Input
-                                placeholder="e.g. Studio to Event Venue"
+                                placeholder="e.g. Malindi to Watamu"
                                 value={collab.description || ''}
                                 onChange={(e) => updateCollaborator(collab.id, 'description', e.target.value)}
                               />

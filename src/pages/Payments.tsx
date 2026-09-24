@@ -520,7 +520,7 @@ export function Payments() {
                             {collab.splitType === 'transport' && (
                               <div className="flex-1 min-w-[150px]">
                                 <Input
-                                  placeholder="e.g. Studio to Event Venue"
+                                  placeholder="e.g. Malindi to Watamu"
                                   value={collab.description || ''}
                                   onChange={(e) => updateCollaborator(collab.id, 'description', e.target.value)}
                                 />
@@ -1089,9 +1089,7 @@ export function Payments() {
                         <header className="header">
                           <div className="header-left">
                             <div className="studio-name">{getPhotographyName(settings)}</div>
-                            {settings?.companyAddress && (
-                              <div className="studio-tagline">{settings.companyAddress}</div>
-                            )}
+                            <div className="studio-tagline">{settings?.companyAddress || 'Malindi, Kenya'}</div>
                           </div>
                           <div className="header-right">
                             <div className="receipt-label">Re<em>ceipt</em></div>
@@ -1305,13 +1303,8 @@ export function Payments() {
                         <footer className="footer">
                           <div className="footer-name">{getPhotographyName(settings)}</div>
                           <div className="footer-contact">
-                            {settings?.companyEmail && <span>{settings.companyEmail}</span>}
-                            {settings?.companyEmail && settings?.companyAddress && <span> · </span>}
-                            {settings?.companyAddress && <span>{settings.companyAddress}</span>}
-                            {(settings?.companyEmail || settings?.companyAddress) && (settings?.companyWebsite || settings?.companyPhone) && <br/>}
-                            {settings?.companyWebsite && <span>{settings.companyWebsite}</span>}
-                            {settings?.companyWebsite && settings?.companyPhone && <span> · </span>}
-                            {settings?.companyPhone && <span>{settings.companyPhone}</span>}
+                            {settings?.companyEmail} · {settings?.companyAddress || 'Malindi, Kenya'}<br/>
+                            {settings?.companyWebsite} · {settings?.companyPhone}
                           </div>
                         </footer>
 
