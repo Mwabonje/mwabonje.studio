@@ -2,6 +2,7 @@ import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useStore, Invoice, LineItem, Quote } from '@/store';
 import { formatInvoiceNumber, generateNextInvoiceNumber } from '@/lib/documentNumbering';
+import { getPhotographyName } from '@/lib/branding';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1101,7 +1102,7 @@ export function Invoices() {
                       {/* HEADER */}
                       <header className="header">
                         <div className="header-left">
-                          <div className="studio-name">{settings.companyName || 'Mwabonje Photography'}</div>
+                          <div className="studio-name">{getPhotographyName(settings)}</div>
                           <div className="studio-tagline">{settings.companyAddress || 'Malindi, Kenya'}</div>
                         </div>
                         <div className="header-right">

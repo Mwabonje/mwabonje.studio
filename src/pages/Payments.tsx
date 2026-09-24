@@ -2,6 +2,7 @@ import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useMemo } from 'react';
 import { useStore, Payment, CollaboratorSplit } from '@/store';
 import { formatReceiptNumber, formatInvoiceNumber } from '@/lib/documentNumbering';
+import { getPhotographyName } from '@/lib/branding';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1087,7 +1088,7 @@ export function Payments() {
                         {/* HEADER */}
                         <header className="header">
                           <div className="header-left">
-                            <div className="studio-name">{settings?.companyName || 'Mwabonje Photography'}</div>
+                            <div className="studio-name">{getPhotographyName(settings)}</div>
                             <div className="studio-tagline">{settings?.companyAddress || 'Malindi, Kenya'}</div>
                           </div>
                           <div className="header-right">
@@ -1207,7 +1208,7 @@ export function Payments() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               <div><strong>Method</strong> &nbsp; {previewPayment.method.toUpperCase()}</div>
                               <div><strong>Transaction Ref.</strong> &nbsp; {previewPayment.reference || '——————'}</div>
-                              <div><strong>Received By</strong> &nbsp; {settings?.ownerName || settings?.companyName || 'Mwabonje Photography'}</div>
+                              <div><strong>Received By</strong> &nbsp; {settings?.ownerName || getPhotographyName(settings)}</div>
                             </div>
                             
                             {settings?.paymentDetails && (
@@ -1242,9 +1243,9 @@ export function Payments() {
                         {/* SIGNATURE */}
                         <div className="signature">
                           <div className="sig-block">
-                            <div className="sig-label">Issued By — {settings?.companyName || 'Mwabonje Photography'}</div>
+                            <div className="sig-label">Issued By — {getPhotographyName(settings)}</div>
                             <div className="sig-line"></div>
-                            <div className="sig-name">{settings?.ownerName || settings?.companyName || 'Admin'}</div>
+                            <div className="sig-name">{settings?.ownerName || getPhotographyName(settings)}</div>
                           </div>
                           <div className="sig-block">
                             <div className="sig-label">Client Acknowledgement</div>
@@ -1300,7 +1301,7 @@ export function Payments() {
 
                         {/* FOOTER */}
                         <footer className="footer">
-                          <div className="footer-name">{settings?.companyName || 'Mwabonje Photography'}</div>
+                          <div className="footer-name">{getPhotographyName(settings)}</div>
                           <div className="footer-contact">
                             {settings?.companyEmail} · {settings?.companyAddress || 'Malindi, Kenya'}<br/>
                             {settings?.companyWebsite} · {settings?.companyPhone}

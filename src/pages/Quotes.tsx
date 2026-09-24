@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from "@/store";
 import { formatQuoteNumber, generateNextQuoteNumber, generateQuoteRevisionNumber } from "@/lib/documentNumbering";
+import { getPhotographyName, getPhotographyLegalName, sanitizeTermsText, getDefaultQuoteTerms } from "@/lib/branding";
 import { NDA } from "@/components/NDA";
 import { Contract } from "@/components/Contract";
 import { Card, CardContent } from "@/components/ui/card";
@@ -178,7 +179,10 @@ export function Quotes() {
     "Clients are required to submit their image selections within 10 days of receiving the proof gallery. Projects without a response after 10 days will be placed on hold and rescheduled based on the photographer's current workload. If the project remains inactive for more than 21 days, a KSh 1,000 Project Reactivation Fee will be charged before work resumes."
   ];
 
-  const defaultFormData = {
+  const photographyName = useMemo(() => getPhotographyName(settings), [settings]);
+  const defaultTerms = useMemo(() => getDefaultQuoteTerms(settings), [settings]);
+
+  const defaultFormData = useMemo(() => ({
     quoteNumber: "",
     projectId: "",
     clientName: "",
@@ -191,25 +195,7 @@ export function Quotes() {
     shootingTime: "",
     photographers: "",
     issueDate: format(new Date(), "yyyy-MM-dd"),
-    quoteValidity: "This quotation is valid for 7 days from the date issued.",
-    eventDate: "",
-    moodboardLink: "",
-    note: "",
-    hasCommercialLicense: false,
-    retainerClause:
-      "Payment is split as follows: 50% retainer to confirm your booking, 45% on the day of the shoot, and the final 5% on delivery of your edited gallery.",
-    fulfillmentSchedule:
-      "High-resolution digital files delivered via online gallery within 2-3 business days of the shoot.",
-    usageLicense:
-      "Personal and social media sharing included. Commercial licensing available on request.",
-    usageRights:
-      "Mwabonje Photography retains copyright. Selected images/videos may be used for portfolio purposes unless privacy is requested. RAW files are not included and are only available as an add-on (Ksh 5,000) alongside a booked package.",
-    transportLogistics:
-      "Transport for both locations is included. Transport outside the mentioned locations will be billed at cost.",
-    cancellationRescheduling:
-      "Cancellation by client: deposit is non-refundable. Rescheduling: minimum 72 hours' notice, subject to availability. Cancellation by photographer: full refund of all payments made.",
-    weatherConditions: "Mwabonje Photography shall not be held liable for delays, rescheduling, or failure to deliver services due to circumstances beyond reasonable control. These include, but are not limited to, extreme weather conditions, acts of God, government restrictions, illness, equipment failure, or other unforeseen events. In such cases, both parties will work together in good faith to reschedule the session or agree on a fair solution.",
-    selectionAndStorage: "Clients are required to submit their image selections within 10 days of receiving the proof gallery. Projects without a response after 10 days will be placed on hold and rescheduled based on the photographer's current workload. If the project remains inactive for more than 21 days, a Project Reactivation Fee will apply before work resumes as follows: KSh 3,000 for projects inactive for 22–60 days, KSh 5,000 for 61–90 days, and KSh 7,000 for projects inactive for more than 90 days, subject to file availability.",
+    ...defaultTerms,
     paymentDetails: settings.paymentDetails,
     status: "draft" as Quote["status"],
     date: format(new Date(), "yyyy-MM-dd"),
@@ -221,7 +207,7 @@ export function Quotes() {
     deliverablesTitle: "",
     deliverablesPrice: "",
     deliverablesNote: "",
-  };
+  }), [defaultTerms, settings.paymentDetails]);
 
   const [formData, setFormData] = useState(defaultFormData);
   const [packages, setPackages] = useState<QuotePackage[]>([]);
@@ -257,7 +243,13 @@ export function Quotes() {
       if (savedDraft) {
         try {
           const parsed = JSON.parse(savedDraft);
-          setFormData(parsed.formData || {
+          const draftedData = parsed.formData;
+          setFormData(draftedData ? {
+            ...draftedData,
+            usageRights: sanitizeTermsText(draftedData.usageRights || defaultFormData.usageRights, photographyName),
+            weatherConditions: sanitizeTermsText(draftedData.weatherConditions || defaultFormData.weatherConditions, photographyName),
+            selectionAndStorage: draftedData.selectionAndStorage !== undefined && !OLD_SELECTION_STORAGE_TEXTS.includes(draftedData.selectionAndStorage) ? draftedData.selectionAndStorage : defaultFormData.selectionAndStorage,
+          } : {
             quoteNumber: quote.quoteNumber || "",
             projectId: quote.projectId || "",
             clientName: quote.clientName || "",
@@ -278,10 +270,10 @@ export function Quotes() {
             retainerClause: quote.retainerClause || defaultFormData.retainerClause,
             fulfillmentSchedule: quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
             usageLicense: quote.usageLicense || defaultFormData.usageLicense,
-            usageRights: quote.usageRights || defaultFormData.usageRights,
+            usageRights: sanitizeTermsText(quote.usageRights || defaultFormData.usageRights, photographyName),
             transportLogistics: quote.transportLogistics || defaultFormData.transportLogistics,
             cancellationRescheduling: quote.cancellationRescheduling || defaultFormData.cancellationRescheduling,
-            weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
+            weatherConditions: quote.weatherConditions !== undefined ? sanitizeTermsText(quote.weatherConditions, photographyName) : defaultFormData.weatherConditions,
             selectionAndStorage: quote.selectionAndStorage !== undefined && !OLD_SELECTION_STORAGE_TEXTS.includes(quote.selectionAndStorage) ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
             paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
             status: quote.status,
@@ -323,13 +315,13 @@ export function Quotes() {
           fulfillmentSchedule:
             quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
           usageLicense: quote.usageLicense || defaultFormData.usageLicense,
-          usageRights: quote.usageRights || defaultFormData.usageRights,
+          usageRights: sanitizeTermsText(quote.usageRights || defaultFormData.usageRights, photographyName),
           transportLogistics:
             quote.transportLogistics || defaultFormData.transportLogistics,
           cancellationRescheduling:
             quote.cancellationRescheduling ||
             defaultFormData.cancellationRescheduling,
-          weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
+          weatherConditions: quote.weatherConditions !== undefined ? sanitizeTermsText(quote.weatherConditions, photographyName) : defaultFormData.weatherConditions,
           selectionAndStorage: quote.selectionAndStorage !== undefined && !OLD_SELECTION_STORAGE_TEXTS.includes(quote.selectionAndStorage) ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
           paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
           status: quote.status,
@@ -355,6 +347,12 @@ export function Quotes() {
           let draftedData = parsed.formData;
           if (draftedData && OLD_SELECTION_STORAGE_TEXTS.includes(draftedData.selectionAndStorage)) {
              draftedData.selectionAndStorage = defaultFormData.selectionAndStorage;
+          }
+          if (draftedData?.usageRights) {
+             draftedData.usageRights = sanitizeTermsText(draftedData.usageRights, photographyName);
+          }
+          if (draftedData?.weatherConditions) {
+             draftedData.weatherConditions = sanitizeTermsText(draftedData.weatherConditions, photographyName);
           }
           setFormData(draftedData || {
             ...defaultFormData,
@@ -434,6 +432,8 @@ export function Quotes() {
         const totalAmount = packages.reduce((sum, pkg) => sum + (Number(pkg.settlement) || 0), 0);
         const quoteData = {
           ...formData,
+          usageRights: sanitizeTermsText(formData.usageRights, photographyName),
+          weatherConditions: sanitizeTermsText(formData.weatherConditions, photographyName),
           deliverablesPrice: formData.deliverablesPrice
             ? Number(formData.deliverablesPrice)
             : undefined,
@@ -733,13 +733,13 @@ export function Quotes() {
       fulfillmentSchedule:
         quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
       usageLicense: quote.usageLicense || defaultFormData.usageLicense,
-      usageRights: quote.usageRights || defaultFormData.usageRights,
+      usageRights: sanitizeTermsText(quote.usageRights || defaultFormData.usageRights, photographyName),
       transportLogistics:
         quote.transportLogistics || defaultFormData.transportLogistics,
       cancellationRescheduling:
         quote.cancellationRescheduling ||
         defaultFormData.cancellationRescheduling,
-      weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
+      weatherConditions: quote.weatherConditions !== undefined ? sanitizeTermsText(quote.weatherConditions, photographyName) : defaultFormData.weatherConditions,
       selectionAndStorage: quote.selectionAndStorage !== undefined && !OLD_SELECTION_STORAGE_TEXTS.includes(quote.selectionAndStorage) ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
       paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
       status: quote.status,
@@ -782,13 +782,13 @@ export function Quotes() {
       fulfillmentSchedule:
         quote.fulfillmentSchedule || defaultFormData.fulfillmentSchedule,
       usageLicense: quote.usageLicense || defaultFormData.usageLicense,
-      usageRights: quote.usageRights || defaultFormData.usageRights,
+      usageRights: sanitizeTermsText(quote.usageRights || defaultFormData.usageRights, photographyName),
       transportLogistics:
         quote.transportLogistics || defaultFormData.transportLogistics,
       cancellationRescheduling:
         quote.cancellationRescheduling ||
         defaultFormData.cancellationRescheduling,
-      weatherConditions: quote.weatherConditions !== undefined ? quote.weatherConditions : defaultFormData.weatherConditions,
+      weatherConditions: quote.weatherConditions !== undefined ? sanitizeTermsText(quote.weatherConditions, photographyName) : defaultFormData.weatherConditions,
       selectionAndStorage: quote.selectionAndStorage !== undefined && !OLD_SELECTION_STORAGE_TEXTS.includes(quote.selectionAndStorage) ? quote.selectionAndStorage : defaultFormData.selectionAndStorage,
       paymentDetails: quote.paymentDetails || defaultFormData.paymentDetails,
       status: "draft",
@@ -819,6 +819,8 @@ export function Quotes() {
     try {
       const quoteData = {
         ...formData,
+        usageRights: sanitizeTermsText(formData.usageRights, photographyName),
+        weatherConditions: sanitizeTermsText(formData.weatherConditions, photographyName),
         deliverablesPrice: formData.deliverablesPrice
           ? Number(formData.deliverablesPrice)
           : undefined,
@@ -2849,7 +2851,7 @@ export function Quotes() {
                   {/* HEADER */}
                   <header className="header">
                     <div className="studio-name">
-                      {settings.companyName || "Mwabonje Photography"}
+                      {photographyName}
                     </div>
                     <h1>
                       {formData.projectTitle ? (
@@ -3132,7 +3134,7 @@ export function Quotes() {
                           <div className="term-block">
                             <div className="term-title">Usage Rights</div>
                             <div className="term-body">
-                              {formData.usageRights}
+                              {sanitizeTermsText(formData.usageRights, photographyName)}
                             </div>
                           </div>
                         )}
@@ -3162,7 +3164,7 @@ export function Quotes() {
                               Weather & Conditions
                             </div>
                             <div className="term-body">
-                              {formData.weatherConditions}
+                              {sanitizeTermsText(formData.weatherConditions, photographyName)}
                             </div>
                           </div>
                         )}
@@ -3228,7 +3230,7 @@ export function Quotes() {
                   {/* FOOTER */}
                   <footer className="footer">
                     <div className="footer-name">
-                      {settings.companyName || "Mwabonje Photography"}
+                      {photographyName}
                     </div>
                     <div className="footer-contact">
                       {settings.companyEmail} ·{" "}

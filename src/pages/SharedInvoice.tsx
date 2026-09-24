@@ -9,6 +9,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getResolvedTheme } from '@/lib/theme';
 import { formatInvoiceNumber } from '@/lib/documentNumbering';
+import { getPhotographyName } from '@/lib/branding';
 
 import { formatPhoneNumber } from '@/lib/utils';
 
@@ -780,7 +781,7 @@ export function SharedInvoice() {
             {/* HEADER */}
             <header className="header">
               <div className="header-left">
-                <div className="studio-name">{settings.companyName || 'Mwabonje Photography'}</div>
+                <div className="studio-name">{getPhotographyName(settings)}</div>
                 <div className="studio-tagline">{settings.companyAddress || 'Malindi, Kenya'}</div>
               </div>
               <div className="header-right">

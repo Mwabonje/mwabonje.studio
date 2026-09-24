@@ -2,6 +2,7 @@ import React, { forwardRef } from "react";
 import { format } from "date-fns";
 import { Quote, useStore } from "@/store";
 import { formatQuoteNumber } from "@/lib/documentNumbering";
+import { getPhotographyName } from "@/lib/branding";
 
 interface ContractProps {
   quote: Quote;
@@ -10,7 +11,7 @@ interface ContractProps {
 
 export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAutoSigned }, ref) => {
   const { settings } = useStore();
-  const companyName = settings?.companyName || "Mwabonje Photography";
+  const companyName = getPhotographyName(settings);
   const ownerName = settings?.ownerName || companyName;
 
   const getSelectedPackages = () => {
@@ -151,11 +152,11 @@ export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAu
           The Service Provider retains the copyright to all images and media produced. Upon final payment, the Client is granted a non-exclusive, non-transferable license to use, reproduce, and share the media.{' '}
           {quote.hasCommercialLicense ? (
             <>
-              Full commercial usage license included with all delivered assets — covering advertising, packaging, social media, and web use by {quote.clientName}. Portfolio use by Mwabonje Photography included unless otherwise requested.
+              Full commercial usage license included with all delivered assets — covering advertising, packaging, social media, and web use by {quote.clientName}. Portfolio use by {companyName} included unless otherwise requested.
             </>
           ) : (
             <>
-              Commercial use of the media by the Client requires prior written consent from the Service Provider. Portfolio use by Mwabonje Photography included unless otherwise requested.
+              Commercial use of the media by the Client requires prior written consent from the Service Provider. Portfolio use by {companyName} included unless otherwise requested.
             </>
           )}
         </p>

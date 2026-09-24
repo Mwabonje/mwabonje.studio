@@ -17,6 +17,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getResolvedTheme } from "@/lib/theme";
 import { formatQuoteNumber } from "@/lib/documentNumbering";
+import { getPhotographyName, sanitizeTermsText } from "@/lib/branding";
 
 export function SharedQuote() {
   const [searchParams] = useSearchParams();
@@ -26,6 +27,8 @@ export function SharedQuote() {
   const [loading, setLoading] = useState(true);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const quoteRef = useRef<HTMLDivElement>(null);
+
+  const photographyName = getPhotographyName(settings);
 
   useEffect(() => {
     const fetchQuoteData = async () => {
@@ -447,7 +450,7 @@ export function SharedQuote() {
             {/* HEADER */}
             <header className="header">
               <div className="studio-name">
-                {settings.companyName || "Mwabonje Photography"}
+                {photographyName}
               </div>
               <h1>
                 {quote.projectTitle ? (
@@ -705,7 +708,7 @@ export function SharedQuote() {
                   {quote.usageRights && (
                     <div className="term-block">
                       <div className="term-title">Usage Rights</div>
-                      <div className="term-body">{quote.usageRights}</div>
+                      <div className="term-body">{sanitizeTermsText(quote.usageRights, photographyName)}</div>
                     </div>
                   )}
                   {quote.transportLogistics && (
@@ -728,7 +731,7 @@ export function SharedQuote() {
                     <div className="term-block">
                       <div className="term-title">Weather & Conditions</div>
                       <div className="term-body">
-                        {quote.weatherConditions}
+                        {sanitizeTermsText(quote.weatherConditions, photographyName)}
                       </div>
                     </div>
                   )}
@@ -792,7 +795,7 @@ export function SharedQuote() {
             {/* FOOTER */}
             <footer className="footer">
               <div className="footer-name">
-                {settings.companyName || "Mwabonje Photography"}
+                {photographyName}
               </div>
               <div className="footer-contact">
                 {settings.companyEmail} ·{" "}
