@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from "@/store";
 import { formatQuoteNumber, generateNextQuoteNumber, generateQuoteRevisionNumber } from "@/lib/documentNumbering";
-import { getPhotographyName, getPhotographyLegalName, sanitizeTermsText, getDefaultQuoteTerms } from "@/lib/branding";
+import { getPhotographyName, getPhotographyLegalName, sanitizeTermsText, sanitizePaymentDetails, getDefaultQuoteTerms } from "@/lib/branding";
 import { NDA } from "@/components/NDA";
 import { Contract } from "@/components/Contract";
 import { Card, CardContent } from "@/components/ui/card";
@@ -196,7 +196,7 @@ export function Quotes() {
     photographers: "",
     issueDate: format(new Date(), "yyyy-MM-dd"),
     ...defaultTerms,
-    paymentDetails: settings.paymentDetails,
+    paymentDetails: sanitizePaymentDetails(settings.paymentDetails, settings),
     status: "draft" as Quote["status"],
     date: format(new Date(), "yyyy-MM-dd"),
     revisionOf: undefined as string | undefined,
@@ -353,6 +353,9 @@ export function Quotes() {
           }
           if (draftedData?.weatherConditions) {
              draftedData.weatherConditions = sanitizeTermsText(draftedData.weatherConditions, photographyName);
+          }
+          if (draftedData?.paymentDetails) {
+             draftedData.paymentDetails = sanitizePaymentDetails(draftedData.paymentDetails, settings);
           }
           setFormData(draftedData || {
             ...defaultFormData,
@@ -3188,10 +3191,11 @@ export function Quotes() {
                       <div className="payment-title">Payment Details</div>
                       <div className="payment-grid">
                         {(() => {
-                          const lines = (
+                          const lines = sanitizePaymentDetails(
                             formData.paymentDetails ||
                             settings.paymentDetails ||
-                            ""
+                            "",
+                            settings
                           )
                             .split("\n")
                             .filter((line: string) => line.trim());

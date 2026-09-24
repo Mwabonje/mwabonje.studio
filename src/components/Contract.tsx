@@ -2,7 +2,7 @@ import React, { forwardRef } from "react";
 import { format } from "date-fns";
 import { Quote, useStore } from "@/store";
 import { formatQuoteNumber } from "@/lib/documentNumbering";
-import { getPhotographyName } from "@/lib/branding";
+import { getPhotographyName, formatCapitalizedName } from "@/lib/branding";
 
 interface ContractProps {
   quote: Quote;
@@ -12,7 +12,7 @@ interface ContractProps {
 export const Contract = forwardRef<HTMLDivElement, ContractProps>(({ quote, isAutoSigned }, ref) => {
   const { settings } = useStore();
   const companyName = getPhotographyName(settings);
-  const ownerName = settings?.ownerName || companyName;
+  const ownerName = settings?.ownerName ? formatCapitalizedName(settings.ownerName) : companyName;
 
   const getSelectedPackages = () => {
     if (quote.selectedPackages && quote.selectedPackages.length > 0) {

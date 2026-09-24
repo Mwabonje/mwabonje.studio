@@ -115,11 +115,13 @@
       "properties": {
         "logoUrl": { "type": "string" },
         "companyName": { "type": "string" },
+        "ownerName": { "type": "string" },
         "companyAddress": { "type": "string" },
         "companyEmail": { "type": "string" },
         "companyPhone": { "type": "string" },
         "companyWebsite": { "type": "string" },
         "colorScheme": { "type": "string" },
+        "documentTheme": { "type": "string" },
         "paymentDetails": { "type": "string" }
       }
     },

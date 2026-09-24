@@ -284,16 +284,33 @@ type AppState = {
   updateSettings: (settings: Partial<Settings>) => Promise<void>;
 };
 
-const defaultSettings: Settings = {
+export const defaultSettings: Settings = {
   logoUrl: '',
-  companyName: 'CaptureCRM',
+  companyName: '',
   ownerName: '',
   companyAddress: '',
   companyEmail: '',
   companyPhone: '',
   companyWebsite: '',
   colorScheme: 'slate',
-  paymentDetails: 'Bank: Standard Chartered\nAcc Name: CaptureCRM\nAcc No: 0100000000000\nM-Pesa Till: 123456',
+  paymentDetails: '',
+};
+
+const getInitialSettings = (): Settings => {
+  if (typeof window !== 'undefined') {
+    try {
+      const keys = Object.keys(localStorage);
+      const settingsKey = keys.find(k => k.startsWith('capturecrm_settings_'));
+      if (settingsKey) {
+        const stored = localStorage.getItem(settingsKey);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          return { ...defaultSettings, ...parsed };
+        }
+      }
+    } catch (e) {}
+  }
+  return defaultSettings;
 };
 
 const cleanData = (obj: any): any => {
@@ -321,7 +338,7 @@ export const useStore = create<AppState>((set, get) => ({
   expenses: [],
   reminders: [],
   feedbacks: [],
-  settings: defaultSettings,
+  settings: getInitialSettings(),
   isSettingsLoaded: false,
   isAuthReady: false,
   userId: null,
@@ -587,9 +604,17 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   updateSettings: async (updatedSettings) => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
+    const uid = auth.currentUser?.uid || get().userId;
     const existing = get().settings;
-    await setDoc(doc(db, `users/${uid}/settings`, 'profile'), cleanData({ ...existing, ...updatedSettings }));
+    const merged = cleanData({ ...existing, ...updatedSettings });
+    // Immediately update in-memory state so UI updates with zero lag
+    set({ settings: merged });
+
+    if (uid) {
+      try {
+        localStorage.setItem(`capturecrm_settings_${uid}`, JSON.stringify(merged));
+      } catch (e) {}
+      await setDoc(doc(db, `users/${uid}/settings`, 'profile'), merged);
+    }
   },
 }));

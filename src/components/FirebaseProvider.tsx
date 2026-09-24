@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
-import { useStore, Client, Project, Quote, Invoice, Payment, Settings, Feedback } from '../store';
+import { useStore, Client, Project, Quote, Invoice, Payment, Settings, Feedback, defaultSettings } from '../store';
 import { isSuperUser } from '../lib/auth-utils';
 
 export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -31,6 +31,8 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           invoices: [],
           payments: [],
           feedbacks: [],
+          settings: defaultSettings,
+          isSettingsLoaded: false,
         });
       }
     });
@@ -105,9 +107,21 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       console.error("Firebase reminders error:", error);
     });
 
+    // Check if user has cached settings in localStorage for immediate rendering
+    try {
+      const cached = localStorage.getItem(`capturecrm_settings_${userId}`);
+      if (cached) {
+        useStore.setState({ settings: { ...defaultSettings, ...JSON.parse(cached) } });
+      }
+    } catch (e) {}
+
     const unsubSettings = onSnapshot(doc(db, `users/${userId}/settings/profile`), (docSnap) => {
       if (docSnap.exists()) {
-        useStore.setState({ settings: docSnap.data() as Settings, isSettingsLoaded: true });
+        const data = docSnap.data() as Settings;
+        useStore.setState({ settings: { ...defaultSettings, ...data }, isSettingsLoaded: true });
+        try {
+          localStorage.setItem(`capturecrm_settings_${userId}`, JSON.stringify(data));
+        } catch (e) {}
       } else {
         useStore.setState({ isSettingsLoaded: true });
       }

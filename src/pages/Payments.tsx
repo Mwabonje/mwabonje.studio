@@ -2,7 +2,7 @@ import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useMemo } from 'react';
 import { useStore, Payment, CollaboratorSplit } from '@/store';
 import { formatReceiptNumber, formatInvoiceNumber } from '@/lib/documentNumbering';
-import { getPhotographyName } from '@/lib/branding';
+import { getPhotographyName, sanitizePaymentDetails, formatCapitalizedName } from '@/lib/branding';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1208,13 +1208,13 @@ export function Payments() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               <div><strong>Method</strong> &nbsp; {previewPayment.method.toUpperCase()}</div>
                               <div><strong>Transaction Ref.</strong> &nbsp; {previewPayment.reference || '——————'}</div>
-                              <div><strong>Received By</strong> &nbsp; {settings?.ownerName || getPhotographyName(settings)}</div>
+                              <div><strong>Received By</strong> &nbsp; {settings?.ownerName ? formatCapitalizedName(settings.ownerName) : getPhotographyName(settings)}</div>
                             </div>
                             
                             {settings?.paymentDetails && (
                               <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 <div style={{ lineHeight: 1.6 }}>
-                                  {settings.paymentDetails.split('\n').filter(line => line.trim()).map((line, i) => (
+                                  {sanitizePaymentDetails(settings.paymentDetails, settings).split('\n').filter(line => line.trim()).map((line, i) => (
                                     <div key={i}>{line}</div>
                                   ))}
                                 </div>
@@ -1245,7 +1245,7 @@ export function Payments() {
                           <div className="sig-block">
                             <div className="sig-label">Issued By — {getPhotographyName(settings)}</div>
                             <div className="sig-line"></div>
-                            <div className="sig-name">{settings?.ownerName || getPhotographyName(settings)}</div>
+                            <div className="sig-name">{settings?.ownerName ? formatCapitalizedName(settings.ownerName) : getPhotographyName(settings)}</div>
                           </div>
                           <div className="sig-block">
                             <div className="sig-label">Client Acknowledgement</div>

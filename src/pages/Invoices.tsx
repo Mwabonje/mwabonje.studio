@@ -2,7 +2,7 @@ import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useStore, Invoice, LineItem, Quote } from '@/store';
 import { formatInvoiceNumber, generateNextInvoiceNumber } from '@/lib/documentNumbering';
-import { getPhotographyName } from '@/lib/branding';
+import { getPhotographyName, sanitizePaymentDetails, formatCapitalizedName } from '@/lib/branding';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1193,7 +1193,7 @@ export function Invoices() {
                           <div className="payment-title">Payment Details</div>
                           <div className="payment-grid">
                             {(() => {
-                              const lines = settings.paymentDetails
+                              const lines = sanitizePaymentDetails(settings.paymentDetails, settings)
                                 .split('\n')
                                 .filter(line => line.trim());
                               const mid = Math.ceil(lines.length / 2);
@@ -1231,9 +1231,9 @@ export function Invoices() {
                       {/* SIGNATURE */}
                       <div className="signature">
                         <div className="sig-block">
-                          <div className="sig-label">Authorised — {settings.companyName || 'Photography Studio'}</div>
+                          <div className="sig-label">Authorised — {getPhotographyName(settings)}</div>
                           <div className="sig-line"></div>
-                          <div className="sig-name">{settings.ownerName || settings.companyName || ''}</div>
+                          <div className="sig-name">{settings.ownerName ? formatCapitalizedName(settings.ownerName) : getPhotographyName(settings)}</div>
                         </div>
                         <div className="sig-block">
                           <div className="sig-label">Client Acknowledgement</div>
@@ -1244,7 +1244,7 @@ export function Invoices() {
 
                       {/* FOOTER */}
                       <footer className="footer">
-                        <div className="footer-name">{settings.companyName || 'Photography Studio'}</div>
+                        <div className="footer-name">{getPhotographyName(settings)}</div>
                         <div className="footer-contact">
                           {settings.companyEmail} {settings.companyAddress ? `· ${settings.companyAddress}` : ''}<br/>
                           {settings.companyWebsite} {settings.companyPhone ? `· ${settings.companyPhone}` : ''}

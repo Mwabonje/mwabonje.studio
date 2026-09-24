@@ -9,6 +9,7 @@ import { GlobalSearch } from '@/components/GlobalSearch';
 import { ReminderPopup } from '@/components/ReminderPopup';
 import { FeedbackDialog } from '@/components/FeedbackDialog';
 import { isSuperUser } from '@/lib/auth-utils';
+import { getPhotographyName } from '@/lib/branding';
 
 export function Layout() {
   const location = useLocation();
@@ -44,7 +45,7 @@ export function Layout() {
   useEffect(() => {
     if (isSettingsLoaded && settings) {
       const hasPrompted = sessionStorage.getItem('hasPromptedSettings');
-      if (!hasPrompted && settings.companyName === 'CaptureCRM') {
+      if (!hasPrompted && (!settings.companyName || settings.companyName.toLowerCase() === 'capturecrm')) {
         toast('Welcome to CaptureCRM!', {
           description: 'Please head over to Settings to add your company details.',
           duration: 8000,
@@ -118,8 +119,8 @@ export function Layout() {
       {/* Mobile/Tablet Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-primary text-primary-foreground flex items-center justify-between px-4 z-30 shadow-md">
         <Link to="/dashboard" className="flex items-center gap-2 overflow-hidden">
-          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white truncate pr-2">
-            {settings?.companyName?.toUpperCase() || 'STUDIO'}
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest uppercase text-white truncate pr-2">
+            {getPhotographyName(settings).toUpperCase()}
           </h1>
         </Link>
         <div className="flex items-center gap-1 shrink-0">
@@ -167,8 +168,8 @@ export function Layout() {
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex items-center justify-between px-6 lg:px-10 mb-4 sm:mb-6 lg:mb-10 mt-1 lg:mt-0">
-          <h1 className="text-xl lg:text-2xl font-bold tracking-widest text-white truncate pr-2" title={settings?.companyName?.toUpperCase() || 'STUDIO'}>
-            {settings?.companyName?.toUpperCase() || 'STUDIO'}
+          <h1 className="text-xl lg:text-2xl font-bold tracking-widest uppercase text-white truncate pr-2" title={getPhotographyName(settings).toUpperCase()}>
+            {getPhotographyName(settings).toUpperCase()}
           </h1>
           <button 
             onClick={closeMobileMenu} 

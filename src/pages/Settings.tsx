@@ -12,18 +12,29 @@ import { auth } from '../lib/firebase';
 import { getResolvedTheme } from '../lib/theme';
 import { Badge } from '../components/ui/badge';
 import { useTheme } from '../components/ThemeProvider';
+import { formatCapitalizedName } from '../lib/branding';
 
 export default function Settings() {
-  const { settings, updateSettings } = useStore();
+  const { settings, updateSettings, isSettingsLoaded } = useStore();
   const { theme, setTheme } = useTheme();
   const [formData, setFormData] = useState(settings);
+  const [isDirty, setIsDirty] = useState(false);
+
+  // Sync formData when settings load from Firestore or change in store, unless user has unsaved edits
+  React.useEffect(() => {
+    if (!isDirty && settings) {
+      setFormData(settings);
+    }
+  }, [settings, isDirty, isSettingsLoaded]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    setIsDirty(true);
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
+    setIsDirty(true);
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -137,7 +148,28 @@ export default function Settings() {
 
   const handleSave = async () => {
     try {
-      await updateSettings(formData);
+      const rawName = formData.companyName?.trim() || '';
+      const sanitizedName = formatCapitalizedName(rawName);
+      const rawOwner = formData.ownerName?.trim() || '';
+      const sanitizedOwner = formatCapitalizedName(rawOwner);
+
+      // Ensure payment details don't retain stale default "CaptureCRM" or "Mwabonje"
+      const sanitizedPaymentDetails = formData.paymentDetails
+        ? formData.paymentDetails
+            .replace(/CaptureCRM/gi, sanitizedName || 'Photography Studio')
+            .replace(/Mwabonje/gi, sanitizedName || 'Photography Studio')
+        : '';
+
+      const dataToSave = {
+        ...formData,
+        companyName: sanitizedName,
+        ownerName: sanitizedOwner,
+        paymentDetails: sanitizedPaymentDetails,
+      };
+
+      await updateSettings(dataToSave);
+      setFormData(dataToSave);
+      setIsDirty(false);
       toast.success('Settings saved successfully');
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -201,7 +233,14 @@ export default function Settings() {
                       name="companyName"
                       value={formData.companyName}
                       onChange={handleChange}
-                      placeholder="e.g. CaptureCRM"
+                      onBlur={(e) => {
+                        const formatted = formatCapitalizedName(e.target.value);
+                        if (formatted !== formData.companyName) {
+                          setFormData((prev) => ({ ...prev, companyName: formatted }));
+                          setIsDirty(true);
+                        }
+                      }}
+                      placeholder="e.g. Apex Visuals or Your Studio Name"
                     />
                   </div>
                   <div className="space-y-2">
@@ -211,6 +250,13 @@ export default function Settings() {
                       name="ownerName"
                       value={formData.ownerName || ''}
                       onChange={handleChange}
+                      onBlur={(e) => {
+                        const formatted = formatCapitalizedName(e.target.value);
+                        if (formatted !== (formData.ownerName || '')) {
+                          setFormData((prev) => ({ ...prev, ownerName: formatted }));
+                          setIsDirty(true);
+                        }
+                      }}
                       placeholder="e.g. John Doe"
                     />
                   </div>
@@ -384,7 +430,7 @@ export default function Settings() {
                   name="paymentDetails"
                   value={formData.paymentDetails}
                   onChange={handleChange}
-                  placeholder="e.g. Bank: Standard Chartered&#10;Acc Name: CaptureCRM&#10;Acc No: 0100000000000"
+                  placeholder="e.g. Bank: Standard Chartered&#10;Acc Name: Apex Visuals&#10;Acc No: 0100000000000&#10;M-Pesa Till: 123456"
                   rows={5}
                 />
               </div>

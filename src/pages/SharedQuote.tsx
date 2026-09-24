@@ -17,7 +17,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getResolvedTheme } from "@/lib/theme";
 import { formatQuoteNumber } from "@/lib/documentNumbering";
-import { getPhotographyName, sanitizeTermsText } from "@/lib/branding";
+import { getPhotographyName, sanitizeTermsText, sanitizePaymentDetails } from "@/lib/branding";
 
 export function SharedQuote() {
   const [searchParams] = useSearchParams();
@@ -60,7 +60,8 @@ export function SharedQuote() {
             // Fallback settings
             setSettings({
               logoUrl: "",
-              companyName: "CaptureCRM",
+              companyName: "",
+              ownerName: "",
               companyAddress: "",
               companyEmail: "",
               companyPhone: "",
@@ -76,7 +77,8 @@ export function SharedQuote() {
           setQuote(parsedQuote);
           setSettings({
             logoUrl: "",
-            companyName: "CaptureCRM",
+            companyName: "",
+            ownerName: "",
             companyAddress: "",
             companyEmail: "",
             companyPhone: "",
@@ -753,10 +755,11 @@ export function SharedQuote() {
                 <div className="payment-title">Payment Details</div>
                 <div className="payment-grid">
                   {(() => {
-                    const lines = (
+                    const lines = sanitizePaymentDetails(
                       quote.paymentDetails ||
                       settings.paymentDetails ||
-                      ""
+                      "",
+                      settings
                     )
                       .split("\n")
                       .filter((line: string) => line.trim());

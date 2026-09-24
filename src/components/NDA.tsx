@@ -2,7 +2,7 @@ import React, { forwardRef } from "react";
 import { format } from "date-fns";
 import { Quote, useStore } from "@/store";
 import { formatQuoteNumber } from "@/lib/documentNumbering";
-import { getPhotographyName } from "@/lib/branding";
+import { getPhotographyName, formatCapitalizedName } from "@/lib/branding";
 
 interface NDAProps {
   quote: Quote;
@@ -12,7 +12,7 @@ interface NDAProps {
 export const NDA = forwardRef<HTMLDivElement, NDAProps>(({ quote, isAutoSigned }, ref) => {
   const { settings } = useStore();
   const companyName = getPhotographyName(settings);
-  const ownerName = settings?.ownerName || companyName;
+  const ownerName = settings?.ownerName ? formatCapitalizedName(settings.ownerName) : companyName;
 
   return (
     <div

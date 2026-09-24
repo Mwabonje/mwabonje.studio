@@ -1,27 +1,86 @@
 import { Settings } from '@/store';
+import { auth } from '@/lib/firebase';
 
 /**
- * Returns the user's photography business/studio name.
+ * Formats a name so each word starts with a capital letter and the rest are lowercase.
+ * e.g. "MWABONJE" -> "Mwabonje"
+ *      "mwabonje" -> "Mwabonje"
+ *      "XYZ" -> "Xyz"
+ *      "apex visuals" -> "Apex Visuals"
+ *      "MWABONJE PHOTOGRAPHY" -> "Mwabonje Photography"
+ */
+export function formatCapitalizedName(name: string | undefined | null): string {
+  if (!name) return '';
+  return name
+    .trim()
+    .split(/\s+/)
+    .map(word => {
+      if (!word) return '';
+      // Support hyphenated names e.g. "mary-anne" -> "Mary-Anne"
+      return word
+        .split('-')
+        .map(part => {
+          if (!part) return '';
+          // Support apostrophes e.g. "john's" or "o'neill"
+          if (part.includes("'")) {
+            return part
+              .split("'")
+              .map((sub, idx) => {
+                if (!sub) return '';
+                if (idx > 0 && sub.toLowerCase() === 's') return 's';
+                return sub.charAt(0).toUpperCase() + sub.slice(1).toLowerCase();
+              })
+              .join("'");
+          }
+          return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+        })
+        .join('-');
+    })
+    .join(' ');
+}
+
+/**
+ * Returns the user's photography business/studio name formatted with
+ * capital first letter and small following letters.
  * Uses settings.companyName, falls back to settings.ownerName (with 'Photography'),
- * or defaults to 'Photography Studio' / 'The Photographer'.
+ * or user's display name from auth, or defaults to 'Photography Studio'.
+ * Guarantees 'CaptureCRM' is never picked as the studio name.
  */
 export function getPhotographyName(settings?: Partial<Settings> | null): string {
-  if (!settings) return 'Photography Studio';
-
-  const companyName = settings.companyName?.trim();
+  const companyName = settings?.companyName?.trim();
   if (companyName && companyName.toLowerCase() !== 'capturecrm') {
-    return companyName;
+    return formatCapitalizedName(companyName);
   }
 
-  const ownerName = settings.ownerName?.trim();
+  const ownerName = settings?.ownerName?.trim();
   if (ownerName) {
-    return ownerName.toLowerCase().endsWith('photography') || ownerName.toLowerCase().endsWith('studio')
-      ? ownerName
-      : `${ownerName} Photography`;
+    const formattedOwner = formatCapitalizedName(ownerName);
+    return formattedOwner.toLowerCase().endsWith('photography') || formattedOwner.toLowerCase().endsWith('studio')
+      ? formattedOwner
+      : `${formattedOwner} Photography`;
   }
 
-  if (companyName) {
-    return companyName;
+  // Fallback to auth user's display name or email if available
+  try {
+    const user = auth.currentUser;
+    if (user?.displayName) {
+      const cleanName = user.displayName.replace(/\s*\(.*?\)\s*/g, '').trim();
+      if (cleanName && cleanName.toLowerCase() !== 'capturecrm') {
+        const formatted = formatCapitalizedName(cleanName);
+        return formatted.toLowerCase().endsWith('photography') || formatted.toLowerCase().endsWith('studio')
+          ? formatted
+          : `${formatted} Photography`;
+      }
+    } else if (user?.email) {
+      const emailName = user.email.split('@')[0];
+      const parts = emailName.split(/[\s._-]+/).filter(Boolean);
+      if (parts.length > 0 && emailName.toLowerCase() !== 'capturecrm') {
+        const formatted = parts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
+        return `${formatted} Photography`;
+      }
+    }
+  } catch (e) {
+    // Ignore in non-auth contexts
   }
 
   return 'Photography Studio';
@@ -35,20 +94,54 @@ export function getPhotographyLegalName(settings?: Partial<Settings> | null): st
   if (name === 'Photography Studio') {
     return 'The Photographer';
   }
-  return name;
+  return formatCapitalizedName(name);
 }
 
 /**
- * Sanitizes quote or agreement terms to replace any legacy hardcoded 'Mwabonje Photography'
- * with the user's actual photography / studio brand name.
+ * Sanitizes quote or agreement terms to replace any legacy hardcoded 'Mwabonje Photography',
+ * 'MWABONJE', or 'CaptureCRM' with the user's actual photography / studio brand name
+ * formatted with capital first letter and lowercase rest.
  */
 export function sanitizeTermsText(text: string | undefined | null, photographyName: string): string {
   if (!text) return '';
   const targetName = photographyName && photographyName !== 'Photography Studio'
-    ? photographyName
+    ? formatCapitalizedName(photographyName)
     : 'The Photographer';
 
-  return text.replace(/Mwabonje Photography/g, targetName);
+  let sanitized = text
+    .replace(/Mwabonje\s+Photography/gi, targetName)
+    .replace(/Mwabonje/gi, targetName)
+    .replace(/CaptureCRM\s+Photography/gi, targetName)
+    .replace(/CaptureCRM/gi, targetName);
+
+  if (targetName && targetName !== 'The Photographer') {
+    const escaped = targetName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    sanitized = sanitized.replace(new RegExp(`\\b${escaped}\\b`, 'gi'), targetName);
+  }
+
+  return sanitized;
+}
+
+/**
+ * Sanitizes payment instructions text to replace any legacy hardcoded 'CaptureCRM' or 'Mwabonje'
+ * with the user's actual business/photography name.
+ */
+export function sanitizePaymentDetails(details: string | undefined | null, settings?: Partial<Settings> | null): string {
+  if (!details) return '';
+  const targetName = getPhotographyName(settings);
+  let res = details
+    .replace(/Acc Name:\s*CaptureCRM/gi, `Acc Name: ${targetName}`)
+    .replace(/CaptureCRM/gi, targetName)
+    .replace(/Acc Name:\s*MWABONJE/gi, `Acc Name: ${targetName}`)
+    .replace(/Mwabonje\s+Photography/gi, targetName)
+    .replace(/Mwabonje/gi, targetName);
+
+  if (targetName && targetName !== 'Photography Studio') {
+    const escaped = targetName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    res = res.replace(new RegExp(`\\b${escaped}\\b`, 'gi'), targetName);
+  }
+
+  return res;
 }
 
 /**

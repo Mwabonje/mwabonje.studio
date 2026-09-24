@@ -146,11 +146,13 @@ service cloud.firestore {
     function isValidSettings() {
       return isValidOptionalString('logoUrl', 0, 2000) &&
              isValidOptionalString('companyName', 0, 200) &&
+             isValidOptionalString('ownerName', 0, 200) &&
              isValidOptionalString('companyAddress', 0, 1000) &&
              isValidOptionalString('companyEmail', 0, 150) &&
              isValidOptionalString('companyPhone', 0, 50) &&
              isValidOptionalString('companyWebsite', 0, 200) &&
              isValidOptionalString('colorScheme', 0, 50) &&
+             isValidOptionalString('documentTheme', 0, 50) &&
              isValidOptionalString('paymentDetails', 0, 2000);
     }
 
