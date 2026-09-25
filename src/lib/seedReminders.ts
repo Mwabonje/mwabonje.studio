@@ -1,10 +1,11 @@
 import { auth, db } from '../lib/firebase';
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { Reminder, Expense } from '../store';
+import { isSuperUser } from './auth-utils';
 
 export const seedHealthInsuranceReminder = async () => {
   const uid = auth.currentUser?.uid;
-  if (!uid) return;
+  if (!uid || !isSuperUser(auth.currentUser?.email)) return;
 
   const reminderId = "health-insurance-reminder-1";
   
@@ -26,7 +27,7 @@ export const seedHealthInsuranceReminder = async () => {
 
 export const seedStatutoryReminders = async (expenses: Expense[], reminders: Reminder[]) => {
   const uid = auth.currentUser?.uid;
-  if (!uid) return;
+  if (!uid || !isSuperUser(auth.currentUser?.email)) return;
 
   // 1. Seed Health Insurance reminder if not present
   const hasHealthReminder = reminders.some(

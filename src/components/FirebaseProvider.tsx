@@ -27,9 +27,13 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         useStore.setState({
           clients: [],
           projects: [],
+          projectTemplates: [],
           quotes: [],
           invoices: [],
           payments: [],
+          equipment: [],
+          expenses: [],
+          reminders: [],
           feedbacks: [],
           settings: defaultSettings,
           isSettingsLoaded: false,
@@ -41,7 +45,33 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [setAuthReady]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      useStore.setState({
+        clients: [],
+        projects: [],
+        projectTemplates: [],
+        quotes: [],
+        invoices: [],
+        payments: [],
+        equipment: [],
+        expenses: [],
+        reminders: [],
+      });
+      return;
+    }
+
+    // Reset store lists to empty when switching to a different user
+    useStore.setState({
+      clients: [],
+      projects: [],
+      projectTemplates: [],
+      quotes: [],
+      invoices: [],
+      payments: [],
+      equipment: [],
+      expenses: [],
+      reminders: [],
+    });
 
     const unsubClients = onSnapshot(query(collection(db, `users/${userId}/clients`)), (snapshot) => {
       const clients = snapshot.docs.map((doc) => doc.data() as Client);

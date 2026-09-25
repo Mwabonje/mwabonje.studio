@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useStore, Expense } from "@/store";
+import { auth } from "@/lib/firebase";
+import { isSuperUser } from "@/lib/auth-utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -156,8 +158,8 @@ export function Expenses() {
         id: Math.random().toString(36).substr(2, 9),
       });
 
-      // If user logs an NSSF expense, advance the pending NSSF reminder automatically
-      if (expenseData.category === "NSSF") {
+      // If user logs an NSSF expense, advance the pending NSSF reminder automatically (for super admin)
+      if (expenseData.category === "NSSF" && isSuperUser(auth.currentUser?.email)) {
         const pendingNssf = reminders.find(
           (r) => (r.category === "NSSF" || r.title?.toLowerCase().includes("nssf")) && r.status === "pending"
         );
@@ -413,19 +415,20 @@ export function Expenses() {
            </div>
         </div>
 
-        {/* Monthly Statutory & Recurring Contributions Tracker */}
-        <div className="border border-border rounded-xl p-6 bg-card shadow-sm mb-12">
-          <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
-            <div>
-              <h3 className="text-base font-medium text-foreground">Monthly Statutory & Insurance Tracker</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Automated tracking and payment reminders for statutory deductions and recurring health coverage.
-              </p>
+        {/* Monthly Statutory & Recurring Contributions Tracker - Super Admin Only */}
+        {isSuperUser(auth.currentUser?.email) && (
+          <div className="border border-border rounded-xl p-6 bg-card shadow-sm mb-12">
+            <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+              <div>
+                <h3 className="text-base font-medium text-foreground">Monthly Statutory & Insurance Tracker</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Automated tracking and payment reminders for statutory deductions and recurring health coverage.
+                </p>
+              </div>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-muted font-medium text-muted-foreground border border-border">
+                Auto-Reminder Active
+              </span>
             </div>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-muted font-medium text-muted-foreground border border-border">
-              Auto-Reminder Active
-            </span>
-          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* NSSF Card */}
@@ -452,12 +455,22 @@ export function Expenses() {
                 {/* September status */}
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    {hasSeptemberNssf ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    ) : (
+                      <Clock className="w-3.5 h-3.5 text-amber-500" />
+                    )}
                     September 2026:
                   </span>
-                  <span className="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                    ✓ Paid (KES 500)
-                  </span>
+                  {hasSeptemberNssf ? (
+                    <span className="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      ✓ Paid (KES 500)
+                    </span>
+                  ) : (
+                    <span className="font-medium text-amber-500">
+                      Unpaid
+                    </span>
+                  )}
                 </div>
 
                 {/* October status */}
@@ -577,6 +590,7 @@ export function Expenses() {
             </div>
           </div>
         </div>
+      )}
 
         {/* Ledger Section */}
         <div className="border border-border rounded-xl p-4 sm:p-6 bg-card shadow-sm">

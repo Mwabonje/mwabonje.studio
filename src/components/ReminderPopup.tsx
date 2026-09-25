@@ -4,15 +4,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Bell, Calendar, CheckCircle, XCircle, ShieldCheck } from 'lucide-react';
 import { seedStatutoryReminders } from '@/lib/seedReminders';
+import { auth } from '@/lib/firebase';
+import { isSuperUser } from '@/lib/auth-utils';
 
 export function ReminderPopup() {
   const { reminders, expenses, updateReminder, addExpense, addReminder } = useStore();
   const [activeReminders, setActiveReminders] = useState<Reminder[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Check on mount and sync to seed both Health Insurance & NSSF with September paid
+  // Check on mount and sync to seed both Health Insurance & NSSF with September paid for super user only
   useEffect(() => {
-    if (reminders !== undefined && expenses !== undefined) {
+    if (reminders !== undefined && expenses !== undefined && isSuperUser(auth.currentUser?.email)) {
       seedStatutoryReminders(expenses, reminders).catch(console.error);
     }
   }, [reminders.length, expenses.length]);
