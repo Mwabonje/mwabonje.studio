@@ -2,7 +2,7 @@
   "entities": {
     "Client": {
       "title": "Client",
-      "description": "A client of the studio",
+      "description": "Private client belonging to an authenticated photographer account",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
@@ -10,13 +10,15 @@
         "phone": { "type": "string" },
         "email": { "type": "string" },
         "notes": { "type": "string" },
+        "nationality": { "type": "string" },
+        "leadSource": { "type": "string" },
         "uid": { "type": "string" }
       },
       "required": ["id", "name", "uid"]
     },
     "Project": {
       "title": "Project",
-      "description": "A project for a client",
+      "description": "Private photography project belonging to an authenticated user account",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
@@ -32,14 +34,81 @@
             "properties": {
               "id": { "type": "string" },
               "name": { "type": "string" },
-              "splitType": { "type": "string", "enum": ["equal", "percentage"] },
-              "percentage": { "type": "number" }
+              "splitType": { "type": "string", "enum": ["equal", "percentage", "fixed", "transport"] },
+              "percentage": { "type": "number" },
+              "amount": { "type": "number" }
             }
           }
         },
         "uid": { "type": "string" }
       },
       "required": ["id", "clientId", "title", "uid"]
+    },
+    "ProjectTemplate": {
+      "title": "ProjectTemplate",
+      "description": "Custom reusable project template belonging to an individual user account",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "title": { "type": "string" },
+        "location": { "type": "string" },
+        "description": { "type": "string" },
+        "collaborators": { "type": "array" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "name", "title", "uid"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "Private expense record logged by an individual user account",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "amount": { "type": "number" },
+        "category": { "type": "string" },
+        "vendor": { "type": "string" },
+        "description": { "type": "string" },
+        "mpesaReference": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "date", "amount", "category", "vendor", "uid"]
+    },
+    "Equipment": {
+      "title": "Equipment",
+      "description": "Private equipment asset belonging to an individual user account",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "serialNumber": { "type": "string" },
+        "purchaseDate": { "type": "string" },
+        "purchasePrice": { "type": "number" },
+        "condition": { "type": "string" },
+        "notes": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "name", "uid"]
+    },
+    "Reminder": {
+      "title": "Reminder",
+      "description": "Private scheduled reminder belonging to an individual user account",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "amount": { "type": "number" },
+        "category": { "type": "string" },
+        "isRecurring": { "type": "boolean" },
+        "recurringInterval": { "type": "string", "enum": ["monthly", "yearly"] },
+        "status": { "type": "string", "enum": ["pending", "paid", "dismissed"] },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "title", "dueDate", "status", "uid"]
     },
     "Quote": {
       "title": "Quote",
@@ -66,7 +135,7 @@
         "cancellationRescheduling": { "type": "string" },
         "paymentDetails": { "type": "string" },
         "totalAmount": { "type": "number" },
-        "status": { "type": "string", "enum": ["draft", "sent", "approved"] },
+        "status": { "type": "string", "enum": ["draft", "sent", "approved", "declined"] },
         "date": { "type": "string" },
         "selectedPackages": { "type": "array" },
         "revisionOf": { "type": "string" },
@@ -102,7 +171,7 @@
         "invoiceId": { "type": "string" },
         "amount": { "type": "number" },
         "date": { "type": "string" },
-        "method": { "type": "string", "enum": ["cash", "mpesa", "bank"] },
+        "method": { "type": "string", "enum": ["cash", "mpesa", "bank", "paypal"] },
         "reference": { "type": "string" },
         "uid": { "type": "string" }
       },
@@ -148,19 +217,35 @@
   "firestore": {
     "/users/{userId}/clients/{clientId}": {
       "schema": { "$ref": "#/entities/Client" },
-      "description": "Clients belonging to a user"
+      "description": "Private client records filtered by user account UID"
     },
     "/users/{userId}/projects/{projectId}": {
       "schema": { "$ref": "#/entities/Project" },
-      "description": "Projects belonging to a user"
+      "description": "Private projects filtered by user account UID"
+    },
+    "/users/{userId}/project_templates/{templateId}": {
+      "schema": { "$ref": "#/entities/ProjectTemplate" },
+      "description": "Private reusable project templates filtered by user account UID"
+    },
+    "/users/{userId}/expenses/{expenseId}": {
+      "schema": { "$ref": "#/entities/Expense" },
+      "description": "Private expense records filtered by user account UID"
+    },
+    "/users/{userId}/equipment/{equipmentId}": {
+      "schema": { "$ref": "#/entities/Equipment" },
+      "description": "Private equipment records filtered by user account UID"
+    },
+    "/users/{userId}/reminders/{reminderId}": {
+      "schema": { "$ref": "#/entities/Reminder" },
+      "description": "Private reminders filtered by user account UID"
     },
     "/users/{userId}/quotes/{quoteId}": {
       "schema": { "$ref": "#/entities/Quote" },
-      "description": "Quotes belonging to a user"
+      "description": "Quotes belonging to a user (viewable publicly by clients via share link)"
     },
     "/users/{userId}/invoices/{invoiceId}": {
       "schema": { "$ref": "#/entities/Invoice" },
-      "description": "Invoices belonging to a user"
+      "description": "Invoices belonging to a user (viewable publicly by clients via share link)"
     },
     "/users/{userId}/payments/{paymentId}": {
       "schema": { "$ref": "#/entities/Payment" },

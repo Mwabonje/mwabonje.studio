@@ -173,8 +173,9 @@ export function Expenses() {
             ...pendingNssf,
             id: Math.random().toString(36).substr(2, 9),
             title: "NSSF Monthly Contribution",
-            description: `${nextMonthName} statutory contribution (KES 500)`,
+            description: `${nextMonthName} statutory contribution (${formatKES(expenseData.amount || 400)})`,
             dueDate: nextDue.toISOString().split("T")[0],
+            amount: expenseData.amount || 400,
             status: "pending",
           });
         }
@@ -183,35 +184,20 @@ export function Expenses() {
     setIsDialogOpen(false);
   };
 
-  const handlePayNssfMonth = async (monthName: string, dueDateStr: string) => {
-    const newId = Math.random().toString(36).substr(2, 9);
-    await addExpense({
-      id: newId,
+  const handlePayNssfMonth = (monthName: string, dueDateStr: string) => {
+    setEditingItem(null);
+    const suggestedAmount = octNssfExpense?.amount || septNssfExpense?.amount || 400;
+    setFormData({
       date: new Date().toISOString().split("T")[0],
-      amount: 500,
+      amount: suggestedAmount.toString(),
       category: "NSSF",
       vendor: "NSSF Kenya",
       description: `${monthName} statutory contribution (Paid)`,
+      mpesaReference: "",
     });
-
-    const pendingNssf = reminders.find(
-      (r) => (r.category === "NSSF" || r.title?.toLowerCase().includes("nssf")) && r.status === "pending"
-    );
-    if (pendingNssf) {
-      await updateReminder(pendingNssf.id, { status: "paid" });
-      const currentDue = new Date(pendingNssf.dueDate);
-      const nextDue = new Date(currentDue);
-      nextDue.setMonth(nextDue.getMonth() + 1);
-      const nextMonthName = nextDue.toLocaleString("default", { month: "long", year: "numeric" });
-      await addReminder({
-        ...pendingNssf,
-        id: Math.random().toString(36).substr(2, 9),
-        title: "NSSF Monthly Contribution",
-        description: `${nextMonthName} statutory contribution (KES 500)`,
-        dueDate: nextDue.toISOString().split("T")[0],
-        status: "pending",
-      });
-    }
+    setIsCustomVendor(false);
+    setShowMpesaInput(true);
+    setIsDialogOpen(true);
   };
 
   const confirmDelete = (id: string) => {
@@ -259,16 +245,19 @@ export function Expenses() {
 
   // Statutory contribution tracking calculations
   const nssfExpenses = expenses
-    .filter((e) => e.category === "NSSF")
+    .filter((e) => e.category === "NSSF" || e.vendor?.toLowerCase().includes("nssf") || e.description?.toLowerCase().includes("nssf"))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const hasSeptemberNssf = nssfExpenses.some(
+  const septNssfExpense = nssfExpenses.find(
     (e) => e.date.startsWith("2026-09") || e.description?.toLowerCase().includes("september")
   );
 
-  const hasOctoberNssf = nssfExpenses.some(
+  const octNssfExpense = nssfExpenses.find(
     (e) => e.date.startsWith("2026-10") || e.description?.toLowerCase().includes("october")
   );
+
+  const hasSeptemberNssf = Boolean(septNssfExpense);
+  const hasOctoberNssf = Boolean(octNssfExpense);
 
   const nssfReminder = reminders.find(
     (r) => (r.category === "NSSF" || r.title?.toLowerCase().includes("nssf")) && r.status === "pending"
@@ -442,7 +431,7 @@ export function Expenses() {
                     <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                       NSSF Contribution
                       <span className="text-[11px] font-normal px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                        KES 500 / month
+                        Min. KES 400 / month
                       </span>
                     </h4>
                     <p className="text-xs text-muted-foreground">National Social Security Fund (Kenya)</p>
@@ -464,7 +453,7 @@ export function Expenses() {
                   </span>
                   {hasSeptemberNssf ? (
                     <span className="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      ✓ Paid (KES 500)
+                      ✓ Paid ({formatKES(septNssfExpense?.amount || 400)})
                     </span>
                   ) : (
                     <span className="font-medium text-amber-500">
@@ -485,7 +474,7 @@ export function Expenses() {
                   </span>
                   {hasOctoberNssf ? (
                     <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                      ✓ Paid (KES 500)
+                      ✓ Paid ({formatKES(octNssfExpense?.amount || 400)})
                     </span>
                   ) : (
                     <span className="font-medium text-amber-500">
@@ -697,7 +686,14 @@ export function Expenses() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Amount (KES)</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Amount (KES)</Label>
+                  {(formData.category === "NSSF" || formData.vendor === "NSSF Kenya") && (
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                      Min. KES 400
+                    </span>
+                  )}
+                </div>
                 <Input
                   type="number"
                   placeholder="0.00"
@@ -744,7 +740,7 @@ export function Expenses() {
                       setShowMpesaInput(true);
                     } else if (val === "NSSF Kenya") {
                       if (!autoCategory) autoCategory = "NSSF";
-                      if (!autoAmount) autoAmount = "500";
+                      if (!autoAmount) autoAmount = "400";
                     } else if (val.includes("Social Health Authority") || val.includes("SHA")) {
                       if (!autoCategory) autoCategory = "Health Insurance";
                       if (!autoAmount) autoAmount = "1188";

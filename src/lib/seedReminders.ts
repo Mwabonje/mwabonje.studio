@@ -57,9 +57,9 @@ export const seedStatutoryReminders = async (expenses: Expense[], reminders: Rem
     await setDoc(doc(db, `users/${uid}/reminders`, nssfReminderId), {
       id: nssfReminderId,
       title: "NSSF Monthly Contribution",
-      description: "October 2026 statutory contribution (KES 500)",
+      description: "October 2026 statutory contribution (Min. KES 400)",
       dueDate: "2026-10-09",
-      amount: 500,
+      amount: 400,
       category: "NSSF",
       isRecurring: true,
       recurringInterval: "monthly",

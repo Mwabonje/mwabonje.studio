@@ -174,7 +174,7 @@ export function ReminderPopup() {
           <DialogDescription className="text-center">
             {activeReminders.length > 1 ? `(${currentIndex + 1} of ${activeReminders.length}) ` : ""}
             {currentReminder.category === 'NSSF' 
-              ? "Monthly statutory NSSF contribution requires payment."
+              ? "Monthly statutory NSSF contribution (minimum KES 400) requires payment."
               : "You have a scheduled payment due."}
           </DialogDescription>
         </DialogHeader>

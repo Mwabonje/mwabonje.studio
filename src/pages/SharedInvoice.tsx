@@ -39,27 +39,57 @@ export function SharedInvoice() {
             const invData = invoiceDoc.data() as Invoice;
             setInvoice(invData);
             
-            // Fetch client
+            // Fetch client (private to photographer)
             if (invData.clientId) {
-              const clientDoc = await getDoc(doc(db, `users/${uid}/clients`, invData.clientId));
-              if (clientDoc.exists()) {
-                setClient(clientDoc.data() as Client);
+              try {
+                const clientDoc = await getDoc(doc(db, `users/${uid}/clients`, invData.clientId));
+                if (clientDoc.exists()) {
+                  setClient(clientDoc.data() as Client);
+                }
+              } catch (e) {
+                // Client documents are private to the user account
               }
             }
             
-            // Fetch project
+            // Fetch project (private to photographer)
             if (invData.projectId) {
-              const projectDoc = await getDoc(doc(db, `users/${uid}/projects`, invData.projectId));
-              if (projectDoc.exists()) {
-                setProject(projectDoc.data() as Project);
+              try {
+                const projectDoc = await getDoc(doc(db, `users/${uid}/projects`, invData.projectId));
+                if (projectDoc.exists()) {
+                  setProject(projectDoc.data() as Project);
+                }
+              } catch (e) {
+                // Project documents are private to the user account
               }
             }
 
             // Fetch quote
             if (invData.quoteId && invData.quoteId !== 'none') {
-              const quoteDoc = await getDoc(doc(db, `users/${uid}/quotes`, invData.quoteId));
-              if (quoteDoc.exists()) {
-                setQuote(quoteDoc.data());
+              try {
+                const quoteDoc = await getDoc(doc(db, `users/${uid}/quotes`, invData.quoteId));
+                if (quoteDoc.exists()) {
+                  const qData = quoteDoc.data();
+                  setQuote(qData);
+                  // Provide fallbacks for client & project from quote snapshot if direct docs are private
+                  setClient((prev) => prev || ({
+                    id: invData.clientId || 'client',
+                    name: qData.clientName || 'Valued Client',
+                    email: qData.clientEmail || '',
+                    phone: qData.clientPhone || '',
+                    notes: '',
+                  } as Client));
+                  setProject((prev) => prev || ({
+                    id: invData.projectId || 'project',
+                    clientId: invData.clientId || 'client',
+                    title: qData.projectTitle || 'Photography Commission',
+                    location: qData.location || '',
+                    date: qData.eventDate || '',
+                    description: '',
+                    collaborators: []
+                  } as Project));
+                }
+              } catch (e) {
+                console.warn("Could not fetch quote for shared invoice:", e);
               }
             }
           } else {
@@ -783,9 +813,7 @@ export function SharedInvoice() {
             <header className="header">
               <div className="header-left">
                 <div className="studio-name">{getPhotographyName(settings)}</div>
-                {settings?.companyAddress && (
-                  <div className="studio-tagline">{settings.companyAddress}</div>
-                )}
+                <div className="studio-tagline">{settings.companyAddress || 'Malindi, Kenya'}</div>
               </div>
               <div className="header-right">
                 <div className="invoice-label">In<em>voice</em></div>
