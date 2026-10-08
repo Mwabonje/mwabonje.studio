@@ -306,7 +306,7 @@ export function SharedQuote() {
             .quote-root.theme-modern .header-sub { margin-top: 0; text-align: right; white-space: nowrap; }
             .quote-root.theme-modern .package-card { border-radius: 12px; border: 1px solid var(--rule); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
             .quote-root.theme-modern .premium-badge { border-radius: 0 0 8px 8px; right: 20px; }
-            .quote-root.theme-modern .package-price { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 28px; letter-spacing: -0.5px; }
+            .quote-root.theme-modern .package-price { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 20px; letter-spacing: -0.5px; }
             .quote-root.theme-modern .total-amount { font-family: 'Poppins', sans-serif; font-weight: 600; }
             .quote-root.theme-minimal {
               --cream: #FFFFFF;
@@ -331,7 +331,7 @@ export function SharedQuote() {
             .quote-root.theme-minimal .package-card.featured .total-row { border-top-color: var(--rule); color: var(--ink-soft); }
             .quote-root.theme-minimal .package-card.featured .inclusion-list li { color: var(--ink-mid); }
             .quote-root.theme-minimal .package-card.featured .package-tier { color: var(--ink); font-weight: 700; }
-            .quote-root.theme-minimal .package-price { font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 400; }
+            .quote-root.theme-minimal .package-price { font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 600; }
             .quote-root.theme-minimal .premium-badge { background: var(--ink); color: #fff; right: auto; left: 32px; top: -12px; padding: 4px 8px; }
             .quote-root.theme-minimal .total-amount { font-family: 'Poppins', sans-serif; font-size: 20px; }
             .quote-root * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -359,13 +359,13 @@ export function SharedQuote() {
             .quote-root .packages-grid[data-count="1"] .package-card { flex: 1 1 100%; max-width: 100%; }
             .quote-root .package-card { flex: 1 1 calc(50% - 10px); min-width: 280px; border: 1px solid var(--rule); padding: 28px 26px 22px; position: relative; background: #fff; display: flex; flex-direction: column; }
             .quote-root .package-card.featured { flex: 1 1 100%; border-color: var(--gold); background: var(--ink); }
-            .quote-root .package-header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
+            .quote-root .package-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
             .quote-root .package-card.featured .package-header { border-bottom-color: rgba(255,255,255,0.12); }
-            .quote-root .package-tier { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; line-height: 1.4; flex-shrink: 0; }
+            .quote-root .package-tier { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-soft); white-space: normal; word-break: break-word; line-height: 1.45; flex: 1 1 130px; min-width: 0; }
             .quote-root .package-card.featured .package-tier { color: var(--gold-light); }
-            .quote-root .package-price { font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 400; color: var(--ink); line-height: 1; flex-shrink: 0; white-space: nowrap; text-align: right; }
+            .quote-root .package-price { font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 600; color: var(--ink); line-height: 1.2; flex-shrink: 0; white-space: nowrap; text-align: right; margin-left: auto; }
             .quote-root .package-card.featured .package-price { color: #fff; }
-            .quote-root .package-price span { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 400; color: var(--ink-soft); vertical-align: middle; margin-right: 3px; border:none; padding:0; background:transparent;}
+            .quote-root .package-price span { font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 500; color: var(--ink-soft); vertical-align: baseline; margin-right: 3px; border:none; padding:0; background:transparent;}
             .quote-root .package-card.featured .package-price span { color: rgba(255,255,255,0.5); }
             .quote-root .inclusions-label { font-size: 9px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 12px; }
             .quote-root .package-card.featured .inclusions-label { color: rgba(255,255,255,0.4); }
