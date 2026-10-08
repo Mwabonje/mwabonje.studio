@@ -1,5 +1,5 @@
 import { PDFLoader } from "@/components/PDFLoader";
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from "@/store";
 import { formatQuoteNumber, generateNextQuoteNumber, generateQuoteRevisionNumber } from "@/lib/documentNumbering";
@@ -147,6 +147,7 @@ export function Quotes() {
   useEffect(() => {
     editingQuoteRef.current = editingQuote;
   }, [editingQuote]);
+
   const [showHistory, setShowHistory] = useState(false);
   const [sessionVersions, setSessionVersions] = useState<{
     id: string;
@@ -214,6 +215,58 @@ export function Quotes() {
   const [deliverableTasks, setDeliverableTasks] = useState<
     QuoteDeliverableTask[]
   >([]);
+
+  // Synchronize height of all breakdown-container boxes across package cards
+  const syncBreakdownHeights = useCallback(() => {
+    requestAnimationFrame(() => {
+      const root = previewRef.current || document.querySelector('.quote-root');
+      if (!root) return;
+      const breakdownElements = root.querySelectorAll<HTMLElement>('.breakdown-container');
+      if (!breakdownElements || breakdownElements.length <= 1) return;
+
+      breakdownElements.forEach((el) => {
+        el.style.minHeight = '';
+        el.style.height = '';
+      });
+
+      requestAnimationFrame(() => {
+        let maxHeight = 0;
+        breakdownElements.forEach((el) => {
+          const h = el.offsetHeight;
+          if (h > maxHeight) maxHeight = h;
+        });
+
+        if (maxHeight > 0) {
+          breakdownElements.forEach((el) => {
+            el.style.minHeight = `${maxHeight}px`;
+            el.style.height = `${maxHeight}px`;
+          });
+        }
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isPreviewOpen) return;
+    const timers = [30, 100, 250, 500, 800].map((delay) => setTimeout(syncBreakdownHeights, delay));
+
+    let resizeObserver: ResizeObserver | null = null;
+    const root = previewRef.current || document.querySelector('.quote-root');
+    if (root && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        syncBreakdownHeights();
+      });
+      resizeObserver.observe(root);
+    }
+
+    window.addEventListener('resize', syncBreakdownHeights);
+
+    return () => {
+      timers.forEach(clearTimeout);
+      if (resizeObserver) resizeObserver.disconnect();
+      window.removeEventListener('resize', syncBreakdownHeights);
+    };
+  }, [isPreviewOpen, packages, formData, syncBreakdownHeights]);
 
   const generateQuoteNumber = () => {
     return generateNextQuoteNumber(quotes);
@@ -2602,7 +2655,12 @@ export function Quotes() {
         </DialogContent>
       </Dialog>
 
-        <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <Dialog open={isPreviewOpen} onOpenChange={(open) => {
+          setIsPreviewOpen(open);
+          if (open) {
+            [30, 100, 250, 500].forEach((delay) => setTimeout(syncBreakdownHeights, delay));
+          }
+        }}>
           <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-slate-50 flex flex-col">
             <div className="sticky top-0 z-10 bg-white border-b px-4 sm:px-6 py-4 flex justify-between items-center shrink-0">
               <DialogTitle className="text-xl font-bold">
@@ -2783,13 +2841,13 @@ export function Quotes() {
                 .quote-root .featured-body { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px;}
 
                 /* ── BREAKDOWN ── */
-                .quote-root .breakdown-container { margin-top: auto; margin-bottom: 24px; padding: 24px 26px; border-top: 1px solid #3a3a3a; border-bottom: 1px solid #3a3a3a; background-color: #3a3a3a; margin-left: -26px; margin-right: -26px; }
+                .quote-root .breakdown-container { margin-top: auto; margin-bottom: 24px; padding: 22px 20px; border-top: 1px solid #3a3a3a; border-bottom: 1px solid #3a3a3a; background-color: #3a3a3a; margin-left: -26px; margin-right: -26px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-start; }
                 .quote-root .package-card.featured .breakdown-container { border-color: rgba(255,255,255,0.12); background-color: rgba(255,255,255,0.03); }
-                .quote-root .breakdown-list { display: flex; flex-direction: column; gap: 16px; }
-                .quote-root .breakdown-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; font-size: 13px; }
-                .quote-root .breakdown-desc { font-weight: 300; color: rgba(255,255,255,0.85); line-height: 1.4; }
+                .quote-root .breakdown-list { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+                .quote-root .breakdown-item { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12.5px; }
+                .quote-root .breakdown-desc { font-weight: 300; color: rgba(255,255,255,0.85); line-height: 1.35; }
                 .quote-root .package-card.featured .breakdown-desc { color: rgba(255,255,255,0.75); }
-                .quote-root .breakdown-amount { font-weight: 500; color: #fff; white-space: nowrap; }
+                .quote-root .breakdown-amount { font-weight: 500; color: #fff; white-space: nowrap; font-size: 12.5px; }
                 .quote-root .package-card.featured .breakdown-amount { color: #fff; }
                 .quote-root .breakdown-container .inclusions-label { color: rgba(255,255,255,0.5); }
 
@@ -2848,7 +2906,12 @@ export function Quotes() {
                 }}
               />
               <div
-                ref={previewRef}
+                ref={(node) => {
+                  previewRef.current = node;
+                  if (node) {
+                    syncBreakdownHeights();
+                  }
+                }}
                 className={`quote-root theme-${getResolvedTheme(settings.documentTheme, settings.companyEmail)} w-full mx-auto max-w-[760px] pb-10`}
               >
                 <div className="page">
