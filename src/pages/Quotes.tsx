@@ -2773,6 +2773,7 @@ export function Quotes() {
                 .quote-root .package-card.featured .inclusion-list li { color: rgba(255,255,255,0.75); }
                 .quote-root .package-card.featured .inclusion-list li::before { color: var(--gold-light); }
                 .quote-root .total-row { display: flex; justify-content: space-between; align-items: center; padding-top: 18px; margin-top: auto; border-top: 1px solid var(--rule); font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
+                .quote-root .breakdown-container + .total-row { margin-top: 0; }
                 .quote-root .package-card.featured .total-row { border-top-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.45); }
                 .quote-root .total-amount { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 400; color: var(--ink); letter-spacing: 0; text-transform: none; }
                 .quote-root .package-card.featured .total-amount { color: #fff; }
@@ -2782,7 +2783,7 @@ export function Quotes() {
                 .quote-root .featured-body { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px;}
 
                 /* ── BREAKDOWN ── */
-                .quote-root .breakdown-container { margin-top: 24px; margin-bottom: 24px; padding: 24px 26px; border-top: 1px solid #3a3a3a; border-bottom: 1px solid #3a3a3a; background-color: #3a3a3a; margin-left: -26px; margin-right: -26px; }
+                .quote-root .breakdown-container { margin-top: auto; margin-bottom: 24px; padding: 24px 26px; border-top: 1px solid #3a3a3a; border-bottom: 1px solid #3a3a3a; background-color: #3a3a3a; margin-left: -26px; margin-right: -26px; }
                 .quote-root .package-card.featured .breakdown-container { border-color: rgba(255,255,255,0.12); background-color: rgba(255,255,255,0.03); }
                 .quote-root .breakdown-list { display: flex; flex-direction: column; gap: 16px; }
                 .quote-root .breakdown-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; font-size: 13px; }
@@ -3027,7 +3028,7 @@ export function Quotes() {
                                   <div className="inclusions-label">
                                     Inclusions
                                   </div>
-                                  <div className="featured-body w-full mb-auto">
+                                  <div className="featured-body w-full">
                                     <ul className="inclusion-list">
                                       {pkg.inclusions.filter(inc => inc.trim() !== "").slice(0, Math.ceil(pkg.inclusions.filter(inc => inc.trim() !== "").length / 2)).map((inc, i) => (<li key={i}>{inc}</li>))}
                                     </ul>
@@ -3041,14 +3042,14 @@ export function Quotes() {
                                   <div className="inclusions-label">
                                     Inclusions
                                   </div>
-                                  <ul className="inclusion-list mb-auto w-full">
+                                  <ul className="inclusion-list w-full">
                                     {pkg.inclusions.filter(inc => inc.trim() !== "").map((inc, i) => (<li key={i}>{inc}</li>))}
                                   </ul>
                                 </>
                               )}
 
                               {pkg.breakdown && pkg.breakdown.length > 0 && (
-                                <div className="breakdown-container mt-auto">
+                                <div className="breakdown-container">
                                   <div className="inclusions-label">Investment Breakdown</div>
                                   <div className="breakdown-list">
                                     {pkg.breakdown.map((item, idx) => (
@@ -3063,7 +3064,7 @@ export function Quotes() {
                                 </div>
                               )}
 
-                              <div className={`total-row w-full ${(!pkg.breakdown || pkg.breakdown.length === 0) ? 'mt-auto' : ''}`}>
+                              <div className="total-row w-full">
                                 <span>Total Investment</span>
                                 <span className="total-amount">
                                   Ksh {pkg.settlement.toLocaleString()}
