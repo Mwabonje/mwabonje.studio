@@ -48,25 +48,73 @@ export const seedStatutoryReminders = async (expenses: Expense[], reminders: Rem
     console.log("Removed duplicate auto-seeded NSSF expense");
   }
 
-  // 3. Ensure NSSF monthly recurring reminder is scheduled starting with October 2026
-  const hasNssfReminder = reminders.some(
+  // 3. Ensure NSSF monthly recurring reminder is scheduled for the current unpaid month
+  const hasOctNssfPaid = expenses.some((e) => {
+    const isNssf =
+      e.category === "NSSF" ||
+      e.vendor?.toLowerCase().includes("nssf") ||
+      e.description?.toLowerCase().includes("nssf");
+    if (!isNssf) return false;
+    return e.date?.startsWith("2026-10") || e.description?.toLowerCase().includes("october");
+  });
+
+  const nssfReminders = reminders.filter(
     (r) => r.category === "NSSF" || r.title?.toLowerCase().includes("nssf")
   );
-  if (!hasNssfReminder) {
-    const nssfReminderId = "nssf-monthly-reminder-1";
-    await setDoc(doc(db, `users/${uid}/reminders`, nssfReminderId), {
-      id: nssfReminderId,
-      title: "NSSF Monthly Contribution",
-      description: "October 2026 statutory contribution (Min. KES 400)",
-      dueDate: "2026-10-09",
-      amount: 400,
-      category: "NSSF",
-      isRecurring: true,
-      recurringInterval: "monthly",
-      status: "pending",
-      uid
-    });
-    console.log("Seeded NSSF monthly reminder for October 2026");
+
+  if (hasOctNssfPaid) {
+    // If October is already paid, ensure any existing October reminder is marked as paid
+    for (const r of nssfReminders) {
+      if (
+        r.status === "pending" &&
+        (r.dueDate === "2026-10-09" || r.description?.toLowerCase().includes("october"))
+      ) {
+        await setDoc(doc(db, `users/${uid}/reminders`, r.id), { ...r, status: "paid" }, { merge: true });
+        console.log(`Updated October reminder ${r.id} to paid`);
+      }
+    }
+
+    // Schedule the upcoming November 2026 reminder if not present
+    const hasNovReminder = nssfReminders.some(
+      (r) => r.dueDate === "2026-11-09" || r.description?.toLowerCase().includes("november")
+    );
+    if (!hasNovReminder) {
+      const novReminderId = "nssf-monthly-reminder-nov-2026";
+      await setDoc(doc(db, `users/${uid}/reminders`, novReminderId), {
+        id: novReminderId,
+        title: "NSSF Monthly Contribution",
+        description: "November 2026 statutory contribution (Min. KES 400)",
+        dueDate: "2026-11-09",
+        amount: 400,
+        category: "NSSF",
+        isRecurring: true,
+        recurringInterval: "monthly",
+        status: "pending",
+        uid
+      });
+      console.log("Seeded NSSF monthly reminder for November 2026");
+    }
+  } else {
+    // October is not paid yet; ensure October reminder exists
+    const hasOctReminder = nssfReminders.some(
+      (r) => r.dueDate === "2026-10-09" || r.description?.toLowerCase().includes("october")
+    );
+    if (!hasOctReminder) {
+      const nssfReminderId = "nssf-monthly-reminder-1";
+      await setDoc(doc(db, `users/${uid}/reminders`, nssfReminderId), {
+        id: nssfReminderId,
+        title: "NSSF Monthly Contribution",
+        description: "October 2026 statutory contribution (Min. KES 400)",
+        dueDate: "2026-10-09",
+        amount: 400,
+        category: "NSSF",
+        isRecurring: true,
+        recurringInterval: "monthly",
+        status: "pending",
+        uid
+      });
+      console.log("Seeded NSSF monthly reminder for October 2026");
+    }
   }
 };
 

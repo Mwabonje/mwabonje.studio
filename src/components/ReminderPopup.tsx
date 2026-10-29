@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Bell, Calendar, CheckCircle, XCircle, ShieldCheck } from 'lucide-react';
 import { seedStatutoryReminders } from '@/lib/seedReminders';
+import { isReminderPaidForMonth } from '@/lib/reminderUtils';
 import { auth } from '@/lib/firebase';
 import { isSuperUser } from '@/lib/auth-utils';
 
@@ -19,6 +20,50 @@ export function ReminderPopup() {
     }
   }, [reminders.length, expenses.length]);
 
+  // Auto-synchronize pending reminders that have already been paid in expenses
+  useEffect(() => {
+    if (!reminders || !expenses || reminders.length === 0 || expenses.length === 0) return;
+
+    const syncPaidState = async () => {
+      for (const r of reminders) {
+        if (r.status === 'pending' && isReminderPaidForMonth(r, expenses)) {
+          // Mark as paid in Firestore
+          await updateReminder(r.id, { status: 'paid' });
+
+          // If recurring monthly, ensure the next month's reminder is scheduled
+          if (r.isRecurring && r.recurringInterval === 'monthly') {
+            const currentDue = new Date(r.dueDate);
+            const nextDue = new Date(currentDue);
+            nextDue.setMonth(nextDue.getMonth() + 1);
+            const nextDueDateStr = nextDue.toISOString().split('T')[0];
+            const nextMonthName = nextDue.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+            const hasNext = reminders.some(
+              (existing) =>
+                existing.category === r.category &&
+                (existing.dueDate === nextDueDateStr || existing.description?.toLowerCase().includes(nextMonthName.toLowerCase()))
+            );
+
+            if (!hasNext) {
+              await addReminder({
+                ...r,
+                id: Math.random().toString(36).substr(2, 9),
+                title: r.title,
+                description: r.category === 'NSSF'
+                  ? `${nextMonthName} statutory contribution (Min. KES 400)`
+                  : r.description,
+                dueDate: nextDueDateStr,
+                status: 'pending',
+              });
+            }
+          }
+        }
+      }
+    };
+
+    syncPaidState().catch(console.error);
+  }, [reminders, expenses, updateReminder, addReminder]);
+
   useEffect(() => {
     const checkReminders = () => {
       const now = new Date();
@@ -26,6 +71,11 @@ export function ReminderPopup() {
       
       const due = reminders.filter(r => {
         if (r.status !== 'pending') return false;
+
+        // CRITICAL: Stop popping if this reminder has already been paid for that month in expenses
+        if (isReminderPaidForMonth(r, expenses)) {
+          return false;
+        }
 
         // Check if snoozed in this browser session
         try {
@@ -71,14 +121,15 @@ export function ReminderPopup() {
       clearInterval(interval);
       window.removeEventListener('preview-reminder', handlePreview);
     };
-  }, [reminders]);
+  }, [reminders, expenses]);
 
   const handleMarkPaid = async (reminder: Reminder) => {
     // 1. Mark current reminder as paid
     await updateReminder(reminder.id, { status: 'paid' });
 
-    // 2. Log it as an expense automatically
-    if (reminder.amount && reminder.category) {
+    // 2. Log it as an expense automatically only if not already logged
+    const alreadyLogged = isReminderPaidForMonth(reminder, expenses);
+    if (!alreadyLogged && reminder.amount && reminder.category) {
       const dueDateObj = new Date(reminder.dueDate);
       const monthName = dueDateObj.toLocaleString('default', { month: 'long', year: 'numeric' });
       const vendorName = reminder.category === 'NSSF' ? 'NSSF Kenya' : (reminder.title || 'Statutory Payment');
@@ -99,17 +150,26 @@ export function ReminderPopup() {
       const nextDue = new Date(currentDue);
       nextDue.setMonth(nextDue.getMonth() + 1);
       const nextMonthName = nextDue.toLocaleString('default', { month: 'long', year: 'numeric' });
-      
-      await addReminder({
-        ...reminder,
-        id: Math.random().toString(36).substr(2, 9),
-        title: reminder.title,
-        description: reminder.category === 'NSSF'
-          ? `${nextMonthName} statutory contribution (KES ${reminder.amount})`
-          : reminder.description,
-        dueDate: nextDue.toISOString().split('T')[0],
-        status: 'pending'
-      });
+      const nextDueDateStr = nextDue.toISOString().split('T')[0];
+
+      const hasNext = reminders.some(
+        (existing) =>
+          existing.category === reminder.category &&
+          (existing.dueDate === nextDueDateStr || existing.description?.toLowerCase().includes(nextMonthName.toLowerCase()))
+      );
+
+      if (!hasNext) {
+        await addReminder({
+          ...reminder,
+          id: Math.random().toString(36).substr(2, 9),
+          title: reminder.title,
+          description: reminder.category === 'NSSF'
+            ? `${nextMonthName} statutory contribution (Min. KES 400)`
+            : reminder.description,
+          dueDate: nextDueDateStr,
+          status: 'pending'
+        });
+      }
     }
 
     // Move to next reminder or close
@@ -162,7 +222,7 @@ export function ReminderPopup() {
   const isNssf = currentReminder.category === 'NSSF';
 
   return (
-    <Dialog open={true}>
+    <Dialog open={activeReminders.length > 0} onOpenChange={(open) => { if (!open && currentReminder) handleDismiss(currentReminder); }}>
       <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
         <DialogHeader>
           <div className={`mx-auto w-12 h-12 ${isNssf ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-primary/10 text-primary'} rounded-full flex items-center justify-center mb-3`}>
