@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { ActionTooltip } from "@/components/ui/tooltip";
 import { Search, Plus, Edit2, Trash2, ShieldCheck, HeartPulse, Bell, CheckCircle2, Clock, Smartphone } from "lucide-react";
+import { getMonthlyStatutoryExpenses } from "@/lib/reminderUtils";
 import {
   BarChart,
   Bar,
@@ -186,7 +187,7 @@ export function Expenses() {
 
   const handlePayNssfMonth = (monthName: string, dueDateStr: string) => {
     setEditingItem(null);
-    const suggestedAmount = octNssfExpense?.amount || septNssfExpense?.amount || 400;
+    const suggestedAmount = 400; // Minimum statutory NSSF contribution
     setFormData({
       date: new Date().toISOString().split("T")[0],
       amount: suggestedAmount.toString(),
@@ -243,21 +244,18 @@ export function Expenses() {
     .sort((a, b) => b[1] - a[1])
     .map(([name, value]) => ({ name, value }));
 
-  // Statutory contribution tracking calculations
-  const nssfExpenses = expenses
-    .filter((e) => e.category === "NSSF" || e.vendor?.toLowerCase().includes("nssf") || e.description?.toLowerCase().includes("nssf"))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  // Statutory contribution tracking calculations - Sums ALL payments made for that month
+  const septStatutory = getMonthlyStatutoryExpenses("NSSF", 2026, 9, expenses);
+  const octStatutory = getMonthlyStatutoryExpenses("NSSF", 2026, 10, expenses);
+  const novStatutory = getMonthlyStatutoryExpenses("NSSF", 2026, 11, expenses);
 
-  const septNssfExpense = nssfExpenses.find(
-    (e) => e.date.startsWith("2026-09") || e.description?.toLowerCase().includes("september")
-  );
+  const hasSeptemberNssf = septStatutory.total > 0;
+  const hasOctoberNssf = octStatutory.total > 0;
+  const hasNovemberNssf = novStatutory.total > 0;
 
-  const octNssfExpense = nssfExpenses.find(
-    (e) => e.date.startsWith("2026-10") || e.description?.toLowerCase().includes("october")
-  );
-
-  const hasSeptemberNssf = Boolean(septNssfExpense);
-  const hasOctoberNssf = Boolean(octNssfExpense);
+  const septNssfTotal = septStatutory.total;
+  const octNssfTotal = octStatutory.total;
+  const novNssfTotal = novStatutory.total;
 
   const nssfReminder = reminders.find(
     (r) => (r.category === "NSSF" || r.title?.toLowerCase().includes("nssf")) && r.status === "pending"
@@ -440,7 +438,7 @@ export function Expenses() {
               </div>
 
               {/* Monthly breakdown status */}
-              <div className="mt-4 space-y-2 pt-3 border-t border-border/60">
+              <div className="mt-4 space-y-2.5 pt-3 border-t border-border/60">
                 {/* September status */}
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground flex items-center gap-1.5">
@@ -453,7 +451,12 @@ export function Expenses() {
                   </span>
                   {hasSeptemberNssf ? (
                     <span className="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      ✓ Paid ({formatKES(septNssfExpense?.amount || 400)})
+                      ✓ Paid ({formatKES(septNssfTotal)})
+                      {septStatutory.count > 1 && (
+                        <span className="text-[10px] text-muted-foreground font-normal">
+                          ({septStatutory.count} payments)
+                        </span>
+                      )}
                     </span>
                   ) : (
                     <span className="font-medium text-amber-500">
@@ -473,8 +476,13 @@ export function Expenses() {
                     October 2026:
                   </span>
                   {hasOctoberNssf ? (
-                    <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                      ✓ Paid ({formatKES(octNssfExpense?.amount || 400)})
+                    <span className="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      ✓ Paid ({formatKES(octNssfTotal)})
+                      {octStatutory.count > 1 && (
+                        <span className="text-[10px] text-muted-foreground font-normal">
+                          ({octStatutory.count} payments)
+                        </span>
+                      )}
                     </span>
                   ) : (
                     <span className="font-medium text-amber-500">
@@ -482,11 +490,39 @@ export function Expenses() {
                     </span>
                   )}
                 </div>
+
+                {/* November status (shown when October is paid or November has payments) */}
+                {(hasOctoberNssf || hasNovemberNssf) && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      {hasNovemberNssf ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      ) : (
+                        <Clock className="w-3.5 h-3.5 text-amber-500" />
+                      )}
+                      November 2026:
+                    </span>
+                    {hasNovemberNssf ? (
+                      <span className="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        ✓ Paid ({formatKES(novNssfTotal)})
+                        {novStatutory.count > 1 && (
+                          <span className="text-[10px] text-muted-foreground font-normal">
+                            ({novStatutory.count} payments)
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="font-medium text-amber-500">
+                        Due Nov 9, 2026 (Upcoming)
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Action buttons */}
               <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/60">
-                {!hasOctoberNssf && (
+                {!hasOctoberNssf ? (
                   <Button
                     size="sm"
                     variant="outline"
@@ -496,7 +532,17 @@ export function Expenses() {
                     <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
                     Mark Oct Paid
                   </Button>
-                )}
+                ) : !hasNovemberNssf ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-xs font-medium border-emerald-600/30 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400"
+                    onClick={() => handlePayNssfMonth("November 2026", "2026-11-09")}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                    Mark Nov Paid
+                  </Button>
+                ) : null}
                 <Button
                   size="sm"
                   variant="ghost"

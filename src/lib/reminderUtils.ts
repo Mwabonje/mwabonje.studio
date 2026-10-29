@@ -163,3 +163,81 @@ export const findMatchingExpenseForReminder = (
     return false;
   });
 };
+
+/**
+ * Sums all payments for a given statutory category (NSSF, Health Insurance, etc.) for a specific year and month.
+ * Accounts for both date timestamps and descriptions mentioning the month, summing all payments made for that month.
+ */
+export const getMonthlyStatutoryExpenses = (
+  category: 'NSSF' | 'Health Insurance' | string,
+  year: number,
+  month: number, // 1-12
+  expenses: Expense[]
+): { expenses: Expense[]; total: number; count: number } => {
+  const monthNames = [
+    'january', 'february', 'march', 'april', 'may', 'june',
+    'july', 'august', 'september', 'october', 'november', 'december'
+  ];
+  const targetMonthName = monthNames[month - 1]; // e.g. "september" or "october"
+  const shortMonthName = targetMonthName.slice(0, 3); // e.g. "sep" or "oct"
+  const yearMonthPrefix = `${year}-${String(month).padStart(2, '0')}`; // e.g. "2026-10"
+
+  const matchingExpenses = expenses.filter((e) => {
+    const expCat = (e.category || '').toLowerCase().trim();
+    const expVendor = (e.vendor || '').toLowerCase();
+    const expDesc = (e.description || '').toLowerCase();
+    const expDate = e.date || '';
+
+    // Check category match
+    let isCategoryMatch = false;
+    const catLower = category.toLowerCase();
+    if (catLower === 'nssf') {
+      isCategoryMatch =
+        expCat === 'nssf' ||
+        expVendor.includes('nssf') ||
+        expVendor.includes('national social security') ||
+        expDesc.includes('nssf') ||
+        expDesc.includes('social security');
+    } else if (catLower.includes('health') || catLower.includes('sha')) {
+      isCategoryMatch =
+        expCat === 'health insurance' ||
+        expCat === 'insurance' ||
+        expVendor.includes('sha') ||
+        expVendor.includes('nhif') ||
+        expVendor.includes('social health authority') ||
+        expDesc.includes('health insurance') ||
+        expDesc.includes('sha');
+    } else {
+      isCategoryMatch = expCat === catLower || expDesc.includes(catLower) || expVendor.includes(catLower);
+    }
+
+    if (!isCategoryMatch) return false;
+
+    // Check month match:
+    // If expense description explicitly mentions any calendar month:
+    const mentionedMonth = monthNames.find((m) => expDesc.includes(m));
+    if (mentionedMonth) {
+      return mentionedMonth === targetMonthName;
+    }
+
+    // Otherwise, check if date matches this year-month prefix
+    if (expDate.startsWith(yearMonthPrefix)) {
+      return true;
+    }
+
+    // Also check short month name in description if length >= 3
+    if (expDesc.includes(targetMonthName) || (shortMonthName.length >= 3 && expDesc.includes(shortMonthName))) {
+      return true;
+    }
+
+    return false;
+  });
+
+  const total = matchingExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
+  return {
+    expenses: matchingExpenses,
+    total,
+    count: matchingExpenses.length
+  };
+};
