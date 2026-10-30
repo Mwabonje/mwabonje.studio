@@ -2311,6 +2311,22 @@ export function Quotes() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Package Card Footer: Add New Package */}
+                      <div className="bg-slate-50/80 px-6 py-3.5 border-t flex items-center justify-between">
+                        <span className="text-xs font-semibold text-slate-500">
+                          #{pIndex + 1} {pkg.name || "Package"}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={addPackage}
+                          className="text-primary border-primary/20 hover:bg-primary/5 rounded-full"
+                        >
+                          <Plus className="w-4 h-4 mr-1" /> Add New Package
+                        </Button>
+                      </div>
                     </div>
                   ))}
                   {packages.length === 0 && (
