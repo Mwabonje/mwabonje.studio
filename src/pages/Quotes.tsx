@@ -103,6 +103,8 @@ export function Quotes() {
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const savedStatusTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const latestDraftRef = useRef<{ formData: any; packages: any; deliverableTasks: any } | null>(null);
   const isFirstRender = useRef(true);
   const editingQuoteRef = useRef<Quote | null>(null);
 
@@ -448,19 +450,15 @@ export function Quotes() {
       isFirstRender.current = true;
       setAutoSaveStatus('idle');
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      if (savedStatusTimerRef.current) clearTimeout(savedStatusTimerRef.current);
       setShowHistory(false);
       setSessionVersions([]);
       lastCaptureRef.current = 0;
       return;
     }
 
-    // Keep the local storage draft backup synchronously
-    const draft = { formData, packages, deliverableTasks };
-    if (editingQuoteRef.current) {
-      localStorage.setItem(`quoteDraft_${editingQuoteRef.current.id}`, JSON.stringify(draft));
-    } else {
-      localStorage.setItem("quoteDraft", JSON.stringify(draft));
-    }
+    const currentDraft = { formData, packages, deliverableTasks };
+    latestDraftRef.current = currentDraft;
 
     if (isFirstRender.current) {
       isFirstRender.current = false;
@@ -470,21 +468,38 @@ export function Quotes() {
         id: crypto.randomUUID(),
         timestamp: new Date(),
         label: "Initial Version (Opened)",
-        data: JSON.parse(JSON.stringify(draft)) // deep copy
+        data: JSON.parse(JSON.stringify(currentDraft)) // deep copy
       }]);
       lastCaptureRef.current = Date.now();
       
       return; // Do not auto-save to DB on the very first render of the dialog
     }
 
-    setAutoSaveStatus('saving');
+    // Reset saved status timer if running
+    if (savedStatusTimerRef.current) {
+      clearTimeout(savedStatusTimerRef.current);
+    }
 
+    // Clear previous pending auto-save timer
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
     }
 
+    // If it was showing 'saved', smoothly return to 'idle' while user is editing
+    setAutoSaveStatus(prev => prev === 'saved' ? 'idle' : prev);
+
+    // Auto-save occurs strictly after 5 seconds (5000ms) of inactivity to prevent typing slowdown
     autoSaveTimerRef.current = setTimeout(async () => {
       try {
+        setAutoSaveStatus('saving');
+
+        const draft = latestDraftRef.current || { formData, packages, deliverableTasks };
+        if (editingQuoteRef.current) {
+          localStorage.setItem(`quoteDraft_${editingQuoteRef.current.id}`, JSON.stringify(draft));
+        } else {
+          localStorage.setItem("quoteDraft", JSON.stringify(draft));
+        }
+
         const totalAmount = packages.reduce((sum, pkg) => sum + (Number(pkg.settlement) || 0), 0);
         const quoteData = {
           ...formData,
@@ -532,14 +547,20 @@ export function Quotes() {
           ].slice(0, 30)); // keep last 30
           lastCaptureRef.current = now;
         }
+
+        // Keep 'saved' status visible for 4 seconds, then transition back to idle
+        savedStatusTimerRef.current = setTimeout(() => {
+          setAutoSaveStatus(prev => prev === 'saved' ? 'idle' : prev);
+        }, 4000);
       } catch (error) {
         console.error("Auto-save failed", error);
         setAutoSaveStatus('idle');
       }
-    }, 1500);
+    }, 5000);
 
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      if (savedStatusTimerRef.current) clearTimeout(savedStatusTimerRef.current);
     };
   }, [formData, packages, deliverableTasks, isDialogOpen, updateQuote, addQuote]);
 
@@ -870,6 +891,9 @@ export function Quotes() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    if (savedStatusTimerRef.current) clearTimeout(savedStatusTimerRef.current);
+    setAutoSaveStatus('idle');
     const totalAmount = calculateTotal();
 
     try {
@@ -2582,6 +2606,9 @@ export function Quotes() {
                     type="button"
                     variant="outline"
                     onClick={() => {
+                      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+                      if (savedStatusTimerRef.current) clearTimeout(savedStatusTimerRef.current);
+                      setAutoSaveStatus('idle');
                       if (!editingQuote) {
                         localStorage.removeItem("quoteDraft");
                       } else {

@@ -271,7 +271,8 @@ export function Invoices() {
   }, []);
 
   useEffect(() => {
-    if (isDialogOpen) {
+    if (!isDialogOpen) return;
+    const timer = setTimeout(() => {
       const draft = {
         formData,
         lineItems,
@@ -281,7 +282,8 @@ export function Invoices() {
       } else {
         localStorage.setItem("invoiceDraft", JSON.stringify(draft));
       }
-    }
+    }, 2000);
+    return () => clearTimeout(timer);
   }, [formData, lineItems, editingInvoice, isDialogOpen]);
 
   const handleQuoteSelect = (quoteId: string) => {
