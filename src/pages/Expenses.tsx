@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useStore, Expense } from "@/store";
 import { auth } from "@/lib/firebase";
 import { isSuperUser } from "@/lib/auth-utils";
@@ -10,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { ActionTooltip } from "@/components/ui/tooltip";
-import { Search, Plus, Edit2, Trash2, ShieldCheck, HeartPulse, Bell, CheckCircle2, Clock, Smartphone, Calendar } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, ShieldCheck, HeartPulse, Bell, CheckCircle2, Clock, Smartphone, Calendar, GraduationCap, Coins, TrendingUp, ArrowUpRight } from "lucide-react";
 import { getMonthlyStatutoryExpenses } from "@/lib/reminderUtils";
 import {
   BarChart,
@@ -144,7 +145,7 @@ export function formatPaymentDate(isoDate?: string): string {
 }
 
 export function Expenses() {
-  const { expenses, reminders, addExpense, updateExpense, deleteExpense, updateReminder, addReminder } = useStore();
+  const { expenses, reminders, schoolDeposits, schoolAccountMeta, addExpense, updateExpense, deleteExpense, updateReminder, addReminder } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Expense | null>(null);
   
@@ -491,7 +492,7 @@ export function Expenses() {
               </span>
             </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* NSSF Card */}
             <div className="p-4 rounded-xl border border-border bg-background/50 hover:border-emerald-500/30 transition-colors">
               <div className="flex items-start justify-between">
@@ -695,6 +696,68 @@ export function Expenses() {
                   <Bell className="w-3.5 h-3.5 mr-1.5" />
                   Preview Reminder
                 </Button>
+              </div>
+            </div>
+
+            {/* Son's School Fees Savings Card */}
+            <div className="p-4 rounded-xl border border-border bg-background/50 hover:border-amber-500/30 transition-colors flex flex-col justify-between">
+              <div>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                      <GraduationCap className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        Son's School Fund
+                        <span className="text-[11px] font-normal px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                          Education Savings
+                        </span>
+                      </h4>
+                      <p className="text-xs text-muted-foreground">{schoolAccountMeta?.accountName || "School Fees Account"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status details */}
+                <div className="mt-4 space-y-2 pt-3 border-t border-border/60">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <Coins className="w-3.5 h-3.5 text-amber-500" />
+                      Total Saved to Date:
+                    </span>
+                    <span className="font-mono font-bold text-foreground">
+                      KES {schoolDeposits.reduce((sum, d) => sum + (Number(d.amount) || 0), 0).toLocaleString("en-KE")}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                      Target Goal Progress:
+                    </span>
+                    <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                      {Math.min(100, Math.round((schoolDeposits.reduce((sum, d) => sum + (Number(d.amount) || 0), 0) / (Number(schoolAccountMeta?.targetGoal) || 150000)) * 100))}% of KES {(Number(schoolAccountMeta?.targetGoal) || 150000).toLocaleString("en-KE")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-border/60">
+                <Link
+                  to="/school-savings"
+                  className="inline-flex items-center text-xs font-semibold text-primary hover:underline gap-1"
+                >
+                  <span>Open School Fund Tracker</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </Link>
+                <Link
+                  to="/school-savings"
+                  className="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-md bg-primary text-primary-foreground hover:opacity-90"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Log Deposit
+                </Link>
               </div>
             </div>
           </div>

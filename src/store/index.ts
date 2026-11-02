@@ -224,6 +224,48 @@ export type Feedback = {
   adminNotes?: string;
 };
 
+export type SchoolDepositMethod = 'mpesa' | 'bank_transfer' | 'standing_order' | 'cash' | 'cheque' | 'other';
+export type SchoolDepositPurpose = 'tuition' | 'admission' | 'uniform_books' | 'transport_meals' | 'general_savings' | 'other';
+
+export type SchoolDeposit = {
+  id: string;
+  date: string; // YYYY-MM-DD
+  amount: number;
+  paymentMethod: SchoolDepositMethod;
+  mpesaReference?: string;
+  targetTerm: string; // e.g. "Term 1 2027", "Term 2 2027", "Term 3 2027", "General School Fund"
+  purpose: SchoolDepositPurpose;
+  notes?: string;
+  bankName?: string;
+  accountNumber?: string;
+  depositedBy?: string;
+  receiptNumber?: string;
+  uid?: string;
+  createdAt?: string;
+};
+
+export type SchoolAccountMeta = {
+  accountName: string;
+  sonName?: string;
+  bankName?: string;
+  accountNumber?: string;
+  paybillOrTill?: string;
+  targetGoal: number;
+  targetDate?: string;
+  notes?: string;
+};
+
+export const defaultSchoolAccountMeta: SchoolAccountMeta = {
+  accountName: "Son's School Fees Account",
+  sonName: "Son",
+  bankName: "School Fees Savings Account",
+  accountNumber: "",
+  paybillOrTill: "",
+  targetGoal: 150000,
+  targetDate: "2027-01-10",
+  notes: "Dedicated savings account for primary & secondary school term fees.",
+};
+
 type AppState = {
   clients: Client[];
   projects: Project[];
@@ -235,6 +277,8 @@ type AppState = {
   expenses: Expense[];
   reminders: Reminder[];
   feedbacks: Feedback[];
+  schoolDeposits: SchoolDeposit[];
+  schoolAccountMeta: SchoolAccountMeta;
   settings: Settings;
   isSettingsLoaded: boolean;
   isAuthReady: boolean;
@@ -281,6 +325,11 @@ type AppState = {
   addFeedback: (feedback: Feedback) => Promise<void>;
   updateFeedback: (id: string, feedback: Partial<Feedback>) => Promise<void>;
   deleteFeedback: (id: string) => Promise<void>;
+
+  addSchoolDeposit: (deposit: SchoolDeposit) => Promise<void>;
+  updateSchoolDeposit: (id: string, deposit: Partial<SchoolDeposit>) => Promise<void>;
+  deleteSchoolDeposit: (id: string) => Promise<void>;
+  updateSchoolAccountMeta: (meta: Partial<SchoolAccountMeta>) => Promise<void>;
 
   updateSettings: (settings: Partial<Settings>) => Promise<void>;
 };
@@ -339,6 +388,8 @@ export const useStore = create<AppState>((set, get) => ({
   expenses: [],
   reminders: [],
   feedbacks: [],
+  schoolDeposits: [],
+  schoolAccountMeta: defaultSchoolAccountMeta,
   settings: getInitialSettings(),
   isSettingsLoaded: false,
   isAuthReady: false,
@@ -602,6 +653,34 @@ export const useStore = create<AppState>((set, get) => ({
   },
   deleteFeedback: async (id) => {
     await deleteDoc(doc(db, 'feedbacks', id));
+  },
+
+  addSchoolDeposit: async (deposit) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const data = cleanData({ ...deposit, uid });
+    await setDoc(doc(db, `users/${uid}/school_deposits`, deposit.id), data);
+  },
+  updateSchoolDeposit: async (id, deposit) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const existing = get().schoolDeposits.find((d) => d.id === id);
+    if (!existing) return;
+    await setDoc(doc(db, `users/${uid}/school_deposits`, id), cleanData({ ...existing, ...deposit, uid }));
+  },
+  deleteSchoolDeposit: async (id) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    await deleteDoc(doc(db, `users/${uid}/school_deposits`, id));
+  },
+  updateSchoolAccountMeta: async (meta) => {
+    const uid = auth.currentUser?.uid || get().userId;
+    const existing = get().schoolAccountMeta;
+    const merged = cleanData({ ...existing, ...meta });
+    set({ schoolAccountMeta: merged });
+    if (uid) {
+      await setDoc(doc(db, `users/${uid}/school_deposits_meta`, 'account'), merged);
+    }
   },
 
   updateSettings: async (updatedSettings) => {

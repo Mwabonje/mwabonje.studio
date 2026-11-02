@@ -21,6 +21,7 @@ import Settings from '@/pages/Settings';
 import Login from '@/pages/Login';
 import { ManualGuide } from '@/pages/ManualGuide';
 import { FeedbackInbox } from '@/pages/FeedbackInbox';
+import { SchoolSavings } from '@/pages/SchoolSavings';
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { FirebaseProvider } from '@/components/FirebaseProvider';
@@ -53,6 +54,8 @@ export default function App() {
                   <Route path="/performance" element={<Performance />} />
                   <Route path="/equipment" element={<Equipment />} />
                   <Route path="/expenses" element={<Expenses />} />
+                  <Route path="/school-savings" element={<SchoolSavings />} />
+                  <Route path="/school-deposits" element={<SchoolSavings />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/feedback" element={<FeedbackInbox />} />
                   <Route path="/guide" element={<ManualGuide />} />

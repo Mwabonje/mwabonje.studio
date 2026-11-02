@@ -174,6 +174,29 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       console.error("Firebase feedbacks error:", error);
     });
 
+    let unsubSchoolDeposits = () => {};
+    let unsubSchoolMeta = () => {};
+
+    if (userIsSuper) {
+      unsubSchoolDeposits = onSnapshot(query(collection(db, `users/${userId}/school_deposits`)), (snapshot) => {
+        const schoolDeposits = snapshot.docs.map((doc) => doc.data() as any);
+        schoolDeposits.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        useStore.setState({ schoolDeposits });
+      }, (error) => {
+        console.error("Firebase school deposits error:", error);
+      });
+
+      unsubSchoolMeta = onSnapshot(doc(db, `users/${userId}/school_deposits_meta/account`), (docSnap) => {
+        if (docSnap.exists()) {
+          useStore.setState((prev) => ({
+            schoolAccountMeta: { ...prev.schoolAccountMeta, ...docSnap.data() as any }
+          }));
+        }
+      }, (error) => {
+        console.error("Firebase school meta error:", error);
+      });
+    }
+
     return () => {
       unsubClients();
       unsubProjects();
@@ -186,6 +209,8 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       unsubReminders();
       unsubSettings();
       unsubFeedbacks();
+      unsubSchoolDeposits();
+      unsubSchoolMeta();
     };
   }, [userId]);
 

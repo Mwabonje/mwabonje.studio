@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings, Users, Camera, Wallet, FileSignature, BookOpen, HelpCircle, MessageSquarePlus } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings, Users, Camera, Wallet, FileSignature, BookOpen, HelpCircle, MessageSquarePlus, GraduationCap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 import { auth } from '@/lib/firebase';
@@ -92,6 +92,7 @@ export function Layout() {
     { name: 'Invoices', href: '/invoices', icon: Receipt, badge: invoices.filter(i => i.status !== 'paid').length > 0 ? invoices.filter(i => i.status !== 'paid').length : undefined },
     { name: 'Payments', href: '/payments', icon: CreditCard },
     { name: 'Expenses', href: '/expenses', icon: Wallet },
+    ...(isSuper ? [{ name: "Son's School Fund", href: '/school-savings', icon: GraduationCap }] : []),
     { name: 'Performance', href: '/performance', icon: PieChart },
     { name: 'Equipment', href: '/equipment', icon: Camera },
     { 
