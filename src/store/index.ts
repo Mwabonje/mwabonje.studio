@@ -198,6 +198,7 @@ export type Reminder = {
 export type Expense = {
   id: string;
   date: string;
+  billingMonth?: string;
   amount: number;
   category: string;
   vendor: string;

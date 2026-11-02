@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { ActionTooltip } from "@/components/ui/tooltip";
-import { Search, Plus, Edit2, Trash2, ShieldCheck, HeartPulse, Bell, CheckCircle2, Clock, Smartphone } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, ShieldCheck, HeartPulse, Bell, CheckCircle2, Clock, Smartphone, Calendar } from "lucide-react";
 import { getMonthlyStatutoryExpenses } from "@/lib/reminderUtils";
 import {
   BarChart,
@@ -96,6 +96,53 @@ function formatKES(amount: number) {
   return "KES " + amount.toLocaleString("en-KE");
 }
 
+export function getExpenseBillingMonth(e: { billingMonth?: string; date?: string; description?: string }): string {
+  if (e.billingMonth && e.billingMonth.trim()) {
+    const val = e.billingMonth.trim();
+    if (/^\d{4}-\d{2}$/.test(val)) {
+      const [y, m] = val.split("-").map(Number);
+      const d = new Date(y, m - 1, 1);
+      return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    }
+    return val;
+  }
+
+  const desc = (e.description || "").toLowerCase();
+  const monthNames = [
+    "january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december"
+  ];
+  for (let i = 0; i < monthNames.length; i++) {
+    const mName = monthNames[i];
+    if (desc.includes(mName)) {
+      const yearMatch = desc.match(/\b(20\d{2})\b/);
+      const year = yearMatch ? yearMatch[1] : (e.date ? e.date.slice(0, 4) : "2026");
+      const capitalized = mName.charAt(0).toUpperCase() + mName.slice(1);
+      return `${capitalized} ${year}`;
+    }
+  }
+
+  if (e.date) {
+    const d = new Date(e.date);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    }
+  }
+
+  return new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+export function formatPaymentDate(isoDate?: string): string {
+  if (!isoDate) return "—";
+  const d = new Date(isoDate);
+  if (isNaN(d.getTime())) return isoDate;
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
+}
+
 export function Expenses() {
   const { expenses, reminders, addExpense, updateExpense, deleteExpense, updateReminder, addReminder } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -103,6 +150,8 @@ export function Expenses() {
   
   const defaultForm = {
     date: new Date().toISOString().split('T')[0],
+    billingMonth: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+    isMonthManual: false,
     amount: "",
     category: "",
     vendor: "",
@@ -119,6 +168,22 @@ export function Expenses() {
   const [isCustomVendor, setIsCustomVendor] = useState(false);
   const [showMpesaInput, setShowMpesaInput] = useState(false);
 
+  // Month options from 12 months ago to 6 months in future
+  const monthOptions = useMemo(() => {
+    const options: { value: string; label: string }[] = [];
+    const now = new Date();
+    for (let i = -12; i <= 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const value = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      const isCurrent = i === 0;
+      options.push({
+        value,
+        label: isCurrent ? `${value} (Current)` : value,
+      });
+    }
+    return options;
+  }, []);
+
   // Dynamic vendor list combining presets + all existing vendors from history
   const vendorOptions = useMemo(() => {
     const fromExpenses = expenses.map((e) => e.vendor?.trim()).filter(Boolean);
@@ -130,6 +195,8 @@ export function Expenses() {
       setEditingItem(item);
       setFormData({
         ...item,
+        billingMonth: item.billingMonth || getExpenseBillingMonth(item),
+        isMonthManual: Boolean(item.billingMonth),
         amount: item.amount.toString(),
         mpesaReference: item.mpesaReference || "",
       });
@@ -137,7 +204,11 @@ export function Expenses() {
       setShowMpesaInput(Boolean(item.mpesaReference));
     } else {
       setEditingItem(null);
-      setFormData(defaultForm);
+      setFormData({
+        ...defaultForm,
+        billingMonth: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+        isMonthManual: false,
+      });
       setIsCustomVendor(false);
       setShowMpesaInput(false);
     }
@@ -148,6 +219,7 @@ export function Expenses() {
     const expenseData = {
       ...formData,
       amount: parseFloat(formData.amount) || 0,
+      billingMonth: formData.billingMonth || getExpenseBillingMonth(formData),
       mpesaReference: formData.mpesaReference?.trim() || "",
     };
 
@@ -190,6 +262,8 @@ export function Expenses() {
     const suggestedAmount = 400; // Minimum statutory NSSF contribution
     setFormData({
       date: new Date().toISOString().split("T")[0],
+      billingMonth: monthName,
+      isMonthManual: true,
       amount: suggestedAmount.toString(),
       category: "NSSF",
       vendor: "NSSF Kenya",
@@ -663,47 +737,158 @@ export function Expenses() {
             {filtered.length === 0 ? (
               <div className="py-12 text-center text-muted-foreground text-[15px]">No expenses match your search.</div>
             ) : (
-              Object.keys(groups).map((label) => (
-                <div className="mt-8 first:mt-0" key={label}>
-                  <p className="text-[13px] font-medium text-muted-foreground m-0 mb-3 pb-2 border-b border-border">{label}</p>
-                  {groups[label].map((e) => (
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-3.5 sm:py-4 border-b border-border hover:bg-muted/50 transition-colors px-2 rounded-lg" key={e.id}>
-                      <div className="flex items-start sm:items-center gap-3">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0 mt-1 sm:mt-0" style={{ backgroundColor: CATEGORY_COLORS[e.category] || CATEGORY_COLORS["Other"] }}></div>
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="m-0 font-medium text-sm sm:text-[15px]">{e.vendor}</p>
-                            {e.mpesaReference && (
-                              <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-medium">
-                                M-Pesa: {e.mpesaReference}
-                              </span>
-                            )}
+              <>
+                {/* Desktop/Tablet Table Column Headers */}
+                <div className="hidden md:grid md:grid-cols-12 gap-4 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border mb-3 bg-muted/40 rounded-lg">
+                  <div className="col-span-4 flex items-center gap-1.5">
+                    <span>Payee / Description</span>
+                  </div>
+                  <div className="col-span-2 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Date Paid</span>
+                  </div>
+                  <div className="col-span-2 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Month</span>
+                  </div>
+                  <div className="col-span-3 text-right">
+                    <span>Amount & Category</span>
+                  </div>
+                  <div className="col-span-1 text-right">
+                    <span>Actions</span>
+                  </div>
+                </div>
+
+                {Object.keys(groups).map((label) => (
+                  <div className="mt-6 first:mt-0" key={label}>
+                    <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-border">
+                      <p className="text-[13px] font-semibold text-muted-foreground m-0 flex items-center gap-2">
+                        <span>{label}</span>
+                        <span className="text-[11px] font-normal text-muted-foreground/70">
+                          ({groups[label].length} {groups[label].length === 1 ? "expense" : "expenses"})
+                        </span>
+                      </p>
+                      <span className="text-xs font-mono text-muted-foreground font-medium">
+                        {formatKES(groups[label].reduce((sum, item) => sum + item.amount, 0))}
+                      </span>
+                    </div>
+
+                    {groups[label].map((e) => (
+                      <div
+                        className="py-3 px-3 border-b border-border/70 hover:bg-muted/40 transition-colors rounded-lg md:grid md:grid-cols-12 md:gap-4 md:items-center"
+                        key={e.id}
+                      >
+                        {/* Column 1: Payee / Vendor & Description */}
+                        <div className="md:col-span-4 flex items-start sm:items-center gap-3 min-w-0">
+                          <div
+                            className="w-2.5 h-2.5 rounded-full shrink-0 mt-1 sm:mt-0"
+                            style={{ backgroundColor: CATEGORY_COLORS[e.category] || CATEGORY_COLORS["Other"] }}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="m-0 font-medium text-sm sm:text-[15px] text-foreground truncate">
+                                {e.vendor}
+                              </p>
+                              {e.mpesaReference && (
+                                <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-medium shrink-0">
+                                  M-Pesa: {e.mpesaReference}
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-0.5 mb-0 text-xs text-muted-foreground truncate">
+                              {e.description || "No description"}
+                            </p>
                           </div>
-                          <p className="mt-0.5 sm:mt-1 mb-0 text-xs sm:text-sm text-muted-foreground">{e.description || "No description"}</p>
                         </div>
-                      </div>
-                      <div className="flex items-center justify-between sm:justify-end gap-4 ml-5 sm:ml-0 pt-2 sm:pt-0 border-t border-border/40 sm:border-0">
-                        <div className="text-left sm:text-right">
-                          <p className="m-0 font-mono text-sm sm:text-[15px] font-semibold">{e.amount.toLocaleString("en-KE")}</p>
+
+                        {/* Column 2: Date Paid */}
+                        <div className="hidden md:flex md:col-span-2 items-center gap-1.5 text-sm">
+                          <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                          <span className="font-medium text-foreground whitespace-nowrap">
+                            {formatPaymentDate(e.date)}
+                          </span>
+                        </div>
+
+                        {/* Column 3: Month */}
+                        <div className="hidden md:flex md:col-span-2 items-center">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-primary/10 text-primary border border-primary/20 whitespace-nowrap">
+                            <Clock className="w-3 h-3 shrink-0" />
+                            {getExpenseBillingMonth(e)}
+                          </span>
+                        </div>
+
+                        {/* Column 4: Amount & Category */}
+                        <div className="hidden md:block md:col-span-3 text-right">
+                          <p className="m-0 font-mono text-sm sm:text-[15px] font-semibold text-foreground">
+                            {e.amount.toLocaleString("en-KE")}
+                          </p>
                           <p className="mt-0.5 mb-0 text-xs text-muted-foreground">{e.category}</p>
                         </div>
-                        <div className="flex gap-1 ml-2">
+
+                        {/* Column 5: Actions */}
+                        <div className="hidden md:flex md:col-span-1 justify-end gap-1">
                           <ActionTooltip content="Edit Expense Details">
-                            <button className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all" aria-label="Edit expense" onClick={() => handleOpenDialog(e)}>
-                              <Edit2 className="w-4 h-4" />
+                            <button
+                              className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                              aria-label="Edit expense"
+                              onClick={() => handleOpenDialog(e)}
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
                             </button>
                           </ActionTooltip>
                           <ActionTooltip content="Delete Expense Record">
-                            <button className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all" aria-label="Delete expense" onClick={() => confirmDelete(e.id)}>
-                              <Trash2 className="w-4 h-4" />
+                            <button
+                              className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                              aria-label="Delete expense"
+                              onClick={() => confirmDelete(e.id)}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </ActionTooltip>
                         </div>
+
+                        {/* Mobile View: clearly shows Date Paid and Month */}
+                        <div className="md:hidden mt-2 pt-2 border-t border-border/40 flex flex-col gap-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-1.5 text-muted-foreground">
+                              <Calendar className="w-3.5 h-3.5" />
+                              <span>Paid: <strong className="text-foreground font-medium">{formatPaymentDate(e.date)}</strong></span>
+                            </div>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                              <Clock className="w-3 h-3" />
+                              {getExpenseBillingMonth(e)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between pt-1">
+                            <div>
+                              <span className="font-mono text-sm font-semibold text-foreground">
+                                {e.amount.toLocaleString("en-KE")}
+                              </span>
+                              <span className="text-xs text-muted-foreground ml-1.5 font-normal">
+                                {e.category}
+                              </span>
+                            </div>
+                            <div className="flex gap-1">
+                              <button
+                                className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+                                onClick={() => handleOpenDialog(e)}
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => confirmDelete(e.id)}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ))
+                    ))}
+                  </div>
+                ))}
+              </>
             )}
           </div>
 
@@ -721,16 +906,61 @@ export function Expenses() {
             <DialogTitle className="text-lg font-semibold">{editingItem ? "Edit Expense" : "Log Expense"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Date</Label>
+                <Label className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                  Date Paid
+                </Label>
                 <Input
                   type="date"
                   value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  onChange={(e) => {
+                    const newDate = e.target.value;
+                    const d = new Date(newDate);
+                    const autoMonth = !isNaN(d.getTime())
+                      ? d.toLocaleDateString("en-US", { month: "long", year: "numeric" })
+                      : formData.billingMonth;
+                    setFormData({
+                      ...formData,
+                      date: newDate,
+                      billingMonth: formData.isMonthManual ? formData.billingMonth : autoMonth,
+                    });
+                  }}
                   className="h-10"
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-primary" />
+                  Month Paid For
+                </Label>
+                <Select
+                  value={formData.billingMonth || getExpenseBillingMonth(formData)}
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, billingMonth: val, isMonthManual: true })
+                  }
+                >
+                  <SelectTrigger className="w-full h-10">
+                    <SelectValue placeholder="Select month" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full min-w-[200px] max-h-[260px]">
+                    {monthOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                    {formData.billingMonth &&
+                      !monthOptions.some((m) => m.value === formData.billingMonth) && (
+                        <SelectItem value={formData.billingMonth}>
+                          {formData.billingMonth}
+                        </SelectItem>
+                      )}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Amount (KES)</Label>

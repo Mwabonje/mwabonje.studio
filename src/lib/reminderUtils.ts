@@ -35,14 +35,19 @@ export const isReminderPaidForMonth = (reminder: Reminder, expenses: Expense[]):
     const expVendor = (exp.vendor || '').toLowerCase();
     const expCat = (exp.category || '').toLowerCase().trim();
 
-    // Check if expense date matches this year-month, or if expense description mentions this specific month
+    // Check if expense date matches this year-month, or if expense description or billingMonth mentions this specific month
     const dateMatches = expDate.startsWith(yearMonth);
+    const expBilling = (exp.billingMonth || '').toLowerCase().trim();
+    const billingMatchesMonth =
+      expBilling.includes(monthName) ||
+      expBilling.includes(effectiveMonthName) ||
+      (shortMonthName.length >= 3 && expBilling.includes(shortMonthName));
     const descMatchesMonth =
       expDesc.includes(monthName) ||
       expDesc.includes(effectiveMonthName) ||
       (shortMonthName.length >= 3 && expDesc.includes(shortMonthName));
 
-    if (!dateMatches && !descMatchesMonth) {
+    if (!dateMatches && !descMatchesMonth && !billingMatchesMonth) {
       return false;
     }
 
@@ -214,6 +219,14 @@ export const getMonthlyStatutoryExpenses = (
     if (!isCategoryMatch) return false;
 
     // Check month match:
+    // If expense has explicit billingMonth:
+    const expBilling = (e.billingMonth || '').toLowerCase().trim();
+    if (expBilling) {
+      if (expBilling.includes(targetMonthName) || (shortMonthName.length >= 3 && expBilling.includes(shortMonthName)) || expBilling.startsWith(yearMonthPrefix)) {
+        return true;
+      }
+    }
+
     // If expense description explicitly mentions any calendar month:
     const mentionedMonth = monthNames.find((m) => expDesc.includes(m));
     if (mentionedMonth) {

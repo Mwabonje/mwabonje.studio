@@ -137,6 +137,7 @@ export function ReminderPopup() {
       await addExpense({
         id: Math.random().toString(36).substr(2, 9),
         date: new Date().toISOString().split('T')[0],
+        billingMonth: monthName,
         amount: reminder.amount,
         category: reminder.category,
         vendor: vendorName,
