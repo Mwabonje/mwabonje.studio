@@ -740,8 +740,12 @@ export function Expenses() {
               <>
                 {/* Desktop/Tablet Table Column Headers */}
                 <div className="hidden md:grid md:grid-cols-12 gap-4 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border mb-3 bg-muted/40 rounded-lg">
-                  <div className="col-span-4 flex items-center gap-1.5">
+                  <div className="col-span-3 flex items-center gap-1.5">
                     <span>Payee / Description</span>
+                  </div>
+                  <div className="col-span-2 flex items-center gap-1.5">
+                    <Smartphone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>M-Pesa Ref</span>
                   </div>
                   <div className="col-span-2 flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5" />
@@ -751,7 +755,7 @@ export function Expenses() {
                     <Clock className="w-3.5 h-3.5" />
                     <span>Month</span>
                   </div>
-                  <div className="col-span-3 text-right">
+                  <div className="col-span-2 text-right">
                     <span>Amount & Category</span>
                   </div>
                   <div className="col-span-1 text-right">
@@ -779,29 +783,37 @@ export function Expenses() {
                         key={e.id}
                       >
                         {/* Column 1: Payee / Vendor & Description */}
-                        <div className="md:col-span-4 flex items-start sm:items-center gap-3 min-w-0">
+                        <div className="md:col-span-3 flex items-start sm:items-center gap-3 min-w-0">
                           <div
                             className="w-2.5 h-2.5 rounded-full shrink-0 mt-1 sm:mt-0"
                             style={{ backgroundColor: CATEGORY_COLORS[e.category] || CATEGORY_COLORS["Other"] }}
                           />
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="m-0 font-medium text-sm sm:text-[15px] text-foreground truncate">
-                                {e.vendor}
-                              </p>
-                              {e.mpesaReference && (
-                                <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-medium shrink-0">
-                                  M-Pesa: {e.mpesaReference}
-                                </span>
-                              )}
-                            </div>
+                            <p className="m-0 font-medium text-sm sm:text-[15px] text-foreground truncate">
+                              {e.vendor}
+                            </p>
                             <p className="mt-0.5 mb-0 text-xs text-muted-foreground truncate">
                               {e.description || "No description"}
                             </p>
                           </div>
                         </div>
 
-                        {/* Column 2: Date Paid */}
+                        {/* Column 2: M-Pesa Reference */}
+                        <div className="hidden md:flex md:col-span-2 items-center min-w-0">
+                          {e.mpesaReference ? (
+                            <span
+                              className="inline-flex items-center gap-1 font-mono text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 truncate max-w-full"
+                              title={e.mpesaReference}
+                            >
+                              <Smartphone className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                              <span className="truncate">{e.mpesaReference}</span>
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground/50 pl-2">—</span>
+                          )}
+                        </div>
+
+                        {/* Column 3: Date Paid */}
                         <div className="hidden md:flex md:col-span-2 items-center gap-1.5 text-sm">
                           <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                           <span className="font-medium text-foreground whitespace-nowrap">
@@ -809,7 +821,7 @@ export function Expenses() {
                           </span>
                         </div>
 
-                        {/* Column 3: Month */}
+                        {/* Column 4: Month */}
                         <div className="hidden md:flex md:col-span-2 items-center">
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-primary/10 text-primary border border-primary/20 whitespace-nowrap">
                             <Clock className="w-3 h-3 shrink-0" />
@@ -817,15 +829,15 @@ export function Expenses() {
                           </span>
                         </div>
 
-                        {/* Column 4: Amount & Category */}
-                        <div className="hidden md:block md:col-span-3 text-right">
+                        {/* Column 5: Amount & Category */}
+                        <div className="hidden md:block md:col-span-2 text-right">
                           <p className="m-0 font-mono text-sm sm:text-[15px] font-semibold text-foreground">
                             {e.amount.toLocaleString("en-KE")}
                           </p>
                           <p className="mt-0.5 mb-0 text-xs text-muted-foreground">{e.category}</p>
                         </div>
 
-                        {/* Column 5: Actions */}
+                        {/* Column 6: Actions */}
                         <div className="hidden md:flex md:col-span-1 justify-end gap-1">
                           <ActionTooltip content="Edit Expense Details">
                             <button
@@ -847,9 +859,9 @@ export function Expenses() {
                           </ActionTooltip>
                         </div>
 
-                        {/* Mobile View: clearly shows Date Paid and Month */}
+                        {/* Mobile View: clearly shows Date Paid, Month, and M-Pesa Ref */}
                         <div className="md:hidden mt-2 pt-2 border-t border-border/40 flex flex-col gap-2">
-                          <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center justify-between text-xs flex-wrap gap-1.5">
                             <div className="flex items-center gap-1.5 text-muted-foreground">
                               <Calendar className="w-3.5 h-3.5" />
                               <span>Paid: <strong className="text-foreground font-medium">{formatPaymentDate(e.date)}</strong></span>
@@ -859,6 +871,15 @@ export function Expenses() {
                               {getExpenseBillingMonth(e)}
                             </span>
                           </div>
+                          {e.mpesaReference && (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <Smartphone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                              <span className="text-muted-foreground">Ref:</span>
+                              <span className="font-mono font-semibold text-[11px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 truncate">
+                                {e.mpesaReference}
+                              </span>
+                            </div>
+                          )}
                           <div className="flex items-center justify-between pt-1">
                             <div>
                               <span className="font-mono text-sm font-semibold text-foreground">
