@@ -92,7 +92,7 @@ export function Layout() {
     { name: 'Invoices', href: '/invoices', icon: Receipt, badge: invoices.filter(i => i.status !== 'paid').length > 0 ? invoices.filter(i => i.status !== 'paid').length : undefined },
     { name: 'Payments', href: '/payments', icon: CreditCard },
     { name: 'Expenses', href: '/expenses', icon: Wallet },
-    ...(isSuper ? [{ name: "Son's School Fund", href: '/school-savings', icon: GraduationCap }] : []),
+    ...(isSuper ? [{ name: "Jason's School Fund", href: '/school-savings', icon: GraduationCap }] : []),
     { name: 'Performance', href: '/performance', icon: PieChart },
     { name: 'Equipment', href: '/equipment', icon: Camera },
     { 

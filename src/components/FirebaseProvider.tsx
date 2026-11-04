@@ -178,6 +178,15 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     let unsubSchoolMeta = () => {};
 
     if (userIsSuper) {
+      try {
+        const cachedSchoolMeta = localStorage.getItem(`capturecrm_school_meta_${userId}`) || localStorage.getItem('capturecrm_school_meta');
+        if (cachedSchoolMeta) {
+          useStore.setState((prev) => ({
+            schoolAccountMeta: { ...prev.schoolAccountMeta, ...JSON.parse(cachedSchoolMeta) }
+          }));
+        }
+      } catch (e) {}
+
       unsubSchoolDeposits = onSnapshot(query(collection(db, `users/${userId}/school_deposits`)), (snapshot) => {
         const schoolDeposits = snapshot.docs.map((doc) => doc.data() as any);
         schoolDeposits.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -188,9 +197,14 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       unsubSchoolMeta = onSnapshot(doc(db, `users/${userId}/school_deposits_meta/account`), (docSnap) => {
         if (docSnap.exists()) {
+          const data = docSnap.data() as any;
           useStore.setState((prev) => ({
-            schoolAccountMeta: { ...prev.schoolAccountMeta, ...docSnap.data() as any }
+            schoolAccountMeta: { ...prev.schoolAccountMeta, ...data }
           }));
+          try {
+            localStorage.setItem(`capturecrm_school_meta_${userId}`, JSON.stringify(data));
+            localStorage.setItem('capturecrm_school_meta', JSON.stringify(data));
+          } catch (e) {}
         }
       }, (error) => {
         console.error("Firebase school meta error:", error);

@@ -250,20 +250,22 @@ export type SchoolAccountMeta = {
   bankName?: string;
   accountNumber?: string;
   paybillOrTill?: string;
+  paybillAccountRef?: string;
   targetGoal: number;
   targetDate?: string;
   notes?: string;
 };
 
 export const defaultSchoolAccountMeta: SchoolAccountMeta = {
-  accountName: "Son's School Fees Account",
-  sonName: "Son",
-  bankName: "School Fees Savings Account",
+  accountName: "Jason's School Fees Account",
+  sonName: "Jason",
+  bankName: "Equity Bank",
   accountNumber: "",
   paybillOrTill: "",
+  paybillAccountRef: "",
   targetGoal: 150000,
   targetDate: "2027-01-10",
-  notes: "Dedicated savings account for primary & secondary school term fees.",
+  notes: "Dedicated savings account for Jason's school fees.",
 };
 
 type AppState = {
@@ -363,6 +365,25 @@ const getInitialSettings = (): Settings => {
   return defaultSettings;
 };
 
+const getInitialSchoolAccountMeta = (): SchoolAccountMeta => {
+  if (typeof window !== 'undefined') {
+    try {
+      const currentUid = auth.currentUser?.uid;
+      if (currentUid) {
+        const stored = localStorage.getItem(`capturecrm_school_meta_${currentUid}`);
+        if (stored) {
+          return { ...defaultSchoolAccountMeta, ...JSON.parse(stored) };
+        }
+      }
+      const general = localStorage.getItem('capturecrm_school_meta');
+      if (general) {
+        return { ...defaultSchoolAccountMeta, ...JSON.parse(general) };
+      }
+    } catch (e) {}
+  }
+  return defaultSchoolAccountMeta;
+};
+
 const cleanData = (obj: any): any => {
   if (Array.isArray(obj)) {
     return obj.map(cleanData);
@@ -389,7 +410,7 @@ export const useStore = create<AppState>((set, get) => ({
   reminders: [],
   feedbacks: [],
   schoolDeposits: [],
-  schoolAccountMeta: defaultSchoolAccountMeta,
+  schoolAccountMeta: getInitialSchoolAccountMeta(),
   settings: getInitialSettings(),
   isSettingsLoaded: false,
   isAuthReady: false,
@@ -678,6 +699,14 @@ export const useStore = create<AppState>((set, get) => ({
     const existing = get().schoolAccountMeta;
     const merged = cleanData({ ...existing, ...meta });
     set({ schoolAccountMeta: merged });
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('capturecrm_school_meta', JSON.stringify(merged));
+        if (uid) {
+          localStorage.setItem(`capturecrm_school_meta_${uid}`, JSON.stringify(merged));
+        }
+      } catch (e) {}
+    }
     if (uid) {
       await setDoc(doc(db, `users/${uid}/school_deposits_meta`, 'account'), merged);
     }

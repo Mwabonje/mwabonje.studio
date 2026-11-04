@@ -709,12 +709,12 @@ export function Expenses() {
                     </div>
                     <div>
                       <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                        Son's School Fund
+                        Jason's School Fund
                         <span className="text-[11px] font-normal px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
                           Education Savings
                         </span>
                       </h4>
-                      <p className="text-xs text-muted-foreground">{schoolAccountMeta?.accountName || "School Fees Account"}</p>
+                      <p className="text-xs text-muted-foreground">{schoolAccountMeta?.accountName || "Jason's School Fees Account"}</p>
                     </div>
                   </div>
                 </div>

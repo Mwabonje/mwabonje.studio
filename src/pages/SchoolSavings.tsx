@@ -29,7 +29,9 @@ import {
   Coins,
   Settings2,
   Sparkles,
-  ArrowUpRight
+  ArrowUpRight,
+  Copy,
+  Check
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -111,15 +113,55 @@ export function SchoolSavings() {
 
   // Form state for account details & target goal
   const [accountForm, setAccountForm] = useState({
-    accountName: schoolAccountMeta?.accountName || "Son's School Fees Account",
-    sonName: schoolAccountMeta?.sonName || "Son",
-    bankName: schoolAccountMeta?.bankName || "School Fees Savings Account",
+    accountName: schoolAccountMeta?.accountName || "Jason's School Fees Account",
+    sonName: schoolAccountMeta?.sonName || "Jason",
+    bankName: schoolAccountMeta?.bankName || "Equity Bank",
     accountNumber: schoolAccountMeta?.accountNumber || "",
     paybillOrTill: schoolAccountMeta?.paybillOrTill || "",
+    paybillAccountRef: schoolAccountMeta?.paybillAccountRef || "",
     targetGoal: (schoolAccountMeta?.targetGoal || 150000).toString(),
     targetDate: schoolAccountMeta?.targetDate || "2027-01-10",
     notes: schoolAccountMeta?.notes || "",
   });
+
+  // Quick Copy Feedback State
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const handleCopy = (text: string, label: string, key: string) => {
+    if (!text || text.trim() === "") {
+      toast.info(`No ${label} configured yet. Click "Edit Details" to set it.`);
+      return;
+    }
+    navigator.clipboard.writeText(text.trim());
+    setCopiedKey(key);
+    toast.success(`Copied ${label}: ${text.trim()}`);
+    setTimeout(() => {
+      setCopiedKey((prev) => (prev === key ? null : prev));
+    }, 2000);
+  };
+
+  const handleCopyAll = () => {
+    const lines = [
+      `Jason's School Fees Savings Details:`,
+      schoolAccountMeta?.bankName ? `• Bank: ${schoolAccountMeta.bankName}` : `• Bank: Equity Bank`,
+      schoolAccountMeta?.accountNumber ? `• Account Number: ${schoolAccountMeta.accountNumber}` : null,
+      schoolAccountMeta?.paybillOrTill ? `• M-Pesa Paybill / Till: ${schoolAccountMeta.paybillOrTill}` : null,
+      schoolAccountMeta?.paybillAccountRef ? `• Paybill Account Ref: ${schoolAccountMeta.paybillAccountRef}` : null,
+      `• Beneficiary: ${schoolAccountMeta?.sonName || "Jason"}`
+    ].filter(Boolean).join("\n");
+
+    if (!schoolAccountMeta?.accountNumber && !schoolAccountMeta?.paybillOrTill) {
+      toast.info("Please set Jason's bank account or paybill first.");
+      return;
+    }
+
+    navigator.clipboard.writeText(lines);
+    setCopiedKey("all");
+    toast.success("Copied all payment details to clipboard!");
+    setTimeout(() => {
+      setCopiedKey((prev) => (prev === "all" ? null : prev));
+    }, 2000);
+  };
 
   // Calculate metrics
   const totalSaved = useMemo(() => {
@@ -218,11 +260,12 @@ export function SchoolSavings() {
       bankName: accountForm.bankName,
       accountNumber: accountForm.accountNumber,
       paybillOrTill: accountForm.paybillOrTill,
+      paybillAccountRef: accountForm.paybillAccountRef,
       targetGoal: goalVal,
       targetDate: accountForm.targetDate,
       notes: accountForm.notes,
     });
-    toast.success("School fees account details updated");
+    toast.success("Jason's school fees account and Paybill details saved!");
     setIsAccountDialogOpen(false);
   };
 
@@ -256,10 +299,10 @@ export function SchoolSavings() {
             <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shrink-0">
               <GraduationCap className="w-6 h-6" />
             </div>
-            <span>Son's School Fees Savings</span>
+            <span>Jason's School Fees Savings</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Track and build your son's dedicated school deposits, target academic terms, and savings growth.
+            Track and build Jason's dedicated school deposits, target academic terms, and savings growth.
           </p>
         </div>
 
@@ -269,11 +312,12 @@ export function SchoolSavings() {
             size="sm"
             onClick={() => {
               setAccountForm({
-                accountName: schoolAccountMeta?.accountName || "Son's School Fees Account",
-                sonName: schoolAccountMeta?.sonName || "Son",
-                bankName: schoolAccountMeta?.bankName || "School Fees Savings Account",
+                accountName: schoolAccountMeta?.accountName || "Jason's School Fees Account",
+                sonName: schoolAccountMeta?.sonName || "Jason",
+                bankName: schoolAccountMeta?.bankName || "Equity Bank",
                 accountNumber: schoolAccountMeta?.accountNumber || "",
                 paybillOrTill: schoolAccountMeta?.paybillOrTill || "",
+                paybillAccountRef: schoolAccountMeta?.paybillAccountRef || "",
                 targetGoal: (schoolAccountMeta?.targetGoal || 150000).toString(),
                 targetDate: schoolAccountMeta?.targetDate || "2027-01-10",
                 notes: schoolAccountMeta?.notes || "",
@@ -299,60 +343,180 @@ export function SchoolSavings() {
 
       {/* Account Info & Target Goal Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Card 1: Account Profile */}
+        {/* Card 1: Jason's Account Profile & Quick Pay */}
         <div className="p-6 rounded-2xl border border-border bg-card shadow-sm flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <PiggyBank className="w-4 h-4 text-primary" />
-                Savings Account Profile
+                Jason's Savings Account
               </span>
-              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                Active Account
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                Quick Copy
               </span>
             </div>
 
-            <h3 className="text-lg font-bold text-foreground">
-              {schoolAccountMeta?.accountName || "Son's School Fees Account"}
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Beneficiary: <strong className="text-foreground">{schoolAccountMeta?.sonName || "Son"}</strong>
-            </p>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h3 className="text-lg font-bold text-foreground">
+                  {schoolAccountMeta?.accountName || "Jason's School Fees Account"}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Beneficiary: <strong className="text-foreground font-semibold">{schoolAccountMeta?.sonName || "Jason"}</strong>
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setAccountForm({
+                    accountName: schoolAccountMeta?.accountName || "Jason's School Fees Account",
+                    sonName: schoolAccountMeta?.sonName || "Jason",
+                    bankName: schoolAccountMeta?.bankName || "Equity Bank",
+                    accountNumber: schoolAccountMeta?.accountNumber || "",
+                    paybillOrTill: schoolAccountMeta?.paybillOrTill || "",
+                    paybillAccountRef: schoolAccountMeta?.paybillAccountRef || "",
+                    targetGoal: (schoolAccountMeta?.targetGoal || 150000).toString(),
+                    targetDate: schoolAccountMeta?.targetDate || "2027-01-10",
+                    notes: schoolAccountMeta?.notes || "",
+                  });
+                  setIsAccountDialogOpen(true);
+                }}
+                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
+                title="Edit Account Details"
+              >
+                <Edit2 className="w-3.5 h-3.5 mr-1" />
+                Edit
+              </Button>
+            </div>
 
-            <div className="mt-4 pt-4 border-t border-border/60 space-y-2 text-xs">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
-                  Institution / Bank:
-                </span>
-                <span className="font-medium text-foreground">
-                  {schoolAccountMeta?.bankName || "Savings Account"}
-                </span>
+            {/* Quick-Copy Payment Details Section */}
+            <div className="mt-4 p-3 rounded-xl bg-muted/40 border border-border/80 space-y-2.5">
+              {/* Paybill row */}
+              <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-card/90 border border-border/60">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Smartphone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>M-Pesa Paybill / Till:</span>
+                  </div>
+                  <div className="font-mono text-sm font-bold text-emerald-700 dark:text-emerald-400 truncate">
+                    {schoolAccountMeta?.paybillOrTill || (
+                      <span className="text-xs font-normal text-muted-foreground italic">Not set (click Edit)</span>
+                    )}
+                  </div>
+                </div>
+                {schoolAccountMeta?.paybillOrTill ? (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => handleCopy(schoolAccountMeta.paybillOrTill!, "Paybill Number", "paybill")}
+                    className="h-7 px-2.5 text-xs font-medium shrink-0 flex items-center gap-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                  >
+                    {copiedKey === "paybill" ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </Button>
+                ) : null}
               </div>
 
-              {schoolAccountMeta?.accountNumber && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Receipt className="w-3.5 h-3.5 text-muted-foreground" />
-                    Account Number:
-                  </span>
-                  <span className="font-mono font-medium text-foreground">
-                    {schoolAccountMeta.accountNumber}
-                  </span>
+              {/* Bank Account Number row */}
+              <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-card/90 border border-border/60">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <span>Bank: {schoolAccountMeta?.bankName || "Equity Bank"}</span>
+                  </div>
+                  <div className="font-mono text-sm font-bold text-foreground truncate">
+                    {schoolAccountMeta?.accountNumber || (
+                      <span className="text-xs font-normal text-muted-foreground italic">Not set (click Edit)</span>
+                    )}
+                  </div>
                 </div>
-              )}
+                {schoolAccountMeta?.accountNumber ? (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => handleCopy(schoolAccountMeta.accountNumber!, "Account Number", "account")}
+                    className="h-7 px-2.5 text-xs font-medium shrink-0 flex items-center gap-1 border border-border"
+                  >
+                    {copiedKey === "account" ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </Button>
+                ) : null}
+              </div>
 
-              {schoolAccountMeta?.paybillOrTill && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Smartphone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    M-Pesa Paybill / Till:
-                  </span>
-                  <span className="font-mono font-medium text-emerald-700 dark:text-emerald-400">
-                    {schoolAccountMeta.paybillOrTill}
-                  </span>
+              {/* Paybill Account Ref if set */}
+              {schoolAccountMeta?.paybillAccountRef && (
+                <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-card/90 border border-border/60">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                      <Receipt className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      <span>Account Ref (on M-Pesa):</span>
+                    </div>
+                    <div className="font-mono text-sm font-bold text-foreground truncate">
+                      {schoolAccountMeta.paybillAccountRef}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => handleCopy(schoolAccountMeta.paybillAccountRef!, "Account Reference", "ref")}
+                    className="h-7 px-2.5 text-xs font-medium shrink-0 flex items-center gap-1 border border-border"
+                  >
+                    {copiedKey === "ref" ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </Button>
                 </div>
               )}
+            </div>
+
+            {/* One-click Copy All Details button */}
+            <div className="mt-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyAll}
+                className="w-full h-8 text-xs font-medium flex items-center justify-center gap-1.5 bg-background hover:bg-muted"
+              >
+                {copiedKey === "all" ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-emerald-600 font-semibold">Copied All Details!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span>Copy All Payment Details</span>
+                  </>
+                )}
+              </Button>
             </div>
           </div>
 
@@ -643,6 +807,52 @@ export function SchoolSavings() {
           </DialogHeader>
 
           <div className="space-y-4 py-3">
+            {/* Quick-Pay Reference bar inside deposit modal */}
+            {(schoolAccountMeta?.paybillOrTill || schoolAccountMeta?.accountNumber) && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <div className="text-foreground">
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-400">Making Payment? </span>
+                    {schoolAccountMeta.paybillOrTill && (
+                      <span className="mr-3">
+                        Paybill: <strong className="font-mono font-bold text-foreground">{schoolAccountMeta.paybillOrTill}</strong>
+                      </span>
+                    )}
+                    {schoolAccountMeta.accountNumber && (
+                      <span>
+                        Acc No: <strong className="font-mono font-bold text-foreground">{schoolAccountMeta.accountNumber}</strong>
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {schoolAccountMeta.paybillOrTill && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleCopy(schoolAccountMeta.paybillOrTill!, "Paybill", "modal-paybill")}
+                      className="h-6 px-2 text-[11px] font-medium bg-background border border-border hover:bg-muted"
+                    >
+                      {copiedKey === "modal-paybill" ? "Copied!" : "Copy Paybill"}
+                    </Button>
+                  )}
+                  {schoolAccountMeta.accountNumber && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleCopy(schoolAccountMeta.accountNumber!, "Account No", "modal-acc")}
+                      className="h-6 px-2 text-[11px] font-medium bg-background border border-border hover:bg-muted"
+                    >
+                      {copiedKey === "modal-acc" ? "Copied!" : "Copy Acc"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5">
@@ -796,7 +1006,7 @@ export function SchoolSavings() {
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <Settings2 className="w-5 h-5 text-primary" />
-              <span>School Fees Account & Target Goal</span>
+              <span>Jason's School Fees Account & Paybill Settings</span>
             </DialogTitle>
           </DialogHeader>
 
@@ -806,7 +1016,7 @@ export function SchoolSavings() {
               <Input
                 value={accountForm.accountName}
                 onChange={(e) => setAccountForm({ ...accountForm, accountName: e.target.value })}
-                placeholder="e.g. Son's School Fees Account"
+                placeholder="e.g. Jason's School Fees Account"
                 className="h-10"
               />
             </div>
@@ -817,8 +1027,8 @@ export function SchoolSavings() {
                 <Input
                   value={accountForm.sonName}
                   onChange={(e) => setAccountForm({ ...accountForm, sonName: e.target.value })}
-                  placeholder="e.g. Son"
-                  className="h-10"
+                  placeholder="e.g. Jason"
+                  className="h-10 font-semibold"
                 />
               </div>
 
@@ -834,40 +1044,69 @@ export function SchoolSavings() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Bank / Savings Provider</Label>
-                <Input
-                  value={accountForm.bankName}
-                  onChange={(e) => setAccountForm({ ...accountForm, bankName: e.target.value })}
-                  placeholder="e.g. Equity Bank"
-                  className="h-10"
-                />
+            {/* Bank and M-Pesa Payment Details for Quick Copy */}
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-border/80 space-y-3">
+              <div className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Bank & M-Pesa Details (For One-Click Copy)</span>
               </div>
 
-              <div className="space-y-2">
-                <Label>Account Number</Label>
-                <Input
-                  value={accountForm.accountNumber}
-                  onChange={(e) => setAccountForm({ ...accountForm, accountNumber: e.target.value })}
-                  placeholder="e.g. 0123456789"
-                  className="h-10 font-mono"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Bank / Savings Provider</Label>
+                  <Input
+                    value={accountForm.bankName}
+                    onChange={(e) => setAccountForm({ ...accountForm, bankName: e.target.value })}
+                    placeholder="e.g. Equity Bank"
+                    className="h-9"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Bank Account Number</Label>
+                  <Input
+                    value={accountForm.accountNumber}
+                    onChange={(e) => setAccountForm({ ...accountForm, accountNumber: e.target.value })}
+                    placeholder="e.g. 0123456789"
+                    className="h-9 font-mono font-semibold"
+                  />
+                </div>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                    <Smartphone className="w-3 h-3" />
+                    <span>M-Pesa Paybill / Till Number</span>
+                  </Label>
+                  <Input
+                    value={accountForm.paybillOrTill}
+                    onChange={(e) => setAccountForm({ ...accountForm, paybillOrTill: e.target.value })}
+                    placeholder="e.g. 247247"
+                    className="h-9 font-mono font-semibold"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1 text-muted-foreground">
+                    <Receipt className="w-3 h-3" />
+                    <span>Account Ref (on M-Pesa)</span>
+                  </Label>
+                  <Input
+                    value={accountForm.paybillAccountRef}
+                    onChange={(e) => setAccountForm({ ...accountForm, paybillAccountRef: e.target.value })}
+                    placeholder="e.g. Acc No or Jason"
+                    className="h-9 font-mono"
+                  />
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Save Jason's bank account and Paybill here so you can easily copy them with one click whenever you need to deposit funds.
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label>M-Pesa Paybill / Till (Optional)</Label>
-              <Input
-                value={accountForm.paybillOrTill}
-                onChange={(e) => setAccountForm({ ...accountForm, paybillOrTill: e.target.value })}
-                placeholder="e.g. Paybill 247247"
-                className="h-10 font-mono"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Target Due Date</Label>
+              <Label>Target Academic Due Date</Label>
               <Input
                 type="date"
                 value={accountForm.targetDate}
@@ -881,8 +1120,8 @@ export function SchoolSavings() {
             <Button variant="outline" onClick={() => setIsAccountDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveAccountMeta}>
-              Save Settings
+            <Button onClick={handleSaveAccountMeta} className="bg-primary text-primary-foreground">
+              Save Payment Details
             </Button>
           </div>
         </DialogContent>
