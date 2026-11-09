@@ -22,6 +22,7 @@ import Login from '@/pages/Login';
 import { ManualGuide } from '@/pages/ManualGuide';
 import { FeedbackInbox } from '@/pages/FeedbackInbox';
 import { SchoolSavings } from '@/pages/SchoolSavings';
+import { Admin } from '@/pages/Admin';
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { FirebaseProvider } from '@/components/FirebaseProvider';
@@ -43,6 +44,9 @@ export default function App() {
               <Route path="/invoice/shared" element={<SharedInvoice />} />
               
               <Route element={<AuthGuard />}>
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/superadmin" element={<Admin />} />
+
                 <Route element={<Layout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/clients" element={<Clients />} />

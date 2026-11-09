@@ -19,6 +19,18 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             email: user.email,
             lastLogin: new Date().toISOString()
           }, { merge: true });
+
+          const isSuper = isSuperUser(user.email);
+          const now = new Date().toISOString();
+          await setDoc(doc(db, 'system_users', user.uid), {
+            id: user.uid,
+            email: user.email || '',
+            displayName: user.displayName || user.email?.split('@')[0] || 'User',
+            role: isSuper ? 'super_admin' : 'photographer',
+            status: 'active',
+            joinedAt: now,
+            lastActiveAt: now,
+          }, { merge: true });
         } catch (e) {
           console.error("Error creating user document:", e);
         }
@@ -174,10 +186,34 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       console.error("Firebase feedbacks error:", error);
     });
 
+    const unsubAnnouncements = onSnapshot(query(collection(db, 'system_announcements')), (snapshot) => {
+      const announcements = snapshot.docs.map((doc) => doc.data() as any);
+      useStore.setState({ announcements });
+    }, (error) => {
+      console.error("Firebase announcements error:", error);
+    });
+
     let unsubSchoolDeposits = () => {};
     let unsubSchoolMeta = () => {};
+    let unsubSystemUsers = () => {};
+    let unsubAuditLogs = () => {};
 
     if (userIsSuper) {
+      unsubSystemUsers = onSnapshot(query(collection(db, 'system_users')), (snapshot) => {
+        const systemUsers = snapshot.docs.map((doc) => doc.data() as any);
+        useStore.setState({ systemUsers });
+      }, (error) => {
+        console.error("Firebase system_users error:", error);
+      });
+
+      unsubAuditLogs = onSnapshot(query(collection(db, 'audit_logs')), (snapshot) => {
+        const auditLogs = snapshot.docs.map((doc) => doc.data() as any);
+        auditLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        useStore.setState({ auditLogs });
+      }, (error) => {
+        console.error("Firebase audit_logs error:", error);
+      });
+
       try {
         const cachedSchoolMeta = localStorage.getItem(`capturecrm_school_meta_${userId}`) || localStorage.getItem('capturecrm_school_meta');
         if (cachedSchoolMeta) {
@@ -223,8 +259,11 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       unsubReminders();
       unsubSettings();
       unsubFeedbacks();
+      unsubAnnouncements();
       unsubSchoolDeposits();
       unsubSchoolMeta();
+      unsubSystemUsers();
+      unsubAuditLogs();
     };
   }, [userId]);
 

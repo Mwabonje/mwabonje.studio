@@ -212,9 +212,73 @@
         "adminNotes": { "type": "string" }
       },
       "required": ["id", "userId", "userEmail", "type", "message", "status", "createdAt"]
+    },
+    "SystemUser": {
+      "title": "SystemUser",
+      "description": "User profile directory document for Super Admin management and role assignment",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["super_admin", "studio_admin", "photographer", "viewer"] },
+        "status": { "type": "string", "enum": ["active", "suspended"] },
+        "joinedAt": { "type": "string" },
+        "lastActiveAt": { "type": "string" },
+        "phone": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "email", "role", "status", "joinedAt"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable security and operational event log record for Super Admin audit trail",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "actorId": { "type": "string" },
+        "actorEmail": { "type": "string" },
+        "actorName": { "type": "string" },
+        "category": { "type": "string", "enum": ["auth", "finance", "project", "settings", "security"] },
+        "action": { "type": "string" },
+        "description": { "type": "string" },
+        "severity": { "type": "string", "enum": ["info", "warning", "critical"] },
+        "targetResourceId": { "type": "string" },
+        "targetResourceType": { "type": "string" }
+      },
+      "required": ["id", "timestamp", "actorId", "actorEmail", "category", "action", "description", "severity"]
+    },
+    "SystemAnnouncement": {
+      "title": "SystemAnnouncement",
+      "description": "Global broadcast announcement banner created by Super Admin for all active users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["info", "warning", "announcement"] },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "expiresAt": { "type": "string" }
+      },
+      "required": ["id", "title", "message", "type", "isActive", "createdAt", "createdBy"]
     }
   },
   "firestore": {
+    "/system_users/{userId}": {
+      "schema": { "$ref": "#/entities/SystemUser" },
+      "description": "User registry directory for role management and account tracking"
+    },
+    "/audit_logs/{logId}": {
+      "schema": { "$ref": "#/entities/AuditLog" },
+      "description": "Immutable system audit events"
+    },
+    "/system_announcements/{announcementId}": {
+      "schema": { "$ref": "#/entities/SystemAnnouncement" },
+      "description": "Global broadcast announcements"
+    },
     "/users/{userId}/clients/{clientId}": {
       "schema": { "$ref": "#/entities/Client" },
       "description": "Private client records filtered by user account UID"

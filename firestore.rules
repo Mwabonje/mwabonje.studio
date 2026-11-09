@@ -170,6 +170,46 @@ service cloud.firestore {
              isValidOptionalString('adminNotes', 0, 5000);
     }
 
+    function isValidSystemUser() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.email is string && data.email.size() > 0 && data.email.size() < 150 &&
+             isValidOptionalString('displayName', 0, 150) &&
+             data.role in ['super_admin', 'studio_admin', 'photographer', 'viewer'] &&
+             data.status in ['active', 'suspended'] &&
+             data.joinedAt is string && data.joinedAt.size() > 0 && data.joinedAt.size() < 100 &&
+             isValidOptionalString('lastActiveAt', 0, 100) &&
+             isValidOptionalString('phone', 0, 50) &&
+             isValidOptionalString('notes', 0, 5000);
+    }
+
+    function isValidAuditLog() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.timestamp is string && data.timestamp.size() > 0 && data.timestamp.size() < 100 &&
+             data.actorId is string && data.actorId.size() > 0 && data.actorId.size() < 100 &&
+             data.actorEmail is string && data.actorEmail.size() > 0 && data.actorEmail.size() < 150 &&
+             isValidOptionalString('actorName', 0, 150) &&
+             data.category in ['auth', 'finance', 'project', 'settings', 'security'] &&
+             data.action is string && data.action.size() > 0 && data.action.size() < 100 &&
+             data.description is string && data.description.size() > 0 && data.description.size() < 2000 &&
+             data.severity in ['info', 'warning', 'critical'] &&
+             isValidOptionalString('targetResourceId', 0, 100) &&
+             isValidOptionalString('targetResourceType', 0, 100);
+    }
+
+    function isValidSystemAnnouncement() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.message is string && data.message.size() > 0 && data.message.size() < 5000 &&
+             data.type in ['info', 'warning', 'announcement'] &&
+             data.isActive is bool &&
+             data.createdAt is string && data.createdAt.size() > 0 && data.createdAt.size() < 100 &&
+             data.createdBy is string && data.createdBy.size() > 0 && data.createdBy.size() < 150 &&
+             isValidOptionalString('expiresAt', 0, 100);
+    }
+
     // ===============================================================
     // Default Deny Catch-all
     // ===============================================================
@@ -309,6 +349,37 @@ service cloud.firestore {
       allow get, list: if isAuthenticated() && (isSuperUser() || resource.data.userId == request.auth.uid);
       allow create: if isAuthenticated() && isValidFeedback();
       allow update, delete: if isSuperUser();
+    }
+
+    // ===============================================================
+    // Super Admin: System User Directory
+    // ===============================================================
+    match /system_users/{userId} {
+      allow get, list: if isAuthenticated() && (isSuperUser() || request.auth.uid == userId);
+      allow create: if isAuthenticated() && (request.auth.uid == userId || isSuperUser()) && isValidSystemUser();
+      allow update: if isAuthenticated() && isValidSystemUser() && (
+        isSuperUser() || 
+        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status']))
+      );
+      allow delete: if isSuperUser();
+    }
+
+    // ===============================================================
+    // Super Admin: Security Audit Log (Immutable append)
+    // ===============================================================
+    match /audit_logs/{logId} {
+      allow get, list: if isSuperUser();
+      allow create: if isAuthenticated() && isValidAuditLog();
+      allow update, delete: if false; // strictly immutable audit trail
+    }
+
+    // ===============================================================
+    // Global System Announcements
+    // ===============================================================
+    match /system_announcements/{announcementId} {
+      allow get, list: if isAuthenticated();
+      allow create, update: if isSuperUser() && isValidSystemAnnouncement();
+      allow delete: if isSuperUser();
     }
   }
 }

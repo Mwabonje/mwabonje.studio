@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings, Users, Camera, Wallet, FileSignature, BookOpen, HelpCircle, MessageSquarePlus, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings, Users, Camera, Wallet, FileSignature, BookOpen, HelpCircle, MessageSquarePlus, GraduationCap, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 import { auth } from '@/lib/firebase';
@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { ReminderPopup } from '@/components/ReminderPopup';
 import { FeedbackDialog } from '@/components/FeedbackDialog';
+import { SystemAnnouncementBanner } from '@/components/SystemAnnouncementBanner';
 import { isSuperUser } from '@/lib/auth-utils';
 import { getPhotographyName } from '@/lib/branding';
 
@@ -92,7 +93,9 @@ export function Layout() {
     { name: 'Invoices', href: '/invoices', icon: Receipt, badge: invoices.filter(i => i.status !== 'paid').length > 0 ? invoices.filter(i => i.status !== 'paid').length : undefined },
     { name: 'Payments', href: '/payments', icon: CreditCard },
     { name: 'Expenses', href: '/expenses', icon: Wallet },
-    ...(isSuper ? [{ name: "Jason's School Fund", href: '/school-savings', icon: GraduationCap }] : []),
+    ...(isSuper ? [
+      { name: "Jason's School Fund", href: '/school-savings', icon: GraduationCap },
+    ] : []),
     { name: 'Performance', href: '/performance', icon: PieChart },
     { name: 'Equipment', href: '/equipment', icon: Camera },
     { 
@@ -232,7 +235,7 @@ export function Layout() {
               </div>
               <div className="ml-3 overflow-hidden">
                 <p className="text-sm font-semibold text-white truncate max-w-[130px]" title={userFullName || userName}>{userName}</p>
-                <p className="text-xs text-primary-foreground/60 truncate">Studio Manager</p>
+                <p className="text-xs text-primary-foreground/60 truncate">{isSuper ? 'Super Administrator' : 'Studio Manager'}</p>
               </div>
             </div>
             <button 
@@ -251,6 +254,7 @@ export function Layout() {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col overflow-hidden z-10 pt-16 lg:pt-0">
+        <SystemAnnouncementBanner />
         <div className="flex-1 overflow-y-auto flex flex-col px-3.5 sm:px-6 md:px-8 lg:px-12 pt-4 sm:pt-6 lg:pt-10 pb-24 lg:pb-12">
           <Outlet />
           <ReminderPopup />

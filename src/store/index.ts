@@ -224,6 +224,54 @@ export type Feedback = {
   adminNotes?: string;
 };
 
+export type UserRole = 'super_admin' | 'studio_admin' | 'photographer' | 'viewer';
+export type UserStatus = 'active' | 'suspended';
+
+export type SystemUser = {
+  id: string; // userId (auth UID)
+  email: string;
+  displayName?: string;
+  role: UserRole;
+  status: UserStatus;
+  joinedAt: string;
+  lastActiveAt?: string;
+  phone?: string;
+  notes?: string;
+  quotesCount?: number;
+  invoicesCount?: number;
+  clientsCount?: number;
+  lifetimeVolume?: number;
+};
+
+export type AuditCategory = 'auth' | 'finance' | 'project' | 'settings' | 'security';
+export type AuditSeverity = 'info' | 'warning' | 'critical';
+
+export type AuditLog = {
+  id: string;
+  timestamp: string;
+  actorId: string;
+  actorEmail: string;
+  actorName?: string;
+  category: AuditCategory;
+  action: string;
+  description: string;
+  severity: AuditSeverity;
+  targetResourceId?: string;
+  targetResourceType?: string;
+  metadata?: Record<string, any>;
+};
+
+export type SystemAnnouncement = {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'announcement';
+  isActive: boolean;
+  createdAt: string;
+  createdBy: string;
+  expiresAt?: string;
+};
+
 export type SchoolDepositMethod = 'mpesa' | 'bank_transfer' | 'standing_order' | 'cash' | 'cheque' | 'other';
 export type SchoolDepositPurpose = 'tuition' | 'admission' | 'uniform_books' | 'transport_meals' | 'general_savings' | 'other';
 
@@ -281,6 +329,9 @@ type AppState = {
   feedbacks: Feedback[];
   schoolDeposits: SchoolDeposit[];
   schoolAccountMeta: SchoolAccountMeta;
+  systemUsers: SystemUser[];
+  auditLogs: AuditLog[];
+  announcements: SystemAnnouncement[];
   settings: Settings;
   isSettingsLoaded: boolean;
   isAuthReady: boolean;
@@ -288,6 +339,9 @@ type AppState = {
 
   setAuthReady: (ready: boolean, userId: string | null) => void;
   setSettingsLoaded: (loaded: boolean) => void;
+  setSystemUsers: (users: SystemUser[]) => void;
+  setAuditLogs: (logs: AuditLog[]) => void;
+  setAnnouncements: (announcements: SystemAnnouncement[]) => void;
 
   addClient: (client: Client) => Promise<void>;
   updateClient: (id: string, client: Partial<Client>) => Promise<void>;
@@ -332,6 +386,21 @@ type AppState = {
   updateSchoolDeposit: (id: string, deposit: Partial<SchoolDeposit>) => Promise<void>;
   deleteSchoolDeposit: (id: string) => Promise<void>;
   updateSchoolAccountMeta: (meta: Partial<SchoolAccountMeta>) => Promise<void>;
+
+  addSystemUser: (user: SystemUser) => Promise<void>;
+  updateSystemUser: (id: string, user: Partial<SystemUser>) => Promise<void>;
+  recordAuditLog: (log: {
+    category: AuditCategory;
+    action: string;
+    description: string;
+    severity?: AuditSeverity;
+    targetResourceId?: string;
+    targetResourceType?: string;
+    metadata?: Record<string, any>;
+  }) => Promise<void>;
+  addAnnouncement: (announcement: Omit<SystemAnnouncement, 'id' | 'createdAt' | 'createdBy'>) => Promise<void>;
+  updateAnnouncement: (id: string, announcement: Partial<SystemAnnouncement>) => Promise<void>;
+  deleteAnnouncement: (id: string) => Promise<void>;
 
   updateSettings: (settings: Partial<Settings>) => Promise<void>;
 };
@@ -411,6 +480,9 @@ export const useStore = create<AppState>((set, get) => ({
   feedbacks: [],
   schoolDeposits: [],
   schoolAccountMeta: getInitialSchoolAccountMeta(),
+  systemUsers: [],
+  auditLogs: [],
+  announcements: [],
   settings: getInitialSettings(),
   isSettingsLoaded: false,
   isAuthReady: false,
@@ -418,6 +490,9 @@ export const useStore = create<AppState>((set, get) => ({
 
   setAuthReady: (ready, userId) => set({ isAuthReady: ready, userId }),
   setSettingsLoaded: (loaded) => set({ isSettingsLoaded: loaded }),
+  setSystemUsers: (systemUsers) => set({ systemUsers }),
+  setAuditLogs: (auditLogs) => set({ auditLogs }),
+  setAnnouncements: (announcements) => set({ announcements }),
 
   addProjectTemplate: async (template) => {
     const uid = auth.currentUser?.uid;
@@ -725,5 +800,73 @@ export const useStore = create<AppState>((set, get) => ({
       } catch (e) {}
       await setDoc(doc(db, `users/${uid}/settings`, 'profile'), merged);
     }
+  },
+
+  addSystemUser: async (user) => {
+    const data = cleanData(user);
+    await setDoc(doc(db, 'system_users', user.id), data);
+    set((state) => ({ systemUsers: [...state.systemUsers.filter(u => u.id !== user.id), user] }));
+  },
+
+  updateSystemUser: async (id, updates) => {
+    const existing = get().systemUsers.find((u) => u.id === id);
+    if (!existing) return;
+    const merged = cleanData({ ...existing, ...updates });
+    await setDoc(doc(db, 'system_users', id), merged);
+    set((state) => ({ systemUsers: state.systemUsers.map(u => u.id === id ? merged : u) }));
+  },
+
+  recordAuditLog: async (logInput) => {
+    const user = auth.currentUser;
+    const id = 'log_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+    const log: AuditLog = {
+      id,
+      timestamp: new Date().toISOString(),
+      actorId: user?.uid || 'anonymous',
+      actorEmail: user?.email || 'unknown@capturecrm.com',
+      actorName: user?.displayName || user?.email?.split('@')[0] || 'User',
+      category: logInput.category,
+      action: logInput.action,
+      description: logInput.description,
+      severity: logInput.severity || 'info',
+      targetResourceId: logInput.targetResourceId || '',
+      targetResourceType: logInput.targetResourceType || '',
+    };
+    try {
+      await setDoc(doc(db, 'audit_logs', id), cleanData(log));
+      set((state) => ({ auditLogs: [log, ...state.auditLogs] }));
+    } catch (e) {
+      console.warn('Could not persist audit log:', e);
+    }
+  },
+
+  addAnnouncement: async (announcementInput) => {
+    const user = auth.currentUser;
+    const id = 'ann_' + Math.random().toString(36).substr(2, 9);
+    const announcement: SystemAnnouncement = {
+      id,
+      title: announcementInput.title,
+      message: announcementInput.message,
+      type: announcementInput.type,
+      isActive: announcementInput.isActive ?? true,
+      createdAt: new Date().toISOString(),
+      createdBy: user?.email || 'Super Admin',
+      expiresAt: announcementInput.expiresAt || '',
+    };
+    await setDoc(doc(db, 'system_announcements', id), cleanData(announcement));
+    set((state) => ({ announcements: [announcement, ...state.announcements] }));
+  },
+
+  updateAnnouncement: async (id, updates) => {
+    const existing = get().announcements.find((a) => a.id === id);
+    if (!existing) return;
+    const merged = cleanData({ ...existing, ...updates });
+    await setDoc(doc(db, 'system_announcements', id), merged);
+    set((state) => ({ announcements: state.announcements.map(a => a.id === id ? merged : a) }));
+  },
+
+  deleteAnnouncement: async (id) => {
+    await deleteDoc(doc(db, 'system_announcements', id));
+    set((state) => ({ announcements: state.announcements.filter(a => a.id !== id) }));
   },
 }));
