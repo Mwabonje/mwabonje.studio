@@ -5,12 +5,5 @@ export const SUPER_ADMIN_EMAIL = 'ringa.michael@gmail.com';
  */
 export function isSuperUser(email?: string | null): boolean {
   if (!email) return false;
-  const normalized = email.trim().toLowerCase();
-  return (
-    normalized === SUPER_ADMIN_EMAIL.toLowerCase() ||
-    normalized.includes('ringa.michael') ||
-    normalized.startsWith('ringa') ||
-    normalized.includes('superadmin') ||
-    normalized.includes('admin')
-  );
+  return email.trim().toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
 }

@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, doc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
-import { useStore, Client, Project, Quote, Invoice, Payment, Settings, Feedback, defaultSettings } from '../store';
+import { useStore, touchUserActivity, Client, Project, Quote, Invoice, Payment, Settings, Feedback, defaultSettings } from '../store';
 import { isSuperUser } from '../lib/auth-utils';
 
 export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -10,6 +10,8 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const userId = useStore((state) => state.userId);
 
   useEffect(() => {
+    let heartbeatTimer: any = null;
+
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setAuthReady(true, user.uid);
@@ -22,19 +24,73 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
           const isSuper = isSuperUser(user.email);
           const now = new Date().toISOString();
-          await setDoc(doc(db, 'system_users', user.uid), {
-            id: user.uid,
-            email: user.email || '',
-            displayName: user.displayName || user.email?.split('@')[0] || 'User',
-            role: isSuper ? 'super_admin' : 'photographer',
-            status: 'active',
-            joinedAt: now,
-            lastActiveAt: now,
-          }, { merge: true });
+          const userDocRef = doc(db, 'system_users', user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+
+          if (!userDocSnap.exists()) {
+            // Initial registration of new user account
+            const newUser = {
+              id: user.uid,
+              email: user.email || '',
+              displayName: user.displayName || user.email?.split('@')[0] || 'Studio User',
+              role: isSuper ? 'super_admin' : 'photographer',
+              status: 'active',
+              joinedAt: now,
+              lastActiveAt: now,
+            };
+            await setDoc(userDocRef, newUser);
+
+            // Record registration audit log
+            const auditId = 'log_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+            await setDoc(doc(db, 'audit_logs', auditId), {
+              id: auditId,
+              timestamp: now,
+              actorId: user.uid,
+              actorEmail: user.email || 'unknown',
+              actorName: user.displayName || user.email?.split('@')[0] || 'User',
+              category: 'auth',
+              action: 'USER_REGISTERED',
+              description: `New user account initialized for ${user.email} (${isSuper ? 'Super Admin' : 'Lead Photographer'})`,
+              severity: 'info',
+              targetResourceId: user.uid,
+              targetResourceType: 'system_users',
+            });
+          } else {
+            // Existing user login: update lastActiveAt, never reset admin-assigned role or status!
+            await setDoc(userDocRef, {
+              lastActiveAt: now,
+              ...(user.displayName ? { displayName: user.displayName } : {}),
+              ...(isSuper ? { role: 'super_admin' } : {})
+            }, { merge: true });
+
+            // Record login audit log
+            const auditId = 'log_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+            await setDoc(doc(db, 'audit_logs', auditId), {
+              id: auditId,
+              timestamp: now,
+              actorId: user.uid,
+              actorEmail: user.email || 'unknown',
+              actorName: user.displayName || user.email?.split('@')[0] || 'User',
+              category: 'auth',
+              action: 'USER_LOGIN',
+              description: `User ${user.email} logged in to studio console`,
+              severity: 'info',
+              targetResourceId: user.uid,
+              targetResourceType: 'system_users',
+            });
+          }
         } catch (e) {
-          console.error("Error creating user document:", e);
+          console.error("Error creating/updating user document:", e);
         }
+
+        // Active session heartbeat + focus/visibility activity tracking
+        if (heartbeatTimer) clearInterval(heartbeatTimer);
+        heartbeatTimer = setInterval(() => {
+          touchUserActivity(true);
+        }, 2.5 * 60 * 1000);
+
       } else {
+        if (heartbeatTimer) clearInterval(heartbeatTimer);
         setAuthReady(true, null);
         useStore.setState({
           clients: [],
@@ -47,13 +103,27 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           expenses: [],
           reminders: [],
           feedbacks: [],
+          registeredAuthUsers: [],
           settings: defaultSettings,
           isSettingsLoaded: false,
         });
       }
     });
 
-    return () => unsubscribeAuth();
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        touchUserActivity();
+      }
+    };
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
+    return () => {
+      unsubscribeAuth();
+      if (heartbeatTimer) clearInterval(heartbeatTimer);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+    };
   }, [setAuthReady]);
 
   useEffect(() => {
@@ -196,6 +266,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     let unsubSchoolDeposits = () => {};
     let unsubSchoolMeta = () => {};
     let unsubSystemUsers = () => {};
+    let unsubAuthUsers = () => {};
     let unsubAuditLogs = () => {};
 
     if (userIsSuper) {
@@ -204,6 +275,16 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         useStore.setState({ systemUsers });
       }, (error) => {
         console.error("Firebase system_users error:", error);
+      });
+
+      unsubAuthUsers = onSnapshot(query(collection(db, 'users')), (snapshot) => {
+        const registeredAuthUsers = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...(docSnap.data() as { email?: string; lastLogin?: string }),
+        }));
+        useStore.setState({ registeredAuthUsers });
+      }, (error) => {
+        console.warn("Firebase users list error:", error);
       });
 
       unsubAuditLogs = onSnapshot(query(collection(db, 'audit_logs')), (snapshot) => {
@@ -245,6 +326,15 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }, (error) => {
         console.error("Firebase school meta error:", error);
       });
+    } else {
+      unsubSystemUsers = onSnapshot(doc(db, 'system_users', userId), (docSnap) => {
+        if (docSnap.exists()) {
+          const userData = docSnap.data() as any;
+          useStore.setState({ systemUsers: [userData] });
+        }
+      }, (error) => {
+        console.warn("Firebase personal user profile error:", error);
+      });
     }
 
     return () => {
@@ -263,6 +353,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       unsubSchoolDeposits();
       unsubSchoolMeta();
       unsubSystemUsers();
+      unsubAuthUsers();
       unsubAuditLogs();
     };
   }, [userId]);

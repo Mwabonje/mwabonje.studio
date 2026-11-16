@@ -3,7 +3,19 @@ import { Navigate, Link } from 'react-router-dom';
 import { auth } from '@/lib/firebase';
 import { isSuperUser } from '@/lib/auth-utils';
 import { getPhotographyName } from '@/lib/branding';
-import { useStore, SystemUser, UserRole, UserStatus, AuditCategory, AuditSeverity, AuditLog, SystemAnnouncement } from '@/store';
+import { 
+  useStore, 
+  SystemUser, 
+  UserRole, 
+  UserStatus, 
+  AuditCategory, 
+  AuditSeverity, 
+  AuditLog, 
+  SystemAnnouncement,
+  Feedback,
+  FeedbackStatus,
+  FeedbackType
+} from '@/store';
 import { 
   ShieldCheck, 
   Users, 
@@ -31,7 +43,21 @@ import {
   Camera,
   Briefcase,
   ArrowLeft,
-  LogOut
+  LogOut,
+  Lightbulb,
+  Bug,
+  MessageSquare,
+  Inbox,
+  UserCheck,
+  UserX,
+  ChevronDown,
+  CheckCheck,
+  Eye,
+  MessageCircle,
+  FileEdit,
+  Radio,
+  ExternalLink,
+  Star
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -39,8 +65,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SystemAnnouncementBanner } from '@/components/SystemAnnouncementBanner';
 import { toast } from 'sonner';
+import { formatDistanceToNow, format } from 'date-fns';
 import { 
   BarChart, 
   Bar, 
@@ -64,6 +92,61 @@ const SEVERITY_COLORS: Record<AuditSeverity, string> = {
   critical: 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 font-semibold',
 };
 
+const FEEDBACK_STATUS_CONFIG: Record<FeedbackStatus, { label: string; badgeClass: string; icon: React.ElementType }> = {
+  new: {
+    label: 'New',
+    badgeClass: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300',
+    icon: Clock,
+  },
+  in_review: {
+    label: 'In Review',
+    badgeClass: 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300',
+    icon: Search,
+  },
+  planned: {
+    label: 'Planned',
+    badgeClass: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300',
+    icon: Sparkles,
+  },
+  resolved: {
+    label: 'Resolved',
+    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300',
+    icon: CheckCircle2,
+  },
+  dismissed: {
+    label: 'Dismissed',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300',
+    icon: CheckCheck,
+  },
+};
+
+const FEEDBACK_TYPE_CONFIG: Record<FeedbackType, { label: string; icon: React.ElementType; color: string; bg: string }> = {
+  feature: {
+    label: 'Feature Request',
+    icon: Lightbulb,
+    color: 'text-purple-600 dark:text-purple-400',
+    bg: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20',
+  },
+  bug: {
+    label: 'Bug Report',
+    icon: Bug,
+    color: 'text-rose-600 dark:text-rose-400',
+    bg: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20',
+  },
+  improvement: {
+    label: 'Improvement',
+    icon: Sparkles,
+    color: 'text-sky-600 dark:text-sky-400',
+    bg: 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20',
+  },
+  general: {
+    label: 'General Feedback',
+    icon: MessageSquare,
+    color: 'text-emerald-600 dark:text-emerald-400',
+    bg: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20',
+  },
+};
+
 export function Admin() {
   const currentUser = auth.currentUser;
   const isSuper = isSuperUser(currentUser?.email);
@@ -75,6 +158,7 @@ export function Admin() {
 
   const { 
     systemUsers, 
+    registeredAuthUsers,
     auditLogs, 
     announcements, 
     quotes, 
@@ -86,6 +170,10 @@ export function Admin() {
     equipment, 
     schoolDeposits, 
     settings,
+    feedbacks,
+    updateFeedback,
+    deleteFeedback,
+    deleteSystemUser,
     addSystemUser, 
     updateSystemUser, 
     recordAuditLog, 
@@ -94,12 +182,19 @@ export function Admin() {
     deleteAnnouncement 
   } = useStore();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'audit' | 'broadcasts'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'feedback' | 'audit' | 'broadcasts'>('overview');
 
   // Search & Filter States for Users
   const [userSearch, setUserSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // Search & Filter States for Feedback & Feature Requests
+  const [feedbackSearch, setFeedbackSearch] = useState('');
+  const [feedbackStatusFilter, setFeedbackStatusFilter] = useState<string>('all');
+  const [feedbackTypeFilter, setFeedbackTypeFilter] = useState<string>('all');
+  const [selectedFeedbackForNotes, setSelectedFeedbackForNotes] = useState<Feedback | null>(null);
+  const [adminNoteText, setAdminNoteText] = useState('');
 
   // Search & Filter States for Audit Logs
   const [auditSearch, setAuditSearch] = useState('');
@@ -133,7 +228,60 @@ export function Admin() {
     expiresAt: '',
   });
 
-  // Calculate Aggregated Platform Metrics
+  // Merge system_users with any legacy top-level /users auth documents so every user who uses the app is counted
+  const effectiveUsers = useMemo<SystemUser[]>(() => {
+    const byId = new Map<string, SystemUser>();
+
+    systemUsers.forEach((u) => {
+      byId.set(u.id, { ...u });
+    });
+
+    registeredAuthUsers.forEach((authUser) => {
+      const existing = byId.get(authUser.id);
+      if (existing) {
+        // Keep whichever timestamp is newer
+        const existingMs = existing.lastActiveAt ? new Date(existing.lastActiveAt).getTime() : 0;
+        const loginMs = authUser.lastLogin ? new Date(authUser.lastLogin).getTime() : 0;
+        if (loginMs > existingMs && authUser.lastLogin) {
+          byId.set(authUser.id, { ...existing, lastActiveAt: authUser.lastLogin });
+        }
+      } else {
+        const email = authUser.email || '';
+        const userIsSuper = isSuperUser(email);
+        const nowIso = new Date().toISOString();
+        byId.set(authUser.id, {
+          id: authUser.id,
+          email: email || `${authUser.id.slice(0, 8)}@capturecrm`,
+          displayName: email ? email.split('@')[0] : 'Studio User',
+          role: userIsSuper ? 'super_admin' : 'photographer',
+          status: 'active',
+          joinedAt: authUser.lastLogin || nowIso,
+          lastActiveAt: authUser.lastLogin,
+        });
+      }
+    });
+
+    if (byId.size === 0 && currentUser) {
+      const nowIso = new Date().toISOString();
+      byId.set(currentUser.uid, {
+        id: currentUser.uid,
+        email: currentUser.email || 'ringa.michael@gmail.com',
+        displayName: currentUser.displayName || 'Michael Ringa (Super Admin)',
+        role: 'super_admin',
+        status: 'active',
+        joinedAt: nowIso,
+        lastActiveAt: nowIso,
+      });
+    }
+
+    return Array.from(byId.values()).sort((a, b) => {
+      const aTime = a.lastActiveAt ? new Date(a.lastActiveAt).getTime() : new Date(a.joinedAt || 0).getTime();
+      const bTime = b.lastActiveAt ? new Date(b.lastActiveAt).getTime() : new Date(b.joinedAt || 0).getTime();
+      return bTime - aTime;
+    });
+  }, [systemUsers, registeredAuthUsers, currentUser]);
+
+  // Calculate Aggregated Platform Metrics with Monthly Active Users (30d) & Live Presence
   const metrics = useMemo(() => {
     const totalInvoiced = invoices.reduce((sum, inv) => sum + (Number(inv.totalAmount) || 0), 0);
     const totalCollected = payments.reduce((sum, pay) => sum + (Number(pay.amount) || 0), 0);
@@ -144,8 +292,55 @@ export function Admin() {
     const approvedQuotes = quotes.filter((q) => q.status === 'approved').length;
     const quoteWinRate = totalQuotesCount > 0 ? Math.round((approvedQuotes / totalQuotesCount) * 100) : 0;
 
-    const activeUsersCount = systemUsers.filter((u) => u.status === 'active').length;
-    const suspendedUsersCount = systemUsers.filter((u) => u.status === 'suspended').length;
+    const activeUsersCount = effectiveUsers.filter((u) => u.status === 'active').length;
+    const suspendedUsersCount = effectiveUsers.filter((u) => u.status === 'suspended').length;
+
+    // Usage Windows: Monthly Active (30d), Weekly Active (7d), Today, Online Now (5m)
+    const now = Date.now();
+    const fiveMinutesAgo = now - 5 * 60 * 1000;
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+    const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const getActivityTimestamp = (u: SystemUser) => {
+      const ts = u.lastActiveAt || u.joinedAt;
+      return ts ? new Date(ts).getTime() : 0;
+    };
+
+    const activeMonthlyUsers = effectiveUsers.filter((u) => {
+      if (u.status === 'suspended') return false;
+      return getActivityTimestamp(u) >= thirtyDaysAgo;
+    });
+
+    const activeWeeklyUsers = effectiveUsers.filter((u) => {
+      if (u.status === 'suspended') return false;
+      return getActivityTimestamp(u) >= sevenDaysAgo;
+    });
+
+    const activeNowUsers = effectiveUsers.filter((u) => {
+      if (u.status === 'suspended') return false;
+      if (!u.lastActiveAt) return false;
+      return new Date(u.lastActiveAt).getTime() >= fiveMinutesAgo;
+    });
+
+    const activeTodayUsers = effectiveUsers.filter((u) => {
+      if (u.status === 'suspended') return false;
+      return getActivityTimestamp(u) >= startOfToday.getTime();
+    });
+
+    const activeMonthlyCount = Math.max(1, activeMonthlyUsers.length);
+    const activeWeeklyCount = Math.max(1, activeWeeklyUsers.length);
+    const activeNowCount = Math.max(1, activeNowUsers.length);
+    const activeTodayCount = Math.max(1, activeTodayUsers.length);
+    const inactiveUsersCount = Math.max(0, activeUsersCount - activeMonthlyUsers.length);
+
+    // Feedback & Feature Proposal Metrics
+    const newFeedbackCount = feedbacks.filter((f) => f.status === 'new').length;
+    const featureProposalsCount = feedbacks.filter((f) => f.type === 'feature').length;
+    const bugReportsCount = feedbacks.filter((f) => f.type === 'bug').length;
+    const plannedFeedbackCount = feedbacks.filter((f) => f.status === 'planned' || f.status === 'in_review').length;
+    const resolvedFeedbackCount = feedbacks.filter((f) => f.status === 'resolved').length;
 
     // 24h audit events
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -159,9 +354,19 @@ export function Admin() {
       totalQuotesCount,
       approvedQuotes,
       quoteWinRate,
-      totalUsers: Math.max(1, systemUsers.length),
+      totalUsers: Math.max(1, effectiveUsers.length),
       activeUsersCount: Math.max(1, activeUsersCount),
       suspendedUsersCount,
+      activeMonthlyCount,
+      activeWeeklyCount,
+      activeNowCount,
+      activeTodayCount,
+      inactiveUsersCount,
+      newFeedbackCount,
+      featureProposalsCount,
+      bugReportsCount,
+      plannedFeedbackCount,
+      resolvedFeedbackCount,
       totalClients: clients.length,
       totalProjects: projects.length,
       totalEquipment: equipment.length,
@@ -169,7 +374,7 @@ export function Admin() {
       schoolFundSaved: schoolDeposits.reduce((sum, d) => sum + (Number(d.amount) || 0), 0),
       recentAuditCount,
     };
-  }, [invoices, payments, quotes, systemUsers, clients, projects, equipment, expenses, schoolDeposits, auditLogs]);
+  }, [invoices, payments, quotes, effectiveUsers, clients, projects, equipment, expenses, schoolDeposits, auditLogs, feedbacks]);
 
   // Monthly Revenue Chart Data
   const monthlyChartData = useMemo(() => {
@@ -210,20 +415,14 @@ export function Admin() {
 
   // Filtered Users List
   const filteredUsers = useMemo(() => {
-    // If systemUsers is empty, show current user as default super admin
-    const list = systemUsers.length > 0 ? systemUsers : [
-      {
-        id: currentUser?.uid || 'super_admin_id',
-        email: currentUser?.email || 'ringa.michael@gmail.com',
-        displayName: currentUser?.displayName || 'Michael Ringa (Super Admin)',
-        role: 'super_admin' as UserRole,
-        status: 'active' as UserStatus,
-        joinedAt: new Date().toISOString(),
-        lastActiveAt: new Date().toISOString(),
-      }
-    ];
+    const now = Date.now();
+    const fiveMinutesAgo = now - 5 * 60 * 1000;
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+    const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
 
-    return list.filter((user) => {
+    return effectiveUsers.filter((user) => {
       const q = userSearch.toLowerCase().trim();
       const matchesSearch =
         q === '' ||
@@ -232,11 +431,31 @@ export function Admin() {
         (user.phone && user.phone.includes(q));
 
       const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-      const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
+
+      const activityMs = user.lastActiveAt
+        ? new Date(user.lastActiveAt).getTime()
+        : user.joinedAt
+        ? new Date(user.joinedAt).getTime()
+        : 0;
+
+      let matchesStatus = true;
+      if (statusFilter === 'active' || statusFilter === 'active_30d') {
+        matchesStatus = user.status !== 'suspended' && activityMs >= thirtyDaysAgo;
+      } else if (statusFilter === 'active_7d') {
+        matchesStatus = user.status !== 'suspended' && activityMs >= sevenDaysAgo;
+      } else if (statusFilter === 'active_today') {
+        matchesStatus = user.status !== 'suspended' && activityMs >= startOfToday.getTime();
+      } else if (statusFilter === 'online_now') {
+        matchesStatus = user.status !== 'suspended' && activityMs >= fiveMinutesAgo;
+      } else if (statusFilter === 'inactive_30d') {
+        matchesStatus = user.status !== 'suspended' && activityMs < thirtyDaysAgo;
+      } else if (statusFilter === 'suspended') {
+        matchesStatus = user.status === 'suspended';
+      }
 
       return matchesSearch && matchesRole && matchesStatus;
     });
-  }, [systemUsers, userSearch, roleFilter, statusFilter, currentUser]);
+  }, [effectiveUsers, userSearch, roleFilter, statusFilter]);
 
   // Filtered Audit Logs
   const filteredAuditLogs = useMemo(() => {
@@ -254,6 +473,167 @@ export function Admin() {
       return matchesSearch && matchesCategory && matchesSeverity;
     });
   }, [auditLogs, auditSearch, auditCategory, auditSeverity]);
+
+  // Filtered Feedbacks & Feature Requests
+  const filteredFeedbacks = useMemo(() => {
+    return feedbacks.filter((f) => {
+      const q = feedbackSearch.toLowerCase().trim();
+      const matchesSearch =
+        q === '' ||
+        (f.title && f.title.toLowerCase().includes(q)) ||
+        f.message.toLowerCase().includes(q) ||
+        f.userEmail.toLowerCase().includes(q) ||
+        (f.userName && f.userName.toLowerCase().includes(q));
+
+      const matchesStatus = feedbackStatusFilter === 'all' || f.status === feedbackStatusFilter;
+      const matchesType = feedbackTypeFilter === 'all' || f.type === feedbackTypeFilter;
+
+      return matchesSearch && matchesStatus && matchesType;
+    });
+  }, [feedbacks, feedbackSearch, feedbackStatusFilter, feedbackTypeFilter]);
+
+  // User Usage & Live Presence Helper (Monthly Active = within 30 days)
+  const getUserPresence = (user: SystemUser) => {
+    if (user.status === 'suspended') {
+      return { status: 'suspended', label: 'Suspended', color: 'bg-rose-500', pulse: false, text: 'Account Disabled' };
+    }
+    const ts = user.lastActiveAt || user.joinedAt;
+    if (!ts) {
+      return { status: 'inactive', label: 'Inactive (30d+)', color: 'bg-slate-400', pulse: false, text: 'No activity recorded' };
+    }
+    const lastActiveTime = new Date(ts).getTime();
+    const now = Date.now();
+    const fiveMinutesAgo = now - 5 * 60 * 1000;
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+    const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const relative = formatDistanceToNow(new Date(ts), { addSuffix: true });
+
+    if (user.lastActiveAt && lastActiveTime >= fiveMinutesAgo) {
+      return { status: 'online', label: 'Online Now', color: 'bg-emerald-500', pulse: true, text: 'Using app right now' };
+    } else if (lastActiveTime >= startOfToday.getTime()) {
+      return { status: 'today', label: 'Active Today', color: 'bg-emerald-500', pulse: false, text: `Used ${relative}` };
+    } else if (lastActiveTime >= sevenDaysAgo) {
+      return { status: 'week', label: 'Active This Week', color: 'bg-blue-500', pulse: false, text: `Used ${relative}` };
+    } else if (lastActiveTime >= thirtyDaysAgo) {
+      return { status: 'month', label: 'Active This Month', color: 'bg-sky-500', pulse: false, text: `Used ${relative}` };
+    } else {
+      return { status: 'inactive', label: 'Inactive (30d+)', color: 'bg-slate-400', pulse: false, text: `Last used ${relative}` };
+    }
+  };
+
+  // Immediate Suspend/Reactivate Toggle
+  const handleToggleSuspendUser = async (user: SystemUser) => {
+    if (user.email.toLowerCase() === currentUser?.email?.toLowerCase()) {
+      toast.error('Cannot suspend your own Super Administrator account.');
+      return;
+    }
+    const newStatus: UserStatus = user.status === 'active' ? 'suspended' : 'active';
+    try {
+      await updateSystemUser(user.id, { status: newStatus });
+      const actionName = newStatus === 'suspended' ? 'USER_SUSPENDED' : 'USER_REACTIVATED';
+      await recordAuditLog({
+        category: 'security',
+        action: actionName,
+        description: `${newStatus === 'suspended' ? 'Suspended' : 'Reactivated'} access privileges for ${user.email}`,
+        severity: newStatus === 'suspended' ? 'warning' : 'info',
+        targetResourceId: user.id,
+        targetResourceType: 'system_users',
+      });
+      toast.success(`User ${user.email} is now ${newStatus}`);
+    } catch (e) {
+      toast.error('Failed to change user status');
+    }
+  };
+
+  // Delete User Account
+  const handleDeleteUser = async (user: SystemUser) => {
+    if (user.email.toLowerCase() === currentUser?.email?.toLowerCase()) {
+      toast.error('Cannot delete your own Super Administrator account.');
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to permanently remove ${user.email} from the studio directory?`)) return;
+    try {
+      await deleteSystemUser(user.id);
+      await recordAuditLog({
+        category: 'security',
+        action: 'USER_DELETED',
+        description: `Permanently removed user account ${user.email} from directory`,
+        severity: 'warning',
+        targetResourceId: user.id,
+        targetResourceType: 'system_users',
+      });
+      toast.success(`User ${user.email} removed from directory`);
+    } catch (e) {
+      toast.error('Failed to remove user');
+    }
+  };
+
+  // Inspect User Activity in Audit Log
+  const handleInspectUserActivity = (user: SystemUser) => {
+    setAuditSearch(user.email);
+    setAuditCategory('all');
+    setAuditSeverity('all');
+    setActiveTab('audit');
+    toast.info(`Filtering audit trail for ${user.email}`);
+  };
+
+  // Feedback Handlers
+  const handleFeedbackStatusChange = async (id: string, newStatus: FeedbackStatus) => {
+    try {
+      await updateFeedback(id, { status: newStatus });
+      toast.success(`Status updated to ${FEEDBACK_STATUS_CONFIG[newStatus].label}`);
+      await recordAuditLog({
+        category: 'settings',
+        action: 'FEEDBACK_STATUS_UPDATED',
+        description: `Updated feedback ${id} status to ${newStatus}`,
+        severity: 'info',
+        targetResourceId: id,
+        targetResourceType: 'feedbacks',
+      });
+    } catch (e) {
+      toast.error('Failed to update status');
+    }
+  };
+
+  const handleDeleteFeedback = async (id: string) => {
+    if (!window.confirm('Are you sure you want to permanently delete this feedback entry?')) return;
+    try {
+      await deleteFeedback(id);
+      toast.success('Feedback entry deleted');
+      await recordAuditLog({
+        category: 'settings',
+        action: 'FEEDBACK_DELETED',
+        description: `Deleted feedback submission ${id}`,
+        severity: 'warning',
+        targetResourceId: id,
+        targetResourceType: 'feedbacks',
+      });
+    } catch (e) {
+      toast.error('Failed to delete feedback');
+    }
+  };
+
+  const handleSaveAdminNotes = async () => {
+    if (!selectedFeedbackForNotes) return;
+    try {
+      await updateFeedback(selectedFeedbackForNotes.id, { adminNotes: adminNoteText.trim() });
+      toast.success('Admin roadmap note saved');
+      await recordAuditLog({
+        category: 'settings',
+        action: 'FEEDBACK_NOTE_SAVED',
+        description: `Admin updated roadmap notes for "${selectedFeedbackForNotes.title || selectedFeedbackForNotes.id}"`,
+        severity: 'info',
+        targetResourceId: selectedFeedbackForNotes.id,
+        targetResourceType: 'feedbacks',
+      });
+      setSelectedFeedbackForNotes(null);
+    } catch (e) {
+      toast.error('Failed to save admin note');
+    }
+  };
 
   // Handle Edit User
   const handleOpenEditUser = (user: SystemUser) => {
@@ -534,7 +914,32 @@ export function Admin() {
           }`}
         >
           <Users className="w-4 h-4" />
-          <span>User Directory ({metrics.totalUsers})</span>
+          <span>Users ({metrics.activeMonthlyCount} Active / {metrics.totalUsers})</span>
+          {metrics.activeNowCount > 0 && (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              {metrics.activeNowCount} Live
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('feedback')}
+          className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
+            activeTab === 'feedback'
+              ? 'bg-card text-foreground shadow-sm font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Lightbulb className="w-4 h-4 text-amber-500" />
+          <span>Feature Requests & Feedback</span>
+          {metrics.newFeedbackCount > 0 ? (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white animate-pulse">
+              {metrics.newFeedbackCount} New
+            </span>
+          ) : (
+            <span className="text-[10px] font-mono text-muted-foreground">({feedbacks.length})</span>
+          )}
         </button>
 
         <button
@@ -595,29 +1000,45 @@ export function Admin() {
               </div>
             </div>
 
-            {/* KPI 2: User Accounts */}
-            <div className="p-5 rounded-2xl border border-border bg-card shadow-sm flex flex-col justify-between">
-              <div className="flex items-center justify-between text-muted-foreground mb-3 text-xs uppercase font-semibold">
-                <span>Photographers & Team</span>
+            {/* KPI 2: Monthly Active Users Using the App */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('users')}
+              className="text-left p-5 rounded-2xl border border-border bg-card shadow-sm flex flex-col justify-between hover:border-blue-500/40 transition-colors cursor-pointer"
+              title="View detailed user usage and activity directory"
+            >
+              <div className="flex items-center justify-between text-muted-foreground mb-3 text-xs uppercase font-semibold w-full">
+                <span>Active Users (30 Days)</span>
                 <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="font-mono text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                  {metrics.totalUsers}
-                </p>
-                <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                    {metrics.activeUsersCount} Active
+                <div className="flex items-baseline gap-2.5 flex-wrap">
+                  <p className="font-mono text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                    {metrics.activeMonthlyCount}
+                  </p>
+                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                    Using App Monthly
                   </span>
+                </div>
+                <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground flex-wrap">
+                  <span className="text-foreground font-medium">{metrics.activeWeeklyCount} This Week</span>
                   <span>·</span>
-                  <span>{metrics.suspendedUsersCount} Suspended</span>
+                  <span>{metrics.activeTodayCount} Today</span>
+                  <span>·</span>
+                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    {metrics.activeNowCount} Live
+                  </span>
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-border/60 text-[11px] text-muted-foreground flex justify-between">
-                <span>Lead Administrator:</span>
-                <span className="font-medium text-foreground">Michael Ringa</span>
+              <div className="mt-4 pt-3 border-t border-border/60 text-[11px] text-muted-foreground flex justify-between w-full">
+                <span>{metrics.totalUsers} Total Signed Up</span>
+                <span className="font-medium text-foreground">
+                  {metrics.inactiveUsersCount > 0 ? `${metrics.inactiveUsersCount} Inactive · ` : ''}
+                  {metrics.suspendedUsersCount} Suspended
+                </span>
               </div>
-            </div>
+            </button>
 
             {/* KPI 3: Quote Conversion */}
             <div className="p-5 rounded-2xl border border-border bg-card shadow-sm flex flex-col justify-between">
@@ -772,15 +1193,27 @@ export function Admin() {
       )}
 
       {/* ========================================================= */}
-      {/* TAB 2: USER & TEAM DIRECTORY                              */}
+      {/* TAB 2: USER & TEAM DIRECTORY (LIVE PRESENCE & CONTROL)    */}
       {/* ========================================================= */}
       {activeTab === 'users' && (
         <div className="border border-border rounded-2xl p-6 bg-card shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-dashed border-border pb-6">
             <div>
-              <h2 className="text-lg font-bold text-foreground">User & Team Management</h2>
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                  User Governance & Monthly Active Monitor
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs font-semibold border border-blue-500/20">
+                  {metrics.activeMonthlyCount} Active (30d)
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-semibold border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  {metrics.activeNowCount} Live
+                </span>
+              </div>
+              <h2 className="text-xl font-bold text-foreground">User & Team Management</h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Manage photographer accounts, assign administrative roles, and control system access.
+                Track everyone actively using the app (monthly, weekly, today), inspect actions, and control access.
               </p>
             </div>
 
@@ -792,6 +1225,45 @@ export function Admin() {
               <Plus className="w-3.5 h-3.5 mr-1.5" />
               Add Team Member
             </Button>
+          </div>
+
+          {/* User Usage & Presence Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+              <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-400 text-xs font-semibold mb-1">
+                <span>Active Users (30 Days)</span>
+                <Users className="w-3.5 h-3.5" />
+              </div>
+              <p className="text-xl font-bold text-foreground">{metrics.activeMonthlyCount} <span className="text-xs font-normal text-muted-foreground">users</span></p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Used app at least once this month</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-border bg-muted/20">
+              <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold mb-1">
+                <span>This Week & Today</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              </div>
+              <p className="text-xl font-bold text-foreground">{metrics.activeWeeklyCount} <span className="text-xs font-normal text-muted-foreground">7d</span></p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{metrics.activeTodayCount} today · {metrics.activeNowCount} online now</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-border bg-muted/20">
+              <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold mb-1">
+                <span>Total Signed Up</span>
+                <Activity className="w-3.5 h-3.5 text-purple-500" />
+              </div>
+              <p className="text-xl font-bold text-foreground">{metrics.totalUsers} <span className="text-xs font-normal text-muted-foreground">accounts</span></p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{metrics.inactiveUsersCount} inactive &gt;30 days</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-border bg-muted/20">
+              <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold mb-1">
+                <span>Suspended</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-rose-500" />
+              </div>
+              <p className="text-xl font-bold text-foreground">{metrics.suspendedUsersCount} <span className="text-xs font-normal text-muted-foreground">accounts</span></p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Access disabled</p>
+            </div>
           </div>
 
           {/* Search & Filter Bar */}
@@ -822,11 +1294,15 @@ export function Admin() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 px-3 text-xs bg-transparent border border-border rounded-xl focus:outline-none focus:border-foreground transition-colors w-full sm:w-[140px]"
+              className="h-10 px-3 text-xs bg-transparent border border-border rounded-xl focus:outline-none focus:border-foreground transition-colors w-full sm:w-[190px]"
             >
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
+              <option value="all">All Users ({metrics.totalUsers})</option>
+              <option value="active_30d">Active (Last 30 Days)</option>
+              <option value="active_7d">Active This Week (7d)</option>
+              <option value="active_today">Active Today</option>
+              <option value="online_now">Online Now</option>
+              <option value="inactive_30d">Inactive (30d+)</option>
+              <option value="suspended">Suspended Accounts</option>
             </select>
           </div>
 
@@ -836,24 +1312,43 @@ export function Admin() {
               <thead>
                 <tr className="border-b border-border text-muted-foreground font-semibold text-[11px] uppercase tracking-wider">
                   <th className="py-3 px-3">User & Contact</th>
+                  <th className="py-3 px-3">App Usage & Last Seen</th>
                   <th className="py-3 px-3">Role</th>
-                  <th className="py-3 px-3">Status</th>
-                  <th className="py-3 px-3">Date Joined</th>
-                  <th className="py-3 px-3">Last Active</th>
+                  <th className="py-3 px-3">Access Control</th>
+                  <th className="py-3 px-3">Activity & Audit</th>
+                  <th className="py-3 px-3">Joined</th>
                   <th className="py-3 px-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
+                {filteredUsers.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="py-10 text-center text-xs text-muted-foreground">
+                      No users match the selected usage or role filter.
+                    </td>
+                  </tr>
+                )}
                 {filteredUsers.map((u) => {
                   const roleConfig = ROLE_LABELS[u.role] || ROLE_LABELS.photographer;
                   const isCurrent = u.email.toLowerCase() === currentUser?.email?.toLowerCase();
+                  const presence = getUserPresence(u);
+                  const userActionCount = auditLogs.filter(
+                    (l) => l.actorId === u.id || l.actorEmail.toLowerCase() === u.email.toLowerCase()
+                  ).length;
 
                   return (
                     <tr key={u.id} className="hover:bg-muted/40 transition-colors">
+                      {/* User Profile */}
                       <td className="py-3.5 px-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
-                            {u.displayName?.charAt(0).toUpperCase() || u.email.charAt(0).toUpperCase()}
+                          <div className="relative">
+                            <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
+                              {u.displayName?.charAt(0).toUpperCase() || u.email.charAt(0).toUpperCase()}
+                            </div>
+                            <span 
+                              className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card ${presence.color}`} 
+                              title={presence.text}
+                            />
                           </div>
                           <div>
                             <div className="font-semibold text-foreground flex items-center gap-1.5">
@@ -865,49 +1360,396 @@ export function Admin() {
                               )}
                             </div>
                             <div className="text-xs text-muted-foreground font-mono">{u.email}</div>
+                            {u.phone && <div className="text-[11px] text-muted-foreground">{u.phone}</div>}
                           </div>
                         </div>
                       </td>
 
+                      {/* App Usage & Last Seen */}
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-2 h-2 rounded-full ${presence.color} ${presence.pulse ? 'animate-pulse' : ''}`} />
+                          <span className="font-medium text-xs text-foreground">
+                            {presence.label}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5 font-mono">
+                          {presence.text}
+                        </div>
+                      </td>
+
+                      {/* Role Badge */}
                       <td className="py-3.5 px-3">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${roleConfig.color}`}>
                           {roleConfig.label}
                         </span>
                       </td>
 
+                      {/* Access Control & Immediate Suspend Toggle */}
                       <td className="py-3.5 px-3">
-                        <span className="flex items-center gap-1.5 text-xs">
-                          <div className={`w-2 h-2 rounded-full ${u.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                          <span className={u.status === 'active' ? 'text-emerald-700 dark:text-emerald-400 font-medium' : 'text-rose-700 dark:text-rose-400 font-medium'}>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold ${
+                            u.status === 'active' 
+                              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' 
+                              : 'bg-rose-500/10 text-rose-700 dark:text-rose-400'
+                          }`}>
                             {u.status === 'active' ? 'Active' : 'Suspended'}
                           </span>
-                        </span>
+                          {!isCurrent && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleToggleSuspendUser(u)}
+                              className={`h-7 px-2 text-[11px] font-semibold ${
+                                u.status === 'active'
+                                  ? 'text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 dark:border-rose-900/50'
+                                  : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200 dark:border-emerald-900/50'
+                              }`}
+                              title={u.status === 'active' ? "Instantly suspend this user's access" : "Restore studio access for this user"}
+                            >
+                              {u.status === 'active' ? (
+                                <>
+                                  <UserX className="w-3 h-3 mr-1" />
+                                  Suspend
+                                </>
+                              ) : (
+                                <>
+                                  <UserCheck className="w-3 h-3 mr-1" />
+                                  Reactivate
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
                       </td>
 
+                      {/* User Activity & Audit Link */}
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {userActionCount} actions
+                          </span>
+                          {userActionCount > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleInspectUserActivity(u)}
+                              className="h-6 px-1.5 text-[11px] text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40"
+                              title="Filter Audit Logs for this user"
+                            >
+                              <Eye className="w-3 h-3 mr-1" />
+                              View
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Joined Date */}
                       <td className="py-3.5 px-3 font-mono text-xs text-muted-foreground tabular-nums">
                         {u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                       </td>
 
-                      <td className="py-3.5 px-3 font-mono text-xs text-muted-foreground tabular-nums">
-                        {u.lastActiveAt ? new Date(u.lastActiveAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Recent'}
-                      </td>
-
+                      {/* Actions */}
                       <td className="py-3.5 px-3 text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenEditUser(u)}
-                          className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground"
-                        >
-                          <Edit2 className="w-3.5 h-3.5 mr-1" />
-                          Edit Role
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenEditUser(u)}
+                            className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground"
+                            title="Edit Role & Metadata"
+                          >
+                            <Edit2 className="w-3.5 h-3.5 mr-1" />
+                            Edit
+                          </Button>
+
+                          {!isCurrent && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteUser(u)}
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                              title="Permanently remove user from directory"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB 3: FEATURE REQUESTS & USER FEEDBACK (ADMIN ONLY)       */}
+      {/* ========================================================= */}
+      {activeTab === 'feedback' && (
+        <div className="border border-border rounded-2xl p-6 bg-card shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-dashed border-border pb-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                  Feature Requests & Team Feedback Inbox
+                </span>
+                {metrics.newFeedbackCount > 0 && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500 text-white text-xs font-bold animate-pulse">
+                    {metrics.newFeedbackCount} New Suggestions
+                  </span>
+                )}
+              </div>
+              <h2 className="text-xl font-bold text-foreground">Feature Proposals & Feedback Hub</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Review new feature requests, triage bug reports submitted by team members, and communicate roadmap progress.
+              </p>
+            </div>
+          </div>
+
+          {/* Feedback Statistics Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="p-3.5 rounded-xl border border-border bg-muted/20">
+              <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold mb-1">
+                <span>Total</span>
+                <Inbox className="w-3.5 h-3.5" />
+              </div>
+              <p className="text-xl font-bold text-foreground">{feedbacks.length}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">All time submissions</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-border bg-amber-500/10 border-amber-500/20">
+              <div className="flex items-center justify-between text-amber-700 dark:text-amber-400 text-xs font-semibold mb-1">
+                <span>New / Unreviewed</span>
+                <Clock className="w-3.5 h-3.5" />
+              </div>
+              <p className="text-xl font-bold text-amber-700 dark:text-amber-400">{metrics.newFeedbackCount}</p>
+              <p className="text-[11px] text-amber-700/80 dark:text-amber-400/80 mt-0.5">Needs admin action</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-border bg-purple-500/10 border-purple-500/20">
+              <div className="flex items-center justify-between text-purple-700 dark:text-purple-400 text-xs font-semibold mb-1">
+                <span>Feature Ideas</span>
+                <Lightbulb className="w-3.5 h-3.5" />
+              </div>
+              <p className="text-xl font-bold text-purple-700 dark:text-purple-400">{metrics.featureProposalsCount}</p>
+              <p className="text-[11px] text-purple-700/80 dark:text-purple-400/80 mt-0.5">Feature proposals</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-border bg-rose-500/10 border-rose-500/20">
+              <div className="flex items-center justify-between text-rose-700 dark:text-rose-400 text-xs font-semibold mb-1">
+                <span>Bug Reports</span>
+                <Bug className="w-3.5 h-3.5" />
+              </div>
+              <p className="text-xl font-bold text-rose-700 dark:text-rose-400">{metrics.bugReportsCount}</p>
+              <p className="text-[11px] text-rose-700/80 dark:text-rose-400/80 mt-0.5">Reported issues</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-border bg-emerald-500/10 border-emerald-500/20 col-span-2 sm:col-span-1">
+              <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-400 text-xs font-semibold mb-1">
+                <span>Resolved</span>
+                <CheckCircle2 className="w-3.5 h-3.5" />
+              </div>
+              <p className="text-xl font-bold text-emerald-700 dark:text-emerald-400">{metrics.resolvedFeedbackCount}</p>
+              <p className="text-[11px] text-emerald-700/80 dark:text-emerald-400/80 mt-0.5">Implemented & closed</p>
+            </div>
+          </div>
+
+          {/* Search & Filter Bar */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={feedbackSearch}
+                onChange={(e) => setFeedbackSearch(e.target.value)}
+                placeholder="Search feedback by keyword, title, submitter name or email..."
+                className="w-full h-10 pl-10 pr-4 text-xs sm:text-sm bg-transparent border border-border rounded-xl focus:outline-none focus:border-foreground transition-colors"
+              />
+            </div>
+
+            <select
+              value={feedbackTypeFilter}
+              onChange={(e) => setFeedbackTypeFilter(e.target.value)}
+              className="h-10 px-3 text-xs bg-transparent border border-border rounded-xl focus:outline-none focus:border-foreground transition-colors w-full sm:w-[170px]"
+            >
+              <option value="all">All Categories</option>
+              <option value="feature">Feature Requests ({metrics.featureProposalsCount})</option>
+              <option value="bug">Bug Reports ({metrics.bugReportsCount})</option>
+              <option value="improvement">Improvements</option>
+              <option value="general">General</option>
+            </select>
+
+            <select
+              value={feedbackStatusFilter}
+              onChange={(e) => setFeedbackStatusFilter(e.target.value)}
+              className="h-10 px-3 text-xs bg-transparent border border-border rounded-xl focus:outline-none focus:border-foreground transition-colors w-full sm:w-[150px]"
+            >
+              <option value="all">All Statuses</option>
+              <option value="new">New ({metrics.newFeedbackCount})</option>
+              <option value="in_review">In Review</option>
+              <option value="planned">Planned</option>
+              <option value="resolved">Resolved</option>
+              <option value="dismissed">Dismissed</option>
+            </select>
+          </div>
+
+          {/* Submissions List */}
+          <div className="space-y-4">
+            {filteredFeedbacks.length === 0 ? (
+              <div className="p-12 text-center border border-dashed border-border rounded-2xl bg-muted/20">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mx-auto mb-3">
+                  <Lightbulb className="w-6 h-6" />
+                </div>
+                <h3 className="text-sm font-bold text-foreground">No Feature Requests or Feedback Found</h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1 leading-relaxed">
+                  {feedbacks.length === 0
+                    ? 'No suggestions have been submitted yet. When team members submit feedback or request new features, they will appear right here for your executive review.'
+                    : 'No feedback matches your current search criteria. Try adjusting your search term or category filters.'}
+                </p>
+              </div>
+            ) : (
+              filteredFeedbacks.map((fb) => {
+                const typeInfo = FEEDBACK_TYPE_CONFIG[fb.type] || FEEDBACK_TYPE_CONFIG.general;
+                const statusInfo = FEEDBACK_STATUS_CONFIG[fb.status] || FEEDBACK_STATUS_CONFIG.new;
+                const TypeIcon = typeInfo.icon;
+                const StatusIcon = statusInfo.icon;
+
+                const timeDistance = fb.createdAt
+                  ? formatDistanceToNow(new Date(fb.createdAt), { addSuffix: true })
+                  : 'Recently';
+
+                return (
+                  <div 
+                    key={fb.id} 
+                    className="p-5 rounded-2xl border border-border bg-card hover:border-foreground/20 transition-all shadow-xs space-y-3.5"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                      {/* Left: Type, Status, Submitter */}
+                      <div className="flex items-start gap-3.5 flex-1 min-w-0">
+                        <div className={`p-2.5 rounded-xl shrink-0 mt-0.5 border ${typeInfo.bg}`}>
+                          <TypeIcon className={`w-4 h-4 ${typeInfo.color}`} />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${typeInfo.bg}`}>
+                              {typeInfo.label}
+                            </span>
+                            <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border flex items-center gap-1 ${statusInfo.badgeClass}`}>
+                              <StatusIcon className="w-3 h-3" />
+                              {statusInfo.label}
+                            </span>
+                            {fb.rating && (
+                              <span className="flex items-center text-[11px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                                <Star className="w-3 h-3 fill-amber-400 mr-1" />
+                                {fb.rating}/5
+                              </span>
+                            )}
+                            <span className="text-[11px] text-muted-foreground">
+                              {timeDistance}
+                            </span>
+                          </div>
+
+                          {fb.title && fb.title !== fb.message && (
+                            <h3 className="text-base font-bold text-foreground leading-snug mb-1">
+                              {fb.title}
+                            </h3>
+                          )}
+
+                          <p className="text-xs sm:text-sm text-foreground leading-relaxed whitespace-pre-line bg-muted/40 p-3.5 rounded-xl border border-border">
+                            {fb.message}
+                          </p>
+
+                          {/* Admin Resolution Note */}
+                          {fb.adminNotes && (
+                            <div className="mt-2.5 text-xs bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl text-foreground flex items-start gap-2.5">
+                              <MessageCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                              <div>
+                                <span className="font-bold text-amber-600 dark:text-amber-400">Admin Roadmap Note: </span>
+                                <span>{fb.adminNotes}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Submitter Details */}
+                          <div className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="font-semibold text-foreground">{fb.userName || 'Team Member'}</span>
+                            <span>•</span>
+                            <span className="font-mono">{fb.userEmail}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Administrative Actions */}
+                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-start">
+                        {/* Status Dropdown */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button variant="outline" size="sm" className="h-8 text-xs font-semibold gap-1.5 rounded-lg border-border">
+                                <span>Status</span>
+                                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                              </Button>
+                            }
+                          />
+                          <DropdownMenuContent align="end" className="w-44">
+                            <DropdownMenuItem onClick={() => handleFeedbackStatusChange(fb.id, 'new')}>
+                              <Clock className="w-3.5 h-3.5 mr-2 text-amber-600" />
+                              Mark New
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleFeedbackStatusChange(fb.id, 'in_review')}>
+                              <Search className="w-3.5 h-3.5 mr-2 text-sky-600" />
+                              Mark In Review
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleFeedbackStatusChange(fb.id, 'planned')}>
+                              <Sparkles className="w-3.5 h-3.5 mr-2 text-purple-600" />
+                              Mark Planned
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleFeedbackStatusChange(fb.id, 'resolved')}>
+                              <CheckCircle2 className="w-3.5 h-3.5 mr-2 text-emerald-600" />
+                              Mark Resolved
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleFeedbackStatusChange(fb.id, 'dismissed')}>
+                              <CheckCheck className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+                              Dismiss
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Add / Edit Admin Notes */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs gap-1.5"
+                          onClick={() => {
+                            setSelectedFeedbackForNotes(fb);
+                            setAdminNoteText(fb.adminNotes || '');
+                          }}
+                          title="Add Roadmap Note or Resolution Comment"
+                        >
+                          <FileEdit className="w-3.5 h-3.5" />
+                          <span>Roadmap Note</span>
+                        </Button>
+
+                        {/* Delete Feedback */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDeleteFeedback(fb.id)}
+                          title="Delete Submission"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       )}
@@ -1387,6 +2229,48 @@ export function Admin() {
             </Button>
             <Button size="sm" onClick={handleCreateAnnouncement} className="bg-primary text-primary-foreground font-semibold">
               Broadcast Banner
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Feedback Admin Roadmap Notes Dialog */}
+      <Dialog open={!!selectedFeedbackForNotes} onOpenChange={(open) => !open && setSelectedFeedbackForNotes(null)}>
+        <DialogContent className="w-[95vw] sm:max-w-md p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold flex items-center gap-2">
+              <FileEdit className="w-4 h-4 text-purple-600" />
+              <span>Admin Roadmap & Resolution Note</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 py-3 text-xs sm:text-sm">
+            <div>
+              <p className="font-semibold text-foreground">{selectedFeedbackForNotes?.title}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Submitted by {selectedFeedbackForNotes?.userName} ({selectedFeedbackForNotes?.userEmail})
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Internal Roadmap Note or Action Plan</Label>
+              <Textarea
+                value={adminNoteText}
+                onChange={(e) => setAdminNoteText(e.target.value)}
+                placeholder="e.g. Planned for v2.4 release; assigned to backend workflow sprint..."
+                rows={4}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                This note will be attached to the feedback item and visible in the admin governance console.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-3 border-t">
+            <Button variant="outline" size="sm" onClick={() => setSelectedFeedbackForNotes(null)}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={handleSaveAdminNotes} className="bg-primary text-primary-foreground font-semibold">
+              Save Roadmap Note
             </Button>
           </div>
         </DialogContent>

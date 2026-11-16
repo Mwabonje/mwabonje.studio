@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings, Users, Camera, Wallet, FileSignature, BookOpen, HelpCircle, MessageSquarePlus, GraduationCap, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, CreditCard, PieChart, Menu, X, Settings, Users, Camera, Wallet, FileSignature, BookOpen, HelpCircle, MessageSquarePlus, GraduationCap, ShieldCheck, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 import { auth } from '@/lib/firebase';
@@ -98,12 +98,6 @@ export function Layout() {
     ] : []),
     { name: 'Performance', href: '/performance', icon: PieChart },
     { name: 'Equipment', href: '/equipment', icon: Camera },
-    { 
-      name: isSuper ? 'Feedback Inbox' : 'Feedback', 
-      href: '/feedback', 
-      icon: MessageSquarePlus,
-      badge: isSuper && newFeedbackCount > 0 ? newFeedbackCount : undefined,
-    },
     { name: 'System Guide', href: '/guide', icon: BookOpen },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
@@ -128,17 +122,14 @@ export function Layout() {
           </h1>
         </Link>
         <div className="flex items-center gap-1 shrink-0">
-          <Link 
-            to="/feedback"
-            className="w-11 h-11 flex items-center justify-center text-white/80 hover:text-white rounded-lg active:bg-white/10 transition-colors relative" 
-            title={isSuper ? "Feedback Inbox" : "Send Feedback"}
-            aria-label={isSuper ? "Feedback Inbox" : "Send Feedback"}
+          <button 
+            onClick={() => setIsFeedbackDialogOpen(true)}
+            className="w-11 h-11 flex items-center justify-center text-white/80 hover:text-white rounded-lg active:bg-white/10 transition-colors" 
+            title="Suggest a Feature or Send Feedback to Studio Administrator"
+            aria-label="Suggest a Feature or Send Feedback"
           >
-            <MessageSquarePlus className="w-5 h-5" />
-            {isSuper && newFeedbackCount > 0 && (
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-primary animate-pulse" />
-            )}
-          </Link>
+            <Lightbulb className="w-5 h-5 text-amber-300" />
+          </button>
           <Link 
             to="/guide" 
             className="w-11 h-11 flex items-center justify-center text-white/80 hover:text-white rounded-lg active:bg-white/10 transition-colors" 
@@ -226,8 +217,21 @@ export function Layout() {
             })}
           </ul>
         </nav>
+        <div className="px-6 lg:px-10 mt-auto pt-3 pb-3 border-t border-white/10">
+          <button
+            onClick={() => setIsFeedbackDialogOpen(true)}
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-white/90 bg-white/10 hover:bg-white/15 rounded-xl transition-all border border-white/10 shadow-xs group"
+            title="Suggest a Feature or Send Feedback to Studio Administrator"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <Lightbulb className="w-3.5 h-3.5 text-amber-300 shrink-0 group-hover:scale-110 transition-transform" />
+              <span className="truncate">Suggest a Feature</span>
+            </div>
+            <span className="text-[10px] text-white/60 bg-white/10 px-1.5 py-0.5 rounded font-mono">Feedback</span>
+          </button>
+        </div>
 
-        <div className="px-6 lg:px-10 mt-auto pt-6 border-t border-white/10">
+        <div className="px-6 lg:px-10 pt-3 pb-6 border-t border-white/10">
           <div className="flex items-center justify-between">
             <div className="flex items-center overflow-hidden mr-2">
               <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-bold text-lg shrink-0">

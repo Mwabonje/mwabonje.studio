@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { db, auth } from '../lib/firebase';
-import { collection, doc, setDoc, deleteDoc, onSnapshot, query } from 'firebase/firestore';
+import { collection, doc, setDoc, updateDoc, getDoc, deleteDoc, onSnapshot, query } from 'firebase/firestore';
 
 export type Client = {
   id: string;
@@ -330,6 +330,7 @@ type AppState = {
   schoolDeposits: SchoolDeposit[];
   schoolAccountMeta: SchoolAccountMeta;
   systemUsers: SystemUser[];
+  registeredAuthUsers: Array<{ id: string; email?: string; lastLogin?: string }>;
   auditLogs: AuditLog[];
   announcements: SystemAnnouncement[];
   settings: Settings;
@@ -389,6 +390,7 @@ type AppState = {
 
   addSystemUser: (user: SystemUser) => Promise<void>;
   updateSystemUser: (id: string, user: Partial<SystemUser>) => Promise<void>;
+  deleteSystemUser: (id: string) => Promise<void>;
   recordAuditLog: (log: {
     category: AuditCategory;
     action: string;
@@ -467,6 +469,37 @@ const cleanData = (obj: any): any => {
   return obj;
 };
 
+let lastActivityTouchMs = 0;
+
+export const touchUserActivity = async (force = false) => {
+  const user = auth.currentUser;
+  if (!user) return;
+  const nowMs = Date.now();
+  if (!force && nowMs - lastActivityTouchMs < 30_000) return;
+  lastActivityTouchMs = nowMs;
+
+  const nowIso = new Date(nowMs).toISOString();
+  try {
+    const sysRef = doc(db, 'system_users', user.uid);
+    const snap = await getDoc(sysRef);
+    if (snap.exists()) {
+      await updateDoc(sysRef, { lastActiveAt: nowIso });
+    } else {
+      await setDoc(sysRef, {
+        id: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || user.email?.split('@')[0] || 'Studio User',
+        role: 'photographer',
+        status: 'active',
+        joinedAt: nowIso,
+        lastActiveAt: nowIso,
+      });
+    }
+  } catch (e) {
+    // ignore
+  }
+};
+
 export const useStore = create<AppState>((set, get) => ({
   clients: [],
   projects: [],
@@ -481,6 +514,7 @@ export const useStore = create<AppState>((set, get) => ({
   schoolDeposits: [],
   schoolAccountMeta: getInitialSchoolAccountMeta(),
   systemUsers: [],
+  registeredAuthUsers: [],
   auditLogs: [],
   announcements: [],
   settings: getInitialSettings(),
@@ -518,6 +552,14 @@ export const useStore = create<AppState>((set, get) => ({
     if (!uid) return;
     const data = cleanData({ ...client, uid });
     await setDoc(doc(db, `users/${uid}/clients`, client.id), data);
+    touchUserActivity();
+    get().recordAuditLog({
+      category: 'project',
+      action: 'CLIENT_CREATED',
+      description: `Client profile "${client.name}" registered`,
+      targetResourceId: client.id,
+      targetResourceType: 'clients',
+    });
   },
   updateClient: async (id, client) => {
     const uid = auth.currentUser?.uid;
@@ -525,11 +567,13 @@ export const useStore = create<AppState>((set, get) => ({
     const existing = get().clients.find(c => c.id === id);
     if (!existing) return;
     await setDoc(doc(db, `users/${uid}/clients`, id), cleanData({ ...existing, ...client, uid }));
+    touchUserActivity();
   },
   deleteClient: async (id) => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
     await deleteDoc(doc(db, `users/${uid}/clients`, id));
+    touchUserActivity();
   },
 
   addProject: async (project) => {
@@ -537,6 +581,14 @@ export const useStore = create<AppState>((set, get) => ({
     if (!uid) return;
     const data = cleanData({ ...project, uid });
     await setDoc(doc(db, `users/${uid}/projects`, project.id), data);
+    touchUserActivity();
+    get().recordAuditLog({
+      category: 'project',
+      action: 'PROJECT_CREATED',
+      description: `Project "${project.title}" created`,
+      targetResourceId: project.id,
+      targetResourceType: 'projects',
+    });
   },
   updateProject: async (id, project) => {
     const uid = auth.currentUser?.uid;
@@ -544,11 +596,13 @@ export const useStore = create<AppState>((set, get) => ({
     const existing = get().projects.find(p => p.id === id);
     if (!existing) return;
     await setDoc(doc(db, `users/${uid}/projects`, id), cleanData({ ...existing, ...project, uid }));
+    touchUserActivity();
   },
   deleteProject: async (id) => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
     await deleteDoc(doc(db, `users/${uid}/projects`, id));
+    touchUserActivity();
   },
 
   addQuote: async (quote) => {
@@ -556,6 +610,14 @@ export const useStore = create<AppState>((set, get) => ({
     if (!uid) return;
     const data = cleanData({ ...quote, uid });
     await setDoc(doc(db, `users/${uid}/quotes`, quote.id), data);
+    touchUserActivity();
+    get().recordAuditLog({
+      category: 'project',
+      action: 'QUOTE_CREATED',
+      description: `Quote generated for KES ${(Number(quote.totalAmount) || 0).toLocaleString()}`,
+      targetResourceId: quote.id,
+      targetResourceType: 'quotes',
+    });
   },
   updateQuote: async (id, quote) => {
     const uid = auth.currentUser?.uid;
@@ -596,6 +658,14 @@ export const useStore = create<AppState>((set, get) => ({
     if (!uid) return;
     const data = cleanData({ ...invoice, uid });
     await setDoc(doc(db, `users/${uid}/invoices`, invoice.id), data);
+    touchUserActivity();
+    get().recordAuditLog({
+      category: 'finance',
+      action: 'INVOICE_CREATED',
+      description: `Invoice #${invoice.invoiceNumber || invoice.id.slice(0, 8)} generated (KES ${(Number(invoice.totalAmount) || 0).toLocaleString()})`,
+      targetResourceId: invoice.id,
+      targetResourceType: 'invoices',
+    });
   },
   updateInvoice: async (id, invoice) => {
     const uid = auth.currentUser?.uid;
@@ -603,6 +673,7 @@ export const useStore = create<AppState>((set, get) => ({
     const existing = get().invoices.find(i => i.id === id);
     if (!existing) return;
     await setDoc(doc(db, `users/${uid}/invoices`, id), cleanData({ ...existing, ...invoice, uid }));
+    touchUserActivity();
   },
   deleteInvoice: async (id) => {
     const uid = auth.currentUser?.uid;
@@ -615,6 +686,7 @@ export const useStore = create<AppState>((set, get) => ({
     }
     
     await deleteDoc(doc(db, `users/${uid}/invoices`, id));
+    touchUserActivity();
   },
 
   addPayment: async (payment) => {
@@ -622,6 +694,14 @@ export const useStore = create<AppState>((set, get) => ({
     if (!uid) return;
     const data = cleanData({ ...payment, uid });
     await setDoc(doc(db, `users/${uid}/payments`, payment.id), data);
+    touchUserActivity();
+    get().recordAuditLog({
+      category: 'finance',
+      action: 'PAYMENT_RECORDED',
+      description: `Payment of KES ${(Number(payment.amount) || 0).toLocaleString()} via ${payment.method?.toUpperCase()} recorded`,
+      targetResourceId: payment.id,
+      targetResourceType: 'payments',
+    });
     
     // Update invoice balance
     const invoice = get().invoices.find((i) => i.id === payment.invoiceId);
@@ -704,6 +784,14 @@ export const useStore = create<AppState>((set, get) => ({
     if (!uid) return;
     const data = cleanData({ ...expense, uid });
     await setDoc(doc(db, `users/${uid}/expenses`, expense.id), data);
+    touchUserActivity();
+    get().recordAuditLog({
+      category: 'finance',
+      action: 'EXPENSE_RECORDED',
+      description: `Operating expense "${expense.category}" (KES ${(Number(expense.amount) || 0).toLocaleString()}) to ${expense.vendor || 'Vendor'} logged`,
+      targetResourceId: expense.id,
+      targetResourceType: 'expenses',
+    });
   },
   updateExpense: async (id, expense) => {
     const uid = auth.currentUser?.uid;
@@ -711,11 +799,13 @@ export const useStore = create<AppState>((set, get) => ({
     const existing = get().expenses.find((e) => e.id === id);
     if (!existing) return;
     await setDoc(doc(db, `users/${uid}/expenses`, id), cleanData({ ...existing, ...expense, uid }));
+    touchUserActivity();
   },
   deleteExpense: async (id) => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
     await deleteDoc(doc(db, `users/${uid}/expenses`, id));
+    touchUserActivity();
   },
 
   
@@ -741,6 +831,15 @@ export const useStore = create<AppState>((set, get) => ({
   addFeedback: async (feedback) => {
     const data = cleanData(feedback);
     await setDoc(doc(db, 'feedbacks', feedback.id), data);
+    set((state) => ({ feedbacks: [feedback, ...state.feedbacks.filter(f => f.id !== feedback.id)] }));
+    touchUserActivity();
+    get().recordAuditLog({
+      category: 'settings',
+      action: 'FEEDBACK_SUBMITTED',
+      description: `Submitted ${feedback.type}: "${feedback.title || feedback.message.slice(0, 45)}"`,
+      targetResourceId: feedback.id,
+      targetResourceType: 'feedbacks',
+    });
   },
   updateFeedback: async (id, feedback) => {
     const existing = get().feedbacks.find((f) => f.id === id);
@@ -809,11 +908,32 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   updateSystemUser: async (id, updates) => {
-    const existing = get().systemUsers.find((u) => u.id === id);
-    if (!existing) return;
+    let existing = get().systemUsers.find((u) => u.id === id);
+    if (!existing) {
+      const legacy = get().registeredAuthUsers.find((u) => u.id === id);
+      if (!legacy) return;
+      existing = {
+        id: legacy.id,
+        email: legacy.email || '',
+        displayName: legacy.email?.split('@')[0] || 'Studio User',
+        role: 'photographer',
+        status: 'active',
+        joinedAt: legacy.lastLogin || new Date().toISOString(),
+        lastActiveAt: legacy.lastLogin || new Date().toISOString(),
+      };
+    }
     const merged = cleanData({ ...existing, ...updates });
     await setDoc(doc(db, 'system_users', id), merged);
-    set((state) => ({ systemUsers: state.systemUsers.map(u => u.id === id ? merged : u) }));
+    set((state) => ({
+      systemUsers: state.systemUsers.some((u) => u.id === id)
+        ? state.systemUsers.map((u) => (u.id === id ? merged : u))
+        : [...state.systemUsers, merged],
+    }));
+  },
+
+  deleteSystemUser: async (id) => {
+    await deleteDoc(doc(db, 'system_users', id));
+    set((state) => ({ systemUsers: state.systemUsers.filter((u) => u.id !== id) }));
   },
 
   recordAuditLog: async (logInput) => {

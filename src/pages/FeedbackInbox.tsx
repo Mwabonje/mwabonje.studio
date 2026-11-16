@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { FeedbackDialog } from '@/components/FeedbackDialog';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { isSuperUser } from '@/lib/auth-utils';
 import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
@@ -99,6 +100,10 @@ export function FeedbackInbox() {
 
   const currentUser = auth.currentUser;
   const isSuper = isSuperUser(currentUser?.email);
+
+  if (isSuper) {
+    return <Navigate to="/admin" replace />;
+  }
 
   // Statistics
   const stats = useMemo(() => {

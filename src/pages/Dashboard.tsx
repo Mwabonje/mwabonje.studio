@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ActionTooltip } from '@/components/ui/tooltip';
+import { FeedbackDialog } from '@/components/FeedbackDialog';
+import { Lightbulb } from 'lucide-react';
 
 const MANUAL_GUIDE_EXPLORED_KEY = 'has_explored_system_manual';
 
@@ -21,6 +23,7 @@ export function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [isClearQuotesDialogOpen, setIsClearQuotesDialogOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [hasExploredGuide, setHasExploredGuide] = useState<boolean>(() => {
     try {
       return localStorage.getItem(MANUAL_GUIDE_EXPLORED_KEY) === 'true';
@@ -522,9 +525,9 @@ export function Dashboard() {
               <Receipt className="w-4 h-4 mr-3 text-muted-foreground" />
               <span className="font-medium text-foreground">New Invoice</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/feedback')} className="cursor-pointer py-3 border-t border-border">
-              <MessageSquarePlus className="w-4 h-4 mr-3 text-amber-500" />
-              <span className="font-medium text-foreground">Send Feedback</span>
+            <DropdownMenuItem onClick={() => setIsFeedbackOpen(true)} className="cursor-pointer py-3 border-t border-border">
+              <Lightbulb className="w-4 h-4 mr-3 text-amber-500" />
+              <span className="font-medium text-foreground">Suggest Feature / Feedback</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/guide?tour=true')} className="cursor-pointer py-3 border-t border-border">
               <BookOpen className="w-4 h-4 mr-3 text-accent" />
@@ -532,6 +535,9 @@ export function Dashboard() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Feedback Submission Modal */}
+        <FeedbackDialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen} />
       </div>
     </div>
   );

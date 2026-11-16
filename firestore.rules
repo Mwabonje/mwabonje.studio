@@ -6,31 +6,25 @@ service cloud.firestore {
     // ===============================================================
     // Global Helper Functions
     // ===============================================================
-    
-    // Check if the user is authenticated
+
+    // Require signed-in user with a verified email
     function isAuthenticated() {
-      return request.auth != null;
+      return request.auth != null && request.auth.token.email_verified == true;
     }
-    
+
     // Check if user owns the user-namespaced resource
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Check if user is Super Administrator
+    // Strictly restrict Super Administrator privileges to the verified owner email
     function isSuperUser() {
-      return isAuthenticated() && (
-        request.auth.token.email == 'ringa.michael@gmail.com' ||
-        request.auth.token.email.matches('.*ringa\\.michael.*') ||
-        request.auth.token.email.matches('.*admin.*')
-      );
+      return isAuthenticated() && request.auth.token.email == 'ringa.michael@gmail.com';
     }
 
-    // Validate string length
-    function validStringLength(field, minLen, maxLen) {
-      return request.resource.data[field] is string &&
-        request.resource.data[field].size() >= minLen &&
-        request.resource.data[field].size() <= maxLen;
+    // Validate document ID format to prevent oversized/malformed path injection
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
     // Validate optional string
@@ -44,6 +38,13 @@ service cloud.firestore {
     // ===============================================================
     // Domain Validators
     // ===============================================================
+
+    function isValidUserRoot() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['email', 'lastLogin']) &&
+             isValidOptionalString('email', 0, 150) &&
+             isValidOptionalString('lastLogin', 0, 100);
+    }
 
     function isValidClient() {
       let data = request.resource.data;
@@ -156,10 +157,23 @@ service cloud.firestore {
              isValidOptionalString('paymentDetails', 0, 2000);
     }
 
-    function isValidFeedback() {
+    function isValidSchoolDeposit() {
       let data = request.resource.data;
       return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
-             data.userId == request.auth.uid &&
+             data.date is string && data.date.size() > 0 && data.date.size() < 100 &&
+             data.amount is number && data.amount > 0 &&
+             data.paymentMethod in ['mpesa', 'bank_transfer', 'standing_order', 'cash', 'cheque', 'other'] &&
+             data.targetTerm is string && data.targetTerm.size() > 0 && data.targetTerm.size() < 150 &&
+             data.purpose in ['tuition', 'admission', 'uniform_books', 'transport_meals', 'general_savings', 'other'] &&
+             isValidOptionalString('mpesaReference', 0, 150) &&
+             isValidOptionalString('notes', 0, 5000) &&
+             data.uid == request.auth.uid;
+    }
+
+    function isValidFeedbackFields() {
+      let data = request.resource.data;
+      return data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.userId is string && data.userId.size() > 0 && data.userId.size() < 128 &&
              data.userEmail is string && data.userEmail.size() > 0 && data.userEmail.size() < 150 &&
              isValidOptionalString('userName', 0, 150) &&
              data.type in ['feature', 'bug', 'improvement', 'general'] &&
@@ -167,6 +181,7 @@ service cloud.firestore {
              data.message is string && data.message.size() > 0 && data.message.size() < 10000 &&
              data.status in ['new', 'in_review', 'planned', 'resolved', 'dismissed'] &&
              data.createdAt is string && data.createdAt.size() > 0 && data.createdAt.size() < 100 &&
+             (!('rating' in data) || (data.rating is number && data.rating >= 1 && data.rating <= 5)) &&
              isValidOptionalString('adminNotes', 0, 5000);
     }
 
@@ -222,100 +237,114 @@ service cloud.firestore {
     // ===============================================================
 
     match /users/{userId} {
-      // User can read and write their own top-level profile doc
-      allow get, list, create, update: if isOwner(userId);
+      // User can read and write their own top-level login metadata; Super Admin can list/get for active user tracking
+      allow get: if isValidId(userId) && (isOwner(userId) || isSuperUser());
+      allow list: if isSuperUser();
+      allow create, update: if isValidId(userId) && isOwner(userId) && isValidUserRoot();
       allow delete: if false;
 
       // 1. Private Expense Records (strictly filtered by UID)
       match /expenses/{expenseId} {
-        allow get, list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
-        allow create: if isOwner(userId) && isValidExpense();
-        allow update: if isOwner(userId) && isValidExpense() && request.resource.data.uid == resource.data.uid;
-        allow delete: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow get: if isValidId(expenseId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow create: if isValidId(expenseId) && isOwner(userId) && isValidExpense();
+        allow update: if isValidId(expenseId) && isOwner(userId) && isValidExpense() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isValidId(expenseId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
       }
 
       // 2. Private Clients (strictly filtered by UID)
       match /clients/{clientId} {
-        allow get, list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
-        allow create: if isOwner(userId) && isValidClient();
-        allow update: if isOwner(userId) && isValidClient() && request.resource.data.uid == resource.data.uid;
-        allow delete: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow get: if isValidId(clientId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow create: if isValidId(clientId) && isOwner(userId) && isValidClient();
+        allow update: if isValidId(clientId) && isOwner(userId) && isValidClient() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isValidId(clientId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
       }
 
       // 3. Private Projects (strictly filtered by UID)
       match /projects/{projectId} {
-        allow get, list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
-        allow create: if isOwner(userId) && isValidProject();
-        allow update: if isOwner(userId) && isValidProject() && request.resource.data.uid == resource.data.uid;
-        allow delete: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow get: if isValidId(projectId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow create: if isValidId(projectId) && isOwner(userId) && isValidProject();
+        allow update: if isValidId(projectId) && isOwner(userId) && isValidProject() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isValidId(projectId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
       }
 
       // 4. Private Project Templates
       match /project_templates/{templateId} {
-        allow get, list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
-        allow create: if isOwner(userId) && isValidProjectTemplate();
-        allow update: if isOwner(userId) && isValidProjectTemplate() && request.resource.data.uid == resource.data.uid;
-        allow delete: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow get: if isValidId(templateId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow create: if isValidId(templateId) && isOwner(userId) && isValidProjectTemplate();
+        allow update: if isValidId(templateId) && isOwner(userId) && isValidProjectTemplate() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isValidId(templateId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
       }
 
       // 5. Private Equipment Assets
       match /equipment/{equipmentId} {
-        allow get, list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
-        allow create: if isOwner(userId) && isValidEquipment();
-        allow update: if isOwner(userId) && isValidEquipment() && request.resource.data.uid == resource.data.uid;
-        allow delete: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow get: if isValidId(equipmentId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow create: if isValidId(equipmentId) && isOwner(userId) && isValidEquipment();
+        allow update: if isValidId(equipmentId) && isOwner(userId) && isValidEquipment() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isValidId(equipmentId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
       }
 
       // 6. Private Reminders
       match /reminders/{reminderId} {
-        allow get, list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
-        allow create: if isOwner(userId) && isValidReminder();
-        allow update: if isOwner(userId) && isValidReminder() && request.resource.data.uid == resource.data.uid;
-        allow delete: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow get: if isValidId(reminderId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow create: if isValidId(reminderId) && isOwner(userId) && isValidReminder();
+        allow update: if isValidId(reminderId) && isOwner(userId) && isValidReminder() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isValidId(reminderId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
       }
 
       // 7. Private Payments
       match /payments/{paymentId} {
-        allow get, list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
-        allow create: if isOwner(userId) && isValidPayment();
-        allow update: if isOwner(userId) && isValidPayment() && request.resource.data.uid == resource.data.uid;
-        allow delete: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow get: if isValidId(paymentId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow create: if isValidId(paymentId) && isOwner(userId) && isValidPayment();
+        allow update: if isValidId(paymentId) && isOwner(userId) && isValidPayment() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isValidId(paymentId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
       }
 
-      // 8. Quotes (public get for shared link, authenticated list/write for owner)
+      // 8. Quotes (public get by exact ID for client shared link, authenticated list/write for owner)
       match /quotes/{quoteId} {
-        allow get: if true;
+        allow get: if isValidId(quoteId);
         allow list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
-        allow create: if isOwner(userId) && isValidQuote();
-        allow update: if isOwner(userId) && isValidQuote() && request.resource.data.uid == resource.data.uid;
-        allow delete: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow create: if isValidId(quoteId) && isOwner(userId) && isValidQuote();
+        allow update: if isValidId(quoteId) && isOwner(userId) && isValidQuote() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isValidId(quoteId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
       }
 
-      // 9. Invoices (public get for shared link, authenticated list/write for owner)
+      // 9. Invoices (public get by exact ID for client shared link, authenticated list/write for owner)
       match /invoices/{invoiceId} {
-        allow get: if true;
+        allow get: if isValidId(invoiceId);
         allow list: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
-        allow create: if isOwner(userId) && isValidInvoice();
-        allow update: if isOwner(userId) && isValidInvoice() && request.resource.data.uid == resource.data.uid;
-        allow delete: if isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
+        allow create: if isValidId(invoiceId) && isOwner(userId) && isValidInvoice();
+        allow update: if isValidId(invoiceId) && isOwner(userId) && isValidInvoice() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isValidId(invoiceId) && isOwner(userId) && (resource.data.uid == request.auth.uid || !('uid' in resource.data));
       }
 
       // 10. Settings (public get for brand rendering on shared links, write for owner)
       match /settings/{settingId} {
-        allow get: if true;
+        allow get: if isValidId(settingId);
         allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && isValidSettings();
-        allow update: if isOwner(userId) && isValidSettings();
-        allow delete: if isOwner(userId);
+        allow create, update: if isValidId(settingId) && isOwner(userId) && isValidSettings();
+        allow delete: if isValidId(settingId) && isOwner(userId);
       }
 
       // 11. Son's School Deposits & Account Meta (Strictly Super Admin only)
       match /school_deposits/{depositId} {
-        allow get, list, create, update, delete: if isOwner(userId) && isSuperUser();
+        allow get: if isValidId(depositId) && isOwner(userId) && isSuperUser();
+        allow list: if isOwner(userId) && isSuperUser();
+        allow create: if isValidId(depositId) && isOwner(userId) && isSuperUser() && isValidSchoolDeposit();
+        allow update: if isValidId(depositId) && isOwner(userId) && isSuperUser() && isValidSchoolDeposit() && request.resource.data.uid == resource.data.uid;
+        allow delete: if isValidId(depositId) && isOwner(userId) && isSuperUser();
       }
 
       match /school_deposits_meta/{metaId} {
-        allow get, list, create, update, delete: if isOwner(userId) && isSuperUser();
+        allow get: if isValidId(metaId) && isOwner(userId) && isSuperUser();
+        allow list: if isOwner(userId) && isSuperUser();
+        allow create, update, delete: if isValidId(metaId) && isOwner(userId) && isSuperUser();
       }
     }
 
@@ -324,52 +353,91 @@ service cloud.firestore {
     // ===============================================================
 
     match /expenses/{expenseId} {
-      allow get, list, delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
-      allow create: if isAuthenticated() && isValidExpense();
-      allow update: if isAuthenticated() && isValidExpense() && request.resource.data.uid == resource.data.uid;
+      allow get, delete: if isValidId(expenseId) && isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow list: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isValidId(expenseId) && isAuthenticated() && isValidExpense();
+      allow update: if isValidId(expenseId) && isAuthenticated() && isValidExpense() && request.resource.data.uid == resource.data.uid;
     }
 
     match /clients/{clientId} {
-      allow get, list, delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
-      allow create: if isAuthenticated() && isValidClient();
-      allow update: if isAuthenticated() && isValidClient() && request.resource.data.uid == resource.data.uid;
+      allow get, delete: if isValidId(clientId) && isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow list: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isValidId(clientId) && isAuthenticated() && isValidClient();
+      allow update: if isValidId(clientId) && isAuthenticated() && isValidClient() && request.resource.data.uid == resource.data.uid;
     }
 
     match /projects/{projectId} {
-      allow get, list, delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
-      allow create: if isAuthenticated() && isValidProject();
-      allow update: if isAuthenticated() && isValidProject() && request.resource.data.uid == resource.data.uid;
+      allow get, delete: if isValidId(projectId) && isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow list: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isValidId(projectId) && isAuthenticated() && isValidProject();
+      allow update: if isValidId(projectId) && isAuthenticated() && isValidProject() && request.resource.data.uid == resource.data.uid;
     }
 
     // ===============================================================
     // Feedbacks Collection
     // ===============================================================
     match /feedbacks/{feedbackId} {
-      // Super user sees all feedback; regular users can only read their own submitted feedback
-      allow get, list: if isAuthenticated() && (isSuperUser() || resource.data.userId == request.auth.uid);
-      allow create: if isAuthenticated() && isValidFeedback();
-      allow update, delete: if isSuperUser();
+      // Super Admin sees all feedback; regular users can only read their own submitted feedback
+      allow get: if isValidId(feedbackId) && isAuthenticated() && (isSuperUser() || resource.data.userId == request.auth.uid);
+      allow list: if isAuthenticated() && (isSuperUser() || resource.data.userId == request.auth.uid);
+      allow create: if isValidId(feedbackId) &&
+                       isAuthenticated() &&
+                       isValidFeedbackFields() &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.userEmail == request.auth.token.email &&
+                       request.resource.data.status == 'new' &&
+                       !('adminNotes' in request.resource.data);
+      allow update: if isValidId(feedbackId) &&
+                       isSuperUser() &&
+                       isValidFeedbackFields() &&
+                       request.resource.data.userId == resource.data.userId &&
+                       request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isValidId(feedbackId) && isSuperUser();
     }
 
     // ===============================================================
-    // Super Admin: System User Directory
+    // Super Admin: System User Directory (Zero Self-Escalation)
     // ===============================================================
     match /system_users/{userId} {
-      allow get, list: if isAuthenticated() && (isSuperUser() || request.auth.uid == userId);
-      allow create: if isAuthenticated() && (request.auth.uid == userId || isSuperUser()) && isValidSystemUser();
-      allow update: if isAuthenticated() && isValidSystemUser() && (
-        isSuperUser() || 
-        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status']))
-      );
-      allow delete: if isSuperUser();
+      allow get: if isValidId(userId) && (isSuperUser() || (isAuthenticated() && request.auth.uid == userId));
+      allow list: if isSuperUser();
+      allow create: if isValidId(userId) &&
+                       isValidSystemUser() &&
+                       request.resource.data.id == userId && (
+                         isSuperUser() || (
+                           isAuthenticated() &&
+                           request.auth.uid == userId &&
+                           request.resource.data.email == request.auth.token.email &&
+                           request.resource.data.role == 'photographer' &&
+                           request.resource.data.status == 'active'
+                         )
+                       );
+      allow update: if isValidId(userId) &&
+                       isValidSystemUser() && (
+                         isSuperUser() || (
+                           isAuthenticated() &&
+                           request.auth.uid == userId &&
+                           resource.data.status == 'active' &&
+                           request.resource.data.id == resource.data.id &&
+                           request.resource.data.email == resource.data.email &&
+                           request.resource.data.joinedAt == resource.data.joinedAt &&
+                           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActiveAt', 'displayName'])
+                         )
+                       );
+      allow delete: if isValidId(userId) && isSuperUser();
     }
 
     // ===============================================================
-    // Super Admin: Security Audit Log (Immutable append)
+    // Super Admin: Security Audit Log (Immutable append, no actor spoofing)
     // ===============================================================
     match /audit_logs/{logId} {
-      allow get, list: if isSuperUser();
-      allow create: if isAuthenticated() && isValidAuditLog();
+      allow get: if isValidId(logId) && isSuperUser();
+      allow list: if isSuperUser();
+      allow create: if isValidId(logId) &&
+                       isAuthenticated() &&
+                       isValidAuditLog() &&
+                       request.resource.data.actorId == request.auth.uid &&
+                       request.resource.data.actorEmail == request.auth.token.email;
       allow update, delete: if false; // strictly immutable audit trail
     }
 
@@ -377,9 +445,15 @@ service cloud.firestore {
     // Global System Announcements
     // ===============================================================
     match /system_announcements/{announcementId} {
-      allow get, list: if isAuthenticated();
-      allow create, update: if isSuperUser() && isValidSystemAnnouncement();
-      allow delete: if isSuperUser();
+      allow get: if isValidId(announcementId) && isAuthenticated();
+      allow list: if isAuthenticated();
+      allow create: if isValidId(announcementId) && isSuperUser() && isValidSystemAnnouncement();
+      allow update: if isValidId(announcementId) &&
+                       isSuperUser() &&
+                       isValidSystemAnnouncement() &&
+                       request.resource.data.id == resource.data.id &&
+                       request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isValidId(announcementId) && isSuperUser();
     }
   }
 }
