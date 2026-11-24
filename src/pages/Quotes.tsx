@@ -2,7 +2,7 @@ import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useStore, Quote, QuotePackage, QuoteDeliverableTask } from "@/store";
-import { formatQuoteNumber, generateNextQuoteNumber, generateQuoteRevisionNumber } from "@/lib/documentNumbering";
+import { formatQuoteNumber, generateNextQuoteNumber, generateQuoteRevisionNumber, formatDocumentFilename } from "@/lib/documentNumbering";
 import { getPhotographyName, getPhotographyLegalName, sanitizeTermsText, sanitizePaymentDetails, getDefaultQuoteTerms } from "@/lib/branding";
 import { NDA } from "@/components/NDA";
 import { Contract } from "@/components/Contract";
@@ -596,9 +596,16 @@ export function Quotes() {
       // Allow layout to recalculate
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const safeTitle = (formData.projectTitle || "Quote")
-        .replace(/[^a-z0-9]/gi, "_")
-        .toLowerCase();
+      const quoteRefNumber = activePreviewQuote
+        ? formatQuoteNumber(activePreviewQuote)
+        : formData.quoteNumber
+        ? formatQuoteNumber({
+            id: editingQuote?.id || "quote",
+            quoteNumber: formData.quoteNumber,
+            date: formData.date,
+            issueDate: formData.issueDate,
+          })
+        : generateNextQuoteNumber(quotes);
 
       const htmlToImage = await import("html-to-image");
       const jsPDFModule = await import("jspdf");
@@ -630,7 +637,7 @@ export function Quotes() {
 
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
 
-      pdf.save(`Proposal_${safeTitle}.pdf`);
+      pdf.save(formatDocumentFilename('Proposal', formData.projectTitle || activePreviewQuote?.projectTitle, quoteRefNumber));
 
       element.style.cssText = originalStyle;
       element.className = originalClass;
@@ -668,10 +675,6 @@ export function Quotes() {
 
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const safeTitle = (quoteForNDA.projectTitle || "Project")
-        .replace(/[^a-z0-9]/gi, "_")
-        .toLowerCase();
-
       const htmlToImage = await import("html-to-image");
       const jsPDFModule = await import("jspdf");
       const jsPDF = ("default" in jsPDFModule ? jsPDFModule.default : jsPDFModule) as any;
@@ -699,7 +702,7 @@ export function Quotes() {
 
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
 
-      pdf.save(`NDA_${safeTitle}.pdf`);
+      pdf.save(formatDocumentFilename('NDA', quoteForNDA.projectTitle, formatQuoteNumber(quoteForNDA)));
 
       element.style.cssText = originalStyle;
       element.className = originalClass;
@@ -742,10 +745,6 @@ export function Quotes() {
 
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const safeTitle = (quoteForContract.projectTitle || "Project")
-        .replace(/[^a-z0-9]/gi, "_")
-        .toLowerCase();
-      
       const htmlToImage = await import("html-to-image");
       const jsPDFModule = await import("jspdf");
       const jsPDF = ("default" in jsPDFModule ? jsPDFModule.default : jsPDFModule) as any;
@@ -773,7 +772,7 @@ export function Quotes() {
 
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
 
-      pdf.save(`Contract_${safeTitle}.pdf`);
+      pdf.save(formatDocumentFilename('Contract', quoteForContract.projectTitle, formatQuoteNumber(quoteForContract)));
 
       element.style.cssText = originalStyle;
       element.className = originalClass;

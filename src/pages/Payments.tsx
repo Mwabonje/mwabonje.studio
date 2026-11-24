@@ -1,7 +1,7 @@
 import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useMemo } from 'react';
 import { useStore, Payment, CollaboratorSplit } from '@/store';
-import { formatReceiptNumber, formatInvoiceNumber } from '@/lib/documentNumbering';
+import { formatReceiptNumber, formatInvoiceNumber, formatDocumentFilename } from '@/lib/documentNumbering';
 import { getPhotographyName, sanitizePaymentDetails, formatCapitalizedName } from '@/lib/branding';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -212,7 +212,8 @@ export function Payments() {
       
       const invoice = invoices.find(i => i.id === previewPayment.invoiceId);
       const project = projects.find(p => p.id === invoice?.projectId);
-      const safeTitle = (project?.title || 'Receipt').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const linkedQuote = invoice?.quoteId ? quotes.find(q => q.id === invoice.quoteId) : undefined;
+      const docTitle = project?.title || linkedQuote?.projectTitle;
       
       const htmlToImage = await import('html-to-image');
       const jsPDFModule = await import('jspdf');
@@ -243,7 +244,7 @@ export function Payments() {
 
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
 
-      pdf.save(`Receipt_${formatReceiptNumber(previewPayment)}.pdf`);
+      pdf.save(formatDocumentFilename('Receipt', docTitle, formatReceiptNumber(previewPayment)));
       
       element.style.cssText = originalStyle;
       element.className = originalClass;

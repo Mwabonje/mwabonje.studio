@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore, Quote } from '@/store';
-import { formatQuoteNumber } from '@/lib/documentNumbering';
+import { formatQuoteNumber, formatDocumentFilename } from '@/lib/documentNumbering';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -86,10 +86,6 @@ export function Contracts() {
 
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const safeTitle = (quoteForContract.projectTitle || "Project")
-        .replace(/[^a-z0-9]/gi, "_")
-        .toLowerCase();
-      
       const htmlToImage = await import("html-to-image");
       const jsPDFModule = await import("jspdf");
       const jsPDF = ("default" in jsPDFModule ? jsPDFModule.default : jsPDFModule) as any;
@@ -116,7 +112,7 @@ export function Contracts() {
       });
 
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
-      pdf.save(`Contract_${safeTitle}.pdf`);
+      pdf.save(formatDocumentFilename('Contract', quoteForContract.projectTitle, formatQuoteNumber(quoteForContract)));
 
       element.style.cssText = originalStyle;
       element.className = originalClass;
@@ -148,10 +144,6 @@ export function Contracts() {
 
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const safeTitle = (quoteForNDA.projectTitle || "Project")
-        .replace(/[^a-z0-9]/gi, "_")
-        .toLowerCase();
-
       const htmlToImage = await import("html-to-image");
       const jsPDFModule = await import("jspdf");
       const jsPDF = ("default" in jsPDFModule ? jsPDFModule.default : jsPDFModule) as any;
@@ -178,7 +170,7 @@ export function Contracts() {
       });
 
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
-      pdf.save(`NDA_${safeTitle}.pdf`);
+      pdf.save(formatDocumentFilename('NDA', quoteForNDA.projectTitle, formatQuoteNumber(quoteForNDA)));
 
       element.style.cssText = originalStyle;
       element.className = originalClass;

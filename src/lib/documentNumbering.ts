@@ -199,3 +199,41 @@ export function formatReceiptNumber(
   const code = cleanId.length >= 6 ? cleanId.slice(0, 6) : cleanId.padEnd(6, '0');
   return `RCT-${fallbackYear}-${code || '000000'}`;
 }
+
+export type DocumentFilenameType =
+  | 'Proposal'
+  | 'Invoice'
+  | 'Contract'
+  | 'NDA'
+  | 'Receipt'
+  | 'Report';
+
+/**
+ * Formats downloadable document filenames into a clean, referenceable hyphen-separated format,
+ * e.g. "Proposal-family-photoshoot-QT-2026-0073.pdf".
+ */
+export function formatDocumentFilename(
+  docType: DocumentFilenameType,
+  title?: string | null,
+  referenceNumber?: string | null,
+  ext: string = 'pdf'
+): string {
+  const titleSlug = (title || '')
+    .toLowerCase()
+    .trim()
+    .replace(/['’]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  const cleanRef = (referenceNumber || '')
+    .trim()
+    .replace(/[^a-zA-Z0-9-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toUpperCase();
+
+  const baseName = [docType, titleSlug, cleanRef].filter(Boolean).join('-');
+  const cleanExt = ext.replace(/^\./, '');
+  return cleanExt ? `${baseName}.${cleanExt}` : baseName;
+}
+

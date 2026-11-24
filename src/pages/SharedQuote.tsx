@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getResolvedTheme } from "@/lib/theme";
-import { formatQuoteNumber } from "@/lib/documentNumbering";
+import { formatQuoteNumber, formatDocumentFilename } from "@/lib/documentNumbering";
 import { getPhotographyName, sanitizeTermsText, sanitizePaymentDetails } from "@/lib/branding";
 
 export function SharedQuote() {
@@ -226,10 +226,6 @@ export function SharedQuote() {
       // Allow layout to recalculate
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const safeTitle = (quote.projectTitle || "Quote")
-        .replace(/[^a-z0-9]/gi, "_")
-        .toLowerCase();
-
       const htmlToImage = await import("html-to-image");
       const jsPDFModule = await import("jspdf");
       const jsPDF = (
@@ -260,7 +256,7 @@ export function SharedQuote() {
 
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
 
-      pdf.save(`Proposal_${safeTitle}.pdf`);
+      pdf.save(formatDocumentFilename('Proposal', quote.projectTitle, formatQuoteNumber(quote)));
 
       element.style.cssText = originalStyle;
       element.className = originalClass;

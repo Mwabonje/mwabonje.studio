@@ -1,7 +1,7 @@
 import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useStore, Invoice, LineItem, Quote } from '@/store';
-import { formatInvoiceNumber, generateNextInvoiceNumber } from '@/lib/documentNumbering';
+import { formatInvoiceNumber, generateNextInvoiceNumber, formatDocumentFilename } from '@/lib/documentNumbering';
 import { getPhotographyName, sanitizePaymentDetails, formatCapitalizedName } from '@/lib/branding';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -85,7 +85,9 @@ export function Invoices() {
       await new Promise(resolve => setTimeout(resolve, 100));
 
       const project = projects.find(p => p.id === previewInvoice.projectId);
-      const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const linkedQuote = previewInvoice.quoteId ? quotes.find(q => q.id === previewInvoice.quoteId) : undefined;
+      const docTitle = project?.title || linkedQuote?.projectTitle;
+      const invoiceRefNumber = formatInvoiceNumber(previewInvoice, linkedQuote, quotes);
       
       const htmlToImage = await import('html-to-image');
       const jsPDFModule = await import('jspdf');
@@ -116,7 +118,7 @@ export function Invoices() {
 
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
       
-      pdf.save(`Invoice_${safeTitle}.pdf`);
+      pdf.save(formatDocumentFilename('Invoice', docTitle, invoiceRefNumber));
       
       element.style.cssText = originalStyle;
       element.className = originalClass;

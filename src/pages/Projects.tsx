@@ -2,6 +2,7 @@ import { PDFLoader } from "@/components/PDFLoader";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useStore, Project, CollaboratorSplit, Milestone } from '@/store';
+import { formatDocumentFilename, formatQuoteNumber, formatInvoiceNumber } from '@/lib/documentNumbering';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,7 +82,13 @@ export function Projects() {
       // Allow layout to recalculate
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const safeTitle = (previewProject.title || 'Project').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const linkedQuote = quotes.find(q => q.projectId === previewProject.id);
+      const linkedInvoice = invoices.find(i => i.projectId === previewProject.id);
+      const docRef = linkedQuote
+        ? formatQuoteNumber(linkedQuote)
+        : linkedInvoice
+        ? formatInvoiceNumber(linkedInvoice, undefined, quotes)
+        : undefined;
       
       const htmlToImage = await import('html-to-image');
       const jsPDFModule = await import('jspdf');
@@ -111,7 +118,7 @@ export function Projects() {
       });
       
       pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeightOriginal);
-      pdf.save(`${safeTitle}_report.pdf`);
+      pdf.save(formatDocumentFilename('Report', previewProject.title, docRef));
       
       // Restore element
       element.style.cssText = originalStyle;

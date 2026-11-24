@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getResolvedTheme } from '@/lib/theme';
-import { formatInvoiceNumber } from '@/lib/documentNumbering';
+import { formatInvoiceNumber, formatDocumentFilename } from '@/lib/documentNumbering';
 import { getPhotographyName, sanitizePaymentDetails, formatCapitalizedName } from '@/lib/branding';
 
 import { formatPhoneNumber } from '@/lib/utils';
@@ -210,7 +210,8 @@ export function SharedInvoice() {
       // Allow layout to recalculate
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      const safeTitle = (project?.title || 'Invoice').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const docTitle = project?.title || quote?.projectTitle;
+      const invoiceRefNumber = formatInvoiceNumber(invoice, quote);
       
       const htmlToImage = await import('html-to-image');
       const jsPDFModule = await import('jspdf');
@@ -241,7 +242,7 @@ export function SharedInvoice() {
 
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeightOriginal);
       
-      pdf.save(`Invoice_${safeTitle}.pdf`);
+      pdf.save(formatDocumentFilename('Invoice', docTitle, invoiceRefNumber));
       
       element.style.cssText = originalStyle;
       element.className = originalClass;
