@@ -618,7 +618,7 @@ export function SharedQuote() {
                         className={`package-card ${isFeatured ? "featured" : ""} flex flex-col`}
                       >
                         {isFeatured && (
-                          <span className="premium-badge">Most Popular</span>
+                          <span className="premium-badge">Recommended</span>
                         )}
                         <div className="package-header w-full">
                           <div className="package-tier">

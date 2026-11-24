@@ -2297,7 +2297,7 @@ export function Quotes() {
                                 htmlFor={`popular-${pkg.id}`}
                                 className="text-sm font-medium leading-none cursor-pointer"
                               >
-                                Mark as Most Popular
+                                Mark as Recommended
                               </Label>
                             </div>
                           </div>
@@ -3116,7 +3116,7 @@ export function Quotes() {
                             >
                               {isFeatured && (
                                 <span className="premium-badge">
-                                  Most Popular
+                                  Recommended
                                 </span>
                               )}
                               <div className="package-header w-full">
