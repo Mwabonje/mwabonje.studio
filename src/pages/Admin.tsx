@@ -67,6 +67,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SystemAnnouncementBanner } from '@/components/SystemAnnouncementBanner';
+import { UserActivitySummary } from '@/components/UserActivitySummary';
 import { toast } from 'sonner';
 import { formatDistanceToNow, format } from 'date-fns';
 import { 
@@ -1189,6 +1190,15 @@ export function Admin() {
               </div>
             </div>
           </div>
+
+          {/* User Activity Summary */}
+          <UserActivitySummary
+            users={effectiveUsers}
+            auditLogs={auditLogs}
+            currentUserEmail={currentUser?.email}
+            onInspectUser={handleInspectUserActivity}
+            onViewAllUsers={() => setActiveTab('users')}
+          />
         </div>
       )}
 
